@@ -15,14 +15,14 @@ public class Path {
 		this.p2 = p2;
 	}
 	
-	public List<Point2D> setPath(Path path, Point2D p , Pane root) {
-		List<Point2D> ShortestPath = new ArrayList<Point2D>();
+	public List<Node> setPath(Path path, Point2D p , Pane root) {
+		List<Node> ShortestPath = new ArrayList<Node>();
 		if(path.p1 == null) {
 			path.setP1(p);
 		}else if (path.getP2() == null){
 			path.setP2(p);
-			Node start = new Node(path.getP1().getX() * Settings.castleSize , path.getP1().getY() * Settings.castleSize , 0 ,0);
-			Node end = new Node(path.getP2().getX() * Settings.castleSize , path.getP2().getY()  * Settings.castleSize, 0 ,0);
+			Node start = new Node(path.getP1().getX() , path.getP1().getY(), 0 ,0);
+			Node end = new Node(path.getP2().getX() , path.getP2().getY(), 0 ,0);
 			System.out.println(start);
 			System.out.println(end);
 			ShortestPath = AEtoile.CheminPlusCourt(start , end , root);
@@ -33,6 +33,7 @@ public class Path {
 		return ShortestPath;
 		
 	}
+	
 
 	public Point2D getP1() {
 		return p1;

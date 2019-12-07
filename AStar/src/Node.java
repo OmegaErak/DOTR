@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 
+
 public class Node {
 	
 	private double x;
@@ -33,17 +34,31 @@ public class Node {
 		
 		
 		if(y + Settings.castleSize < Settings.windowHeight) {
-		Node v2 = new Node(x,y + Settings.castleSize,cout,heuristique);
+		Node v2 = new Node(x , y + Settings.castleSize,cout,heuristique);
 		voisin.add(v2);
 		}
 		
 		
 		if(y - Settings.castleSize >= 0) {
-		Node v3 = new Node(x,y - Settings.castleSize,cout,heuristique);
+		Node v3 = new Node(x , y - Settings.castleSize,cout,heuristique);
 		voisin.add(v3);
 		}
 		
 		return voisin;
+	}
+	
+	public Node clone() {
+		
+		Node clonedCell = new Node( x, y, cout, heuristique);
+		clonedCell.setCout(cout);
+		clonedCell.setHeuristique(heuristique);
+		
+		if( cameFrom != null) {
+			clonedCell.cameFrom = cameFrom.clone();
+		}
+		
+		return clonedCell;
+		
 	}
 
 	public Node getCameFrom() {

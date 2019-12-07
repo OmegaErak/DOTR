@@ -42,21 +42,19 @@ public abstract class AEtoile {
 //	}
 	
 	
-	private static List<Point2D> reconstructPath( Node current) {
+	private static List<Node> reconstructPath( Node current) {
 		
-			List<Point2D> totalPath = new ArrayList<>(200); // arbitrary value, we'll most likely have more than 10 which is default for java
+			List<Node> totalPath = new ArrayList<>(200); // arbitrary value, we'll most likely have more than 10 which is default for java
 			
 			// total_path := [current]
-			Point2D currentPath = new Point2D(current.getX() , current.getY());
-			totalPath.add( currentPath);
+			totalPath.add( current);
 				
 			// while current in came_from:
 			// current := came_from[current]
 			while( (current = current.getCameFrom()) != null) {
 
 				// total_path.append(current)
-				Point2D path = new Point2D(current.getX() , current.getY());
-				totalPath.add(path);
+				totalPath.add(current);
 		       
 			}
 	        
@@ -67,15 +65,17 @@ public abstract class AEtoile {
 	
 	
 	
-	Node start;
-	static boolean conatinsNeighbor;
 	
-	public static List<Point2D> CheminPlusCourt(Node start , Node end , Pane root) {
+	
+	public static List<Node> CheminPlusCourt(Node start , Node end , Pane root) {
+		
+		Node current = null;
+		boolean containsNeighbor;
+		
 		Tile tile;
 		int tileCount = Settings.nbCasesHor * Settings.nbCasesVer;
 		Set<Node> closedList = new HashSet<Node>(tileCount);
 		PriorityQueue<Node> openList = new PriorityQueue<Node>(tileCount , new NodeComparator());
-		//ArrayList<Point2D> path = new ArrayList<Point2D>();
 		
 		openList.add(start);
 		
@@ -84,12 +84,14 @@ public abstract class AEtoile {
 		
 		while(!openList.isEmpty()) {
 			
-			Node u = openList.poll();
-			if(u == end) {
-				List<Point2D>  reconstructedPath = reconstructPath(end);
+//			System.out.println(closedList.size());
+			
+			current  = openList.poll();
+			if(current.getX() == end.getX() && current.getY() == end.getY()) {
+				List<Node>reconstructedPath = reconstructPath(current);
 				for(int i = 0 ; i < reconstructedPath.size() ; i++) {
-					Point2D cell = reconstructedPath.get(i);
-					tile = new Tile(Color.INDIANRED, Settings.castleSize, Settings.castleSize, Color.BLACK,1 , true , cell);
+					Point2D cell = new Point2D(reconstructedPath.get(i).getX() , reconstructedPath.get(i).getY());
+					tile = new Tile(Color.GREEN, Settings.castleSize, Settings.castleSize, Color.BLACK,1 , true , cell);
 					tile.setTranslateX(cell.getX());
 					tile.setTranslateY(cell.getY());
 					root.getChildren().addAll(tile);
@@ -99,26 +101,31 @@ public abstract class AEtoile {
 				return reconstructedPath;
 			}
 			
-			closedList.add(u);
+			closedList.add(current);
 			
-			for(Node neighbor : u.voisin()) {
-				Point2D merde = null ;
-				//System.out.println(v);
-				tile = new Tile(Color.INDIANRED, Settings.castleSize, Settings.castleSize, Color.BLACK,1 , true , merde);
-				tile.setTranslateX(neighbor.getX());
-				tile.setTranslateY(neighbor.getY());
-				root.getChildren().addAll(tile);
+			for(Node neighbor : current.voisin()) {
+				
+				if( neighbor == null) {
+					continue;
+				}
+				
+//				Point2D merde = null ;
+//				System.out.println(v);
+//				tile = new Tile(Color.INDIANRED, Settings.castleSize, Settings.castleSize, Color.BLACK,1 , true , merde);
+//				tile.setTranslateX(neighbor.getX());
+//				tile.setTranslateY(neighbor.getY());
+//				root.getChildren().addAll(tile);
 				
 				if(closedList.contains(neighbor)){
 					continue;
 				}
 				
-				double tentativeScoreG = u.getCout() + distBetween( u, neighbor);
+				double tentativeScoreG = current.getCout() + distBetween( current, neighbor);
 				
-				if( !(conatinsNeighbor= openList.contains(neighbor)) || Double.compare(tentativeScoreG, neighbor.getCout()) < 0) {
+				if( !(containsNeighbor= openList.contains(neighbor)) || Double.compare(tentativeScoreG, neighbor.getCout()) < 0) {
 					
 					// came_from[neighbor] := current
-					neighbor.setCameFrom(u);
+					neighbor.setCameFrom(current);
 				
 					// g_score[neighbor] := tentative_g_score
 					neighbor.setCout(tentativeScoreG);
@@ -129,12 +136,16 @@ public abstract class AEtoile {
 					
 				}
 				
+				if(!containsNeighbor) {
+					openList.add(neighbor);
+				}
+				
 //				neighbor.setCout(u.getCout() + 1);
 //				Point2D p1 = new Point2D(neighbor.getX(),neighbor.getY());
 //				Point2D p2 = new Point2D(end.getX() , end.getY());
 //				Point2D pex = new Point2D(neighbor.getX() , neighbor.getY());		
 //				neighbor.setHeuristique(neighbor.getCout() + p1.distance(p2));					
-				openList.add(neighbor);
+//				openList.add(neighbor);
 				
 				
 			}

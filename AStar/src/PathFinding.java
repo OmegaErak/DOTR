@@ -34,7 +34,7 @@ public class PathFinding extends Application{
 
 		for(int i = 0; i < nbCasesHor; ++i) {
 			for(int j = 0; j < nbCasesVer; ++j) {
-				Point2D p = new Point2D (i,j);
+				Point2D p = new Point2D (i  * Settings.castleSize ,j * Settings.castleSize);
 				tile = new Tile(null, Settings.castleSize, Settings.castleSize, Color.BLACK,1 , true , p ,path , root);
 				tile.setTranslateX(i * Settings.castleSize);
 				tile.setTranslateY(j * Settings.castleSize);

@@ -38,6 +38,7 @@ public class Tile extends StackPane{
 		this.setOnMouseEntered(e->border.setFill(Color.LIGHTGREY));
 		this.setOnMouseExited(e->border.setFill(null));
 		this.setOnMouseClicked(e -> path.setPath(path, p , root));
+//		this.setOnMouseClicked(e -> {System.out.println(p) ;System.out.println(new Node(p.getX(),p.getY(),0,0).voisin());});
 //		System.out.println(path);
 		
 		
