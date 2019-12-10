@@ -1,21 +1,23 @@
 import javafx.application.Application;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.HBox;
-import base.DOTR;
+
+import base.Game;
 
 public class EntryPoint extends Application {	
 	public void start(Stage primaryStage) throws Exception {
-		DOTR game = new DOTR();
+		Game game = new Game();
 
-		primaryStage.setScene(new Scene(game.createContent()));
+		primaryStage.setTitle("Dukes of the realm");
+		primaryStage.getIcons().add(new Image("resources/icons/application.png"));
+		primaryStage.setScene(new Scene(game.getRoot()));
 		primaryStage.show();
+
+		game.run();
 	}
 	 	
 	public static void main(String[] args) {
 		launch(args);
 	}
 }
-
-    

@@ -2,9 +2,14 @@ package troops;
 
 import buildings.Castle;
 
+import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
+
 public class Onager extends Troop {
 	
-	public Onager(int numberOfUnit, Castle castle) {
+	public Onager(Pane renderLayer, Image texture, Castle castle) {
+		super(renderLayer, texture, castle);
+
 		this.prodCost 	= 1000;
 		this.prodTime 	= 50;
 		this.speed 		= 1;

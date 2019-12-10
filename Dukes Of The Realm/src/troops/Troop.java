@@ -1,8 +1,14 @@
 package troops;
 
-import javafx.geometry.Point2D;
+import base.Sprite;
 
-abstract public class Troop {
+import buildings.Castle;
+
+import javafx.geometry.Point2D;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
+
+abstract public class Troop  extends Sprite {
 	protected int prodTime;
 	protected int prodCost;
 	protected int speed;
@@ -10,8 +16,11 @@ abstract public class Troop {
 	protected int damage;
 	
 	protected Point2D position;
-	
-	public Troop() {}
+
+	// TODO: Remove texture from here like in castle
+	public Troop(Pane renderLayer, Image texture, Castle castle) {
+		super(renderLayer, castle.getPosition(), texture);
+	}
 	
 	public boolean isAlive() {
 		return health > 0;
@@ -63,5 +72,7 @@ abstract public class Troop {
 
 	public void setPosition(Point2D position) {
 		this.position = position;
-	}	
+	}
+
+//	public abstract StackPane toJavaFX();
 }

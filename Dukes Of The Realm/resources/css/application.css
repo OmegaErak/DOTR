@@ -1,0 +1,32 @@
+.leftStatusBar {
+    -fx-background-color: #dfdfdf;
+    -fx-padding: 6px 0 0 6px;
+    -fx-border-color: black;
+    -fx-border-style: solid;
+    -fx-border-width: 0 0 2px 0;
+    -fx-alignment: top-left;
+	-fx-font-weight: bold;
+	-fx-font-size: 14px;
+}
+
+.centerStatusBar {
+    -fx-background-color: #dfdfdf;
+    -fx-padding: 6px 0 0 0;
+    -fx-border-color: black;
+    -fx-border-style: solid;
+    -fx-border-width: 0 0 2px 0;
+    -fx-alignment: top-center;
+	-fx-font-weight: bold;
+	-fx-font-size: 14px;
+}
+
+.rightStatusBar {
+    -fx-background-color: #dfdfdf;
+    -fx-padding: 6px 6px 0 0;
+    -fx-border-color: black;
+    -fx-border-style: solid;
+    -fx-border-width: 0 0 2px 0;
+    -fx-alignment: top-right;
+	-fx-font-weight: bold;
+	-fx-font-size: 14px;
+}
