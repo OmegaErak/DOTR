@@ -1,6 +1,6 @@
 .leftStatusBar {
     -fx-background-color: #dfdfdf;
-    -fx-padding: 6px 0 0 6px;
+    -fx-padding: 4px 0 0 4px;
     -fx-border-color: black;
     -fx-border-style: solid;
     -fx-border-width: 0 0 2px 0;
@@ -11,7 +11,7 @@
 
 .centerStatusBar {
     -fx-background-color: #dfdfdf;
-    -fx-padding: 6px 0 0 0;
+    -fx-padding: 4px 0 0 0;
     -fx-border-color: black;
     -fx-border-style: solid;
     -fx-border-width: 0 0 2px 0;
@@ -22,7 +22,7 @@
 
 .rightStatusBar {
     -fx-background-color: #dfdfdf;
-    -fx-padding: 6px 6px 0 0;
+    -fx-padding: 4px 4px 0 0;
     -fx-border-color: black;
     -fx-border-style: solid;
     -fx-border-width: 0 0 2px 0;
