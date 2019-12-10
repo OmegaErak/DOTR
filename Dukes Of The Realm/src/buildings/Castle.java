@@ -84,9 +84,9 @@ public class Castle extends Sprite {
 	}
 
 	private void updateData() {
-		this.passiveIncome = 10 * this.level;
+		this.passiveIncome = 100 * this.level;
 		this.nextLevelBuildCost = 1000 * this.level;
-		this.nextLevelBuildTime = 100 + 50 * this.level;
+		this.nextLevelBuildTime = 10 + 5 * this.level;
 	}
 	
 	public int getTreasure() {
@@ -122,9 +122,13 @@ public class Castle extends Sprite {
 	public int getNextLevelBuildCost() {
 		return nextLevelBuildCost;
 	}
+	
+	public int getNextLevelRemainingTime() {
+		return timeUntilLevelUp;
+	}
 
 	public boolean canLevelUp() {
-		return this.treasure >= this.nextLevelBuildCost;
+		return this.treasure >= this.nextLevelBuildCost && !this.isLevelingUp;
 	}
 
 	public void levelUp() {
@@ -135,6 +139,10 @@ public class Castle extends Sprite {
 		removeFromCanvas();
 		setTexture(buildingTexture);
 		addToCanvas();
+	}
+
+	public boolean isLevelingUp() {
+		return isLevelingUp;
 	}
 
 	public Point2D getPosition() {

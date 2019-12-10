@@ -7,6 +7,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import javafx.scene.media.MediaPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,25 +40,6 @@ public class CenterStatusBar extends StatusBar {
         this.renderLayer.getChildren().add(statusBar);
 
         createButtons();
-    }
-
-    public void setDefaultView() {
-        for (Sprite button : buttons1) {
-            button.removeFromCanvas();
-        }
-
-        displayLevel = 0;
-    }
-
-    public void setCastleView(Castle castle) {
-        if (displayLevel == 0) {
-            for (Sprite button : buttons1) {
-                button.addToCanvas();
-            }
-
-            currentCastle = castle;
-            displayLevel = 1;
-        }
     }
 
     private void createButtons() {
@@ -96,5 +78,47 @@ public class CenterStatusBar extends StatusBar {
             e.consume();
         });
         buttons1.add(levelUpButton);
+    }
+    
+    private StatusBarView view;
+
+    @Override
+    public void updateView() {
+        if (view == StatusBarView.DefaultMenuView || view == StatusBarView.DefaultGameView) {
+            for (Sprite button : buttons1) {
+                button.removeFromCanvas();
+            }
+
+            displayLevel = 0;
+        } else if (view == StatusBarView.CastleView) {
+            if (displayLevel == 0) {
+                for (Sprite button : buttons1) {
+                    button.addToCanvas();
+                }
+
+                displayLevel = 1;
+            }
+        }
+    }
+
+    @Override
+    public void setDefaultMenuView() {
+        view = StatusBarView.DefaultMenuView;
+    }
+    
+    @Override
+    public void setDefaultGameView() {
+        view = StatusBarView.DefaultGameView;
+    }
+
+    @Override
+    public void setCastleView(Castle castle) {
+        view = StatusBarView.CastleView;
+        currentCastle = castle;
+    }
+    
+    @Override
+    public void setCreditsView() {
+        view = StatusBarView.CreditsView;
     }
 }

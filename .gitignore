@@ -12,7 +12,9 @@
 *.project
 
 # IntelliJ files
-*iml
+out
+*.idea
+*.iml
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

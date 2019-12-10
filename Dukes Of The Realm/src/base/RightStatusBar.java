@@ -15,15 +15,45 @@ public class RightStatusBar extends StatusBar {
         statusBar.getChildren().add(statusBarText);
         this.renderLayer.getChildren().add(statusBar);
     }
-
-    public void setDefaultView() {
-        statusBarText.setText("");
+    
+    private Castle castle;
+    private StatusBarView view;
+    
+    @Override
+    public void updateView() {
+    	if (view == StatusBarView.DefaultMenuView) {
+    		statusBarText.setText("");
+    	} else if (view == StatusBarView.CreditsView) {
+    		statusBarText.setText("");
+    	} else if (view == StatusBarView.DefaultGameView) {
+    		statusBarText.setText("");
+    	} else if (view == StatusBarView.CastleView) {
+    		String text = "Chevaliers: " + castle.getNbKnights() + "\n"
+    					+ "Onagres: " + castle.getNbOnagers() + "\n"
+    					+ "Piquiers: " + castle.getNbPikemen() + "\n";
+    		
+    		statusBarText.setText(text);
+    	}    	
+    }
+  
+    @Override
+    public void setDefaultMenuView() {
+    	view = StatusBarView.DefaultMenuView;
     }
 
+    @Override
+    public void setDefaultGameView() {
+    	view = StatusBarView.DefaultGameView;
+    }
+
+    @Override
     public void setCastleView(Castle castle) {
-        statusBarText.setText("Chevaliers: " + castle.getNbKnights() + "\n"
-                            + "Onagres: " + castle.getNbOnagers() + "\n"
-                            + "Piquiers: " + castle.getNbPikemen()
-        );
+    	view = StatusBarView.CastleView;
+    	this.castle = castle;
+    }
+
+    @Override
+    public void setCreditsView() {
+    	view = StatusBarView.CreditsView;
     }
 }

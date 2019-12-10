@@ -29,11 +29,13 @@ public class Game {
 		this.renderLayer.setOnMouseClicked(e -> {
 			if (this.gameMode == GameMode.Menu) {
 				leftStatusBar.setDefaultMenuView();
+				centerStatusBar.setDefaultMenuView();
+				rightStatusBar.setDefaultMenuView();
 			} else if (this.gameMode == GameMode.Game) {
-				leftStatusBar.setDefaultGameView(currentDay);
+				leftStatusBar.setDefaultGameView();
+				centerStatusBar.setDefaultGameView();
+				rightStatusBar.setDefaultGameView();
 			}
-			centerStatusBar.setDefaultView();
-			rightStatusBar.setDefaultView();
 			e.consume();
 		});
 
@@ -45,9 +47,9 @@ public class Game {
 	private Input input;
 	private boolean isRunning = true;
 	private int frameCounter = 0;
-	private int framesPerDay = 120; // Two seconds.
+	private int framesPerDay = 60; // One second.
 
-	private int currentDay = 0;
+	private Day currentDay = new Day();
 
 	public void run() {
 		loadGame();
@@ -56,6 +58,9 @@ public class Game {
 			@Override
 			public void handle(long now) {
 				processInput(input, now);
+				leftStatusBar.updateView();
+				centerStatusBar.updateView();
+				rightStatusBar.updateView();
 
 				if (isRunning) {
 					processInput(input, now);
@@ -64,7 +69,7 @@ public class Game {
 						++frameCounter;
 						if (frameCounter >= framesPerDay) {
 							frameCounter -= framesPerDay;
-							++currentDay;
+							++currentDay.dayInt;
 
 							for (Castle castle : castles) {
 								castle.onUpdate();
@@ -91,10 +96,7 @@ public class Game {
 	private CenterStatusBar centerStatusBar;
 	private RightStatusBar rightStatusBar;
 
-	private Image nbPlayersInfoTexture;
-
 	private List<Image> buttonsTextures = new ArrayList<>();
-	private List<Image> nbPlayersButtonsTexture = new ArrayList<>();
 
 	private void loadGame() {
 		input = new Input(this.root.getScene());
@@ -109,12 +111,6 @@ public class Game {
 		buttonsTextures.add(new Image("resources/sprites/buttons/loadGame.png"));
 		buttonsTextures.add(new Image("resources/sprites/buttons/credits.png"));
 
-		nbPlayersInfoTexture = new Image("resources/sprites/buttons/nbPlayersInfo.png");
-
-		for (int i = 0; i < Settings.nbMaxPlayers; ++i) {
-			nbPlayersButtonsTexture.add(new Image("resources/sprites/buttons/" + (1+i) + ".png"));
-		}
-
 		// TODO: Initialise input and add listeners
 
 		createStatusBar();
@@ -125,17 +121,12 @@ public class Game {
 		setMenuView();
 	}
 
-	private int nbPlayers;
-
 	private Sprite menuBackground;
 	private Sprite gameBackground;
-
-	private Sprite nbPlayersInfo;
 
 	private List<Castle> castles = new ArrayList<>();
 
 	private List<Sprite> defaultMenuButtons = new ArrayList<>();
-	private List<Sprite> nbPlayersButtons = new ArrayList<>();
 
 	private void createMenuButtons() {
     	final double buttonWidth = buttonsTextures.get(0).getWidth();
@@ -149,7 +140,7 @@ public class Game {
 		final Sprite startButton = new Sprite(renderLayer, startButtonPos, buttonsTextures.get(buttonIndex++));
 		startButton.getTextureView().setOnMouseClicked(e -> {
 			leftStatusBar.setDefaultMenuView();
-			setNewGameView();
+			setGameView();
 			e.consume();
 		});
 		defaultMenuButtons.add(startButton);
@@ -169,57 +160,31 @@ public class Game {
 			e.consume();
 		});
 		defaultMenuButtons.add(creditsButton);
-
-		nbPlayersInfo = new Sprite(renderLayer, startButtonPos, nbPlayersInfoTexture);
-
-		final double playerButtonWidth = nbPlayersButtonsTexture.get(0).getWidth();
-
-		final double playerButtonPosY = loadButtonPos.getY();
-
-		Point2D position = new Point2D(Settings.windowWidth / 2.0 - 6.0 * playerButtonWidth + playerButtonWidth / 2.0, playerButtonPosY);
-
-		for (int i = 0; i < Settings.nbMaxPlayers; ++i) {
-			Sprite button = new Sprite(renderLayer, position, nbPlayersButtonsTexture.get(i));
-			final int playerChoice = 1 + i;
-			button.getTextureView().setOnMouseClicked(e -> {
-				this.nbPlayers = playerChoice;
-				setGameView();
-				e.consume();
-			});
-			nbPlayersButtons.add(button);
-
-			position = new Point2D(position.getX() + 2 * playerButtonWidth, position.getY());
-		}
 	}
 
 	private void createCastles() {
-		final int nbCastles = Settings.nbMinCastles + rdGen.nextInt(Settings.nbMaxCastles - Settings.nbMinCastles - nbPlayers);
 		final int widthUpperBound = Settings.gridCellsCountX - Settings.castleSize;
 		final int heightUpperBound = Settings.gridCellsCountY - Settings.castleSize;
 
+		final int nbActiveDukes = (Settings.nbMinCastles + rdGen.nextInt(Settings.nbMaxCastles - Settings.nbMinCastles)) / 2;
+		final int nbNeutralDukes = (Settings.nbMinCastles + rdGen.nextInt(Settings.nbMaxCastles - Settings.nbMinCastles)) / 2;
+		final int nbCastles = 1 + nbActiveDukes + nbNeutralDukes;
+
+		// 0 is the player
+		// TODO: Fix it
 		int castleOwner = 0;
 		while (castles.size() < nbCastles) {
 			Point2D position = new Point2D(rdGen.nextInt(widthUpperBound), Settings.statusBarHeight + rdGen.nextInt(heightUpperBound));
 			if (!isPositionNearACastle(position)) {
 				castles.add(new Castle(renderLayer, castleOwner, position));
-			}
-		}
-
-		int playerCastlesOnBoard = 0;
-		while (playerCastlesOnBoard != nbPlayers) {
-			Point2D position = new Point2D(rdGen.nextInt(widthUpperBound), Settings.statusBarHeight + rdGen.nextInt(heightUpperBound));
-			if (!isPositionNearACastle(position)) {
-				castleOwner = 1 + playerCastlesOnBoard;
-				castles.add(new Castle(renderLayer, castleOwner, position));
-
-				++playerCastlesOnBoard;
+				++castleOwner;
 			}
 		}
 
 		castles.forEach(castle -> {
 			castle.getTextureView().setOnMouseClicked(e -> {
 				leftStatusBar.setCastleView(castle);
-				centerStatusBar.setCastleView(castle); // TODO
+				centerStatusBar.setCastleView(castle);
 				rightStatusBar.setCastleView(castle);
 				e.consume();
 			});
@@ -237,16 +202,19 @@ public class Game {
 		return false;
 	}
 
+	
 	private void createStatusBar() {
 		leftStatusBar = new LeftStatusBar(renderLayer);
+		leftStatusBar.setDayHolder(currentDay);
 		leftStatusBar.setDefaultMenuView();
 
 		centerStatusBar = new CenterStatusBar(renderLayer);
-		centerStatusBar.setDefaultView();
+		centerStatusBar.setDefaultMenuView();
 
 		rightStatusBar = new RightStatusBar(renderLayer);
-		rightStatusBar.setDefaultView();
+		rightStatusBar.setDefaultMenuView();
 	}
+	
 
 	private void setMenuView() {
     	gameMode = GameMode.Menu;
@@ -262,28 +230,15 @@ public class Game {
 		}
 	}
 
-	private void setNewGameView() {
-    	for (Sprite button : defaultMenuButtons) {
-    		button.removeFromCanvas();
-		}
-
-    	nbPlayersInfo.addToCanvas();
-    	for (Sprite button : nbPlayersButtons) {
-    		button.addToCanvas();
-		}
-	}
-
 	private void setGameView() {
     	gameMode = GameMode.Game;
-		leftStatusBar.setDefaultGameView(currentDay);
+		leftStatusBar.setDefaultGameView();
+		centerStatusBar.setDefaultGameView();
+		rightStatusBar.setDefaultGameView();
 
 		createCastles();
 
 		menuBackground.removeFromCanvas();
-    	nbPlayersInfo.removeFromCanvas();
-		for (Sprite button : nbPlayersButtons) {
-			button.removeFromCanvas();
-		}
 
 		gameBackground.addToCanvas();
 		for (Castle castle : castles) {
