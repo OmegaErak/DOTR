@@ -3,7 +3,7 @@ package base;
 public class Settings {
 	static final public int statusBarHeight = 100;
 
-	static final public int nbMaxPlayers = 6;
+	static final public int nbMaxActiveDukes = 5;
 	static final public int initialTreasure = 0;
 	
 	static final public int windowWidth = 1200;
@@ -20,5 +20,5 @@ public class Settings {
 	static final public int minimumCastleDistance = 200;
 
 	static public final int nbMaxCastles = 10;
-	static public final int nbMinCastles = 2;
+	static public final int nbMinCastles = 6;
 }

@@ -166,12 +166,13 @@ public class Game {
 		final int widthUpperBound = Settings.gridCellsCountX - Settings.castleSize;
 		final int heightUpperBound = Settings.gridCellsCountY - Settings.castleSize;
 
-		final int nbActiveDukes = (Settings.nbMinCastles + rdGen.nextInt(Settings.nbMaxCastles - Settings.nbMinCastles)) / 2;
-		final int nbNeutralDukes = (Settings.nbMinCastles + rdGen.nextInt(Settings.nbMaxCastles - Settings.nbMinCastles)) / 2;
+		final int nbActiveDukes = rdGen.nextInt(Settings.nbMaxActiveDukes);
+		final int nbNeutralDukes = Settings.nbMinCastles + rdGen.nextInt(Settings.nbMaxCastles - nbActiveDukes) - 1;
 		final int nbCastles = 1 + nbActiveDukes + nbNeutralDukes;
 
 		// 0 is the player
-		// TODO: Fix it
+		// [1, nbActiveDukes] is for active dukes
+		// [1+nbActiveDukes, 1+nbActiveDukes+nbNeutralDukes]
 		int castleOwner = 0;
 		while (castles.size() < nbCastles) {
 			Point2D position = new Point2D(rdGen.nextInt(widthUpperBound), Settings.statusBarHeight + rdGen.nextInt(heightUpperBound));

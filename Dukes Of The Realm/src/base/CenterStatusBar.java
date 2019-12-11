@@ -42,6 +42,8 @@ public class CenterStatusBar extends StatusBar {
         createButtons();
     }
 
+    private Alert alert = new Alert(Alert.AlertType.NONE);
+
     private void createButtons() {
         // Load resources
         final Point2D originPos = new Point2D(Settings.windowWidth / 3, 0);
@@ -65,15 +67,25 @@ public class CenterStatusBar extends StatusBar {
         Point2D levelUpButtonPos = new Point2D(fightButtonPos.getX() + buttonWidth, originPos.getY());
         Sprite levelUpButton = new Sprite(renderLayer, levelUpButtonPos, levelUpButtonImg);
         levelUpButton.getTextureView().setOnMouseClicked(e -> {
-            if (currentCastle.canLevelUp()) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle("Confirmation");
-                alert.setContentText("Vous êtes sur? Ça vous coûtera " + currentCastle.getNextLevelBuildCost() + " florains.");
+            if (currentCastle.getOwner() == 0) {
+                if (currentCastle.canLevelUp()) {
+                    alert.setAlertType(Alert.AlertType.CONFIRMATION);
+                    alert.setContentText("Vous êtes sur? Ça vous coûtera " + currentCastle.getNextLevelBuildCost() + " florains.");
 
-                Optional<ButtonType> result = alert.showAndWait();
-                if (result.get() == ButtonType.OK){
-                    currentCastle.levelUp();
+                    Optional<ButtonType> result = alert.showAndWait();
+                    if (result.get() == ButtonType.OK) {
+                        currentCastle.levelUp();
+                    }
+                } else {
+                    alert.setAlertType(Alert.AlertType.WARNING);
+                    alert.setContentText("Vous ne pouvez pas améliorer votre château, soit parce qu'il est déjà en construction, soit parce que vous n'avez pas assez de florains.");
+                    alert.show();
                 }
+            } else {
+                alert.setAlertType(Alert.AlertType.WARNING);
+                alert.setTitle("Attention");
+                alert.setContentText("Ce n'est pas votre château");
+                alert.show();
             }
             e.consume();
         });
