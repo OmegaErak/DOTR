@@ -5,6 +5,7 @@ import buildings.Castle;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.control.Spinner;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
@@ -61,7 +62,7 @@ public class Game {
 				leftStatusBar.updateView();
 				centerStatusBar.updateView();
 				rightStatusBar.updateView();
-
+				
 				if (isRunning) {
 					processInput(input, now);
 
@@ -98,7 +99,7 @@ public class Game {
 
 	private List<Image> buttonsTextures = new ArrayList<>();
 
-	private void loadGame() {
+	private void loadGame() {		
 		input = new Input(this.root.getScene());
 
 		Image menuBackgroundTexture = new Image("resources/sprites/backgrounds/menuBackground.png");
@@ -182,14 +183,14 @@ public class Game {
 			}
 		}
 
-		castles.forEach(castle -> {
+		for (Castle castle : castles) {
 			castle.getTextureView().setOnMouseClicked(e -> {
 				leftStatusBar.setCastleView(castle);
 				centerStatusBar.setCastleView(castle);
 				rightStatusBar.setCastleView(castle);
 				e.consume();
 			});
-		});
+		}
 	}
 
 	private boolean isPositionNearACastle(Point2D position) {

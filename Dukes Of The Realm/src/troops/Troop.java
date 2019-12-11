@@ -14,12 +14,11 @@ abstract public class Troop  extends Sprite {
 	protected int speed;
 	protected int health;
 	protected int damage;
-	
-	protected Point2D position;
 
-	// TODO: Remove texture from here like in castle
-	public Troop(Pane renderLayer, Image texture, Castle castle) {
-		super(renderLayer, castle.getPosition(), texture);
+	protected Image texture;
+	
+	public Troop(Pane renderLayer, Castle castle) {
+		super(renderLayer, castle.getPosition());
 	}
 	
 	public boolean isAlive() {
@@ -73,6 +72,4 @@ abstract public class Troop  extends Sprite {
 	public void setPosition(Point2D position) {
 		this.position = position;
 	}
-
-//	public abstract StackPane toJavaFX();
 }

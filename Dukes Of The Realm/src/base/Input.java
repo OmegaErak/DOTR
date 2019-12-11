@@ -2,10 +2,8 @@ package base;
 
 import java.util.BitSet;
 
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
-import static javafx.scene.input.KeyCode.*;
 
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.KeyCode;

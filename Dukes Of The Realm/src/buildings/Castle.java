@@ -4,7 +4,9 @@ import base.Direction;
 import base.Settings;
 import base.Sprite;
 
-import javafx.scene.image.ImageView;
+import troops.Knight;
+import troops.Onager;
+import troops.Pikeman;
 import troops.Troop;
 
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
-public class Castle extends Sprite {
+public class Castle extends Sprite {	
 	private Image texture;
 	private Image buildingTexture;
 
@@ -29,7 +31,6 @@ public class Castle extends Sprite {
 	private ArrayList<Troop> inProductionTroops = new ArrayList<>();
 
 	private int nbKnights = 0;
-
 	private int nbOnagers = 0;
 	private int nbPikemen = 0;
 
@@ -59,6 +60,22 @@ public class Castle extends Sprite {
 		this.doorDirection = rdGen.nextInt(Direction.nbDirections);
 
 		this.position = position;
+		
+		final int nbTroops = Settings.nbMinInitTroops + rdGen.nextInt(Settings.nbMaxInitTroops - Settings.nbMinInitTroops);
+		for (int i = 0; i < nbTroops; ++i) {
+			final int troop = rdGen.nextInt(Settings.nbDiffTroopTypes);
+			
+			if (troop == 0) {
+				availableTroops.add(new Knight(renderLayer, this));
+				++nbKnights;
+			} else if (troop == 1) {
+				availableTroops.add(new Onager(renderLayer, this));
+				++nbOnagers;
+			} else if (troop == 2) {
+				availableTroops.add(new Pikeman(renderLayer, this));
+				++nbPikemen;
+			}
+		}
 
 		setTexture(texture);
 

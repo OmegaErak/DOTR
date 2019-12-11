@@ -33,12 +33,24 @@ public class RightStatusBar extends StatusBar {
     					+ "Piquiers: " + castle.getNbPikemen() + "\n";
     		
     		statusBarText.setText(text);
-    	}    	
+    	} else if (view == StatusBarView.AttackView) {
+    		String text = "Troupes dans l'attaque: \n"
+    					+ "Chevaliers: " + CenterStatusBar.getNbKnightsAtt()
+    					+ "Onagres: " + CenterStatusBar.getNbOnagersAtt()
+    					+ "Piquiers: " + CenterStatusBar.getNbPikemenAtt();
+    		
+    		statusBarText.setText(text);
+    	}
     }
   
     @Override
     public void setDefaultMenuView() {
     	view = StatusBarView.DefaultMenuView;
+    }
+    
+    @Override
+    public void setCreditsView() {
+    	view = StatusBarView.CreditsView;
     }
 
     @Override
@@ -50,10 +62,10 @@ public class RightStatusBar extends StatusBar {
     public void setCastleView(Castle castle) {
     	view = StatusBarView.CastleView;
     	this.castle = castle;
-    }
-
+    }    
+    
     @Override
-    public void setCreditsView() {
-    	view = StatusBarView.CreditsView;
+    public void setAttackView() {
+    	view = StatusBarView.AttackView;
     }
 }

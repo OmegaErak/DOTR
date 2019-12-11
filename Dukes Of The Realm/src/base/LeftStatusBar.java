@@ -55,6 +55,11 @@ public class LeftStatusBar extends StatusBar {
     public void setDefaultMenuView() {
     	view = StatusBarView.DefaultMenuView;
     }
+    
+    @Override
+    public void setCreditsView() {
+    	view = StatusBarView.CreditsView;
+    }
 
     @Override
     public void setDefaultGameView() {
@@ -68,7 +73,7 @@ public class LeftStatusBar extends StatusBar {
     }
 
     @Override
-    public void setCreditsView() {
-    	view = StatusBarView.CreditsView;
+    public void setAttackView() {
+    	view = StatusBarView.CastleView;
     }
 }

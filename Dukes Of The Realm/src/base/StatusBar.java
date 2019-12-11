@@ -20,9 +20,11 @@ public abstract class StatusBar {
     
     public abstract void setDefaultMenuView();
     
+    public abstract void setCreditsView();
+    
     public abstract void setDefaultGameView();
 
     public abstract void setCastleView(Castle castle);
-
-    public abstract void setCreditsView();
+   
+    public abstract void setAttackView();
 }

@@ -1,5 +1,6 @@
 package troops;
 
+import base.Settings;
 import buildings.Castle;
 
 import javafx.scene.image.Image;
@@ -7,8 +8,8 @@ import javafx.scene.layout.Pane;
 
 public class Onager extends Troop {
 	
-	public Onager(Pane renderLayer, Image texture, Castle castle) {
-		super(renderLayer, texture, castle);
+	public Onager(Pane renderLayer, Castle castle) {
+		super(renderLayer, castle);
 
 		this.prodCost 	= 1000;
 		this.prodTime 	= 50;
@@ -16,7 +17,13 @@ public class Onager extends Troop {
 		this.health 	= 5;
 		this.damage 	= 10;
 		
-		this.setPosition(castle.getPosition());
+		if (castle.getOwner() <= Settings.nbMaxActiveDukes) {
+			texture = new Image("resources/sprites/troops/onager_" + castle.getOwner() + ".png");
+		} else {
+			texture = new Image("resources/sprites/troops/onager_neutral.png");
+		}
+		
+		setTexture(texture);
 	}
 
 
