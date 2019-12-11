@@ -45,8 +45,13 @@ public class Castle extends Sprite {
 	public Castle(Pane renderLayer, int owner, Point2D position) {
 		super(renderLayer, position);
 
-		texture = new Image("resources/sprites/castles/castle" + owner + ".png");
-		buildingTexture = new Image("resources/sprites/castles/castle" + owner + "build.png");
+		if (owner <= Settings.nbMaxActiveDukes) {
+			texture = new Image("resources/sprites/castles/castle_" + owner + ".png");
+			buildingTexture = new Image("resources/sprites/castles/castle_" + owner + "_build.png");
+		} else {
+			texture = new Image("resources/sprites/castles/castle_neutral.png");
+			buildingTexture = new Image("resources/sprites/castles/castle_neutral_build.png");
+		}
 
 		this.owner = owner;
 		this.level = 1;
