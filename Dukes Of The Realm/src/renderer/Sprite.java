@@ -1,11 +1,11 @@
-package base;
+package renderer;
 
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 
-public class Sprite {
+public abstract class Sprite {
     private Pane renderLayer;
 
     protected ImageView textureView;

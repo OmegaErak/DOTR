@@ -1,6 +1,6 @@
 package troops;
 
-import base.Sprite;
+import renderer.Sprite;
 
 import buildings.Castle;
 

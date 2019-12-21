@@ -1,4 +1,4 @@
-package base;
+package renderer;
 
 public enum StatusBarView {
 	DefaultMenuView,

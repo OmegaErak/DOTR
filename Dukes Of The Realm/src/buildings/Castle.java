@@ -2,7 +2,7 @@ package buildings;
 
 import base.Direction;
 import base.Settings;
-import base.Sprite;
+import renderer.Sprite;
 
 import troops.Knight;
 import troops.Onager;
