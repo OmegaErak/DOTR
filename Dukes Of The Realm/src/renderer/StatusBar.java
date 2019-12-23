@@ -58,13 +58,18 @@ public abstract class StatusBar {
         return this.castle;
     }
 
+
     public void setCastleView(Castle castle) {
         view = StatusBarView.CastleView;
         this.castle = castle;
     }
 
-    public void setAttackView() {
-        view = StatusBarView.CastleView;
+    public void setTroopsRecruitView() {
+        view = StatusBarView.TroopsRecruitView;
+    }
+
+    public void setTroopsMoveView() {
+        view = StatusBarView.TroopsMoveView;
     }
 
     public StatusBarView getView() {

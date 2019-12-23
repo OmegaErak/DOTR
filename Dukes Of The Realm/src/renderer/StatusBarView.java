@@ -5,6 +5,9 @@ public enum StatusBarView {
 	CreditsView,
 	
 	DefaultGameView,
+
 	CastleView,
-	AttackView
+
+	TroopsRecruitView,
+	TroopsMoveView
 }

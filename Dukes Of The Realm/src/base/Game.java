@@ -2,16 +2,16 @@ package base;
 
 import buildings.Castle;
 
+import javafx.scene.control.*;
 import renderer.*;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
+import renderer.Button;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -240,6 +240,10 @@ public class Game {
 			private int displayLevel = 0;
 
 			private List<Button> buttons1;
+			private List<Spinner> recruitSpinners;
+
+			private List<SpinnerValueFactory<Integer>> moveValueFactories;
+			private List<Spinner> moveSpinners;
 
 			@Override
 			public void updateView() {
@@ -256,6 +260,22 @@ public class Game {
 							button.addToCanvas();
 						}
 						displayLevel = 1;
+					}
+
+
+				} else if (getView() == StatusBarView.TroopsRecruitView) {
+					for (Button button : buttons1) {
+						button.removeFromCanvas();
+					}
+
+
+				} else if (getView() == StatusBarView.TroopsMoveView) {
+					for (Button button : buttons1) {
+						button.removeFromCanvas();
+					}
+
+					for (Spinner spinner : moveSpinners) {
+						spinner.setVisible(true);
 					}
 				}
 			}
@@ -282,10 +302,12 @@ public class Game {
 				}
 
 				buttons1.get(0).getTextureView().setOnMouseClicked(e -> {
+					setTroopsRecruitView();
 					e.consume();
 				});
 
 				buttons1.get(1).getTextureView().setOnMouseClicked(e -> {
+					setTroopsMoveView();
 					e.consume();
 				});
 
@@ -313,6 +335,40 @@ public class Game {
 					}
 					e.consume();
 				});
+
+				// Spinners for troop selection
+				moveSpinners = new ArrayList<>();
+				moveValueFactories = new ArrayList<>();
+
+				final int fontSize = 16;
+				Point2D spinnerPosition = new Point2D(getPosition().getX(), getPosition().getY());
+
+				for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
+					final Spinner<Integer> spinner = new Spinner<>();
+
+					spinner.setTranslateX(spinnerPosition.getX());
+					spinner.setTranslateY(spinnerPosition.getY() + fontSize);
+
+					spinner.setMaxWidth(getSize().getX() / Settings.nbDiffTroopTypes);
+
+					spinner.setVisible(false);
+					root.getChildren().addAll(spinner);
+					moveSpinners.add(spinner);
+					moveValueFactories.add(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
+
+					spinnerPosition = new Point2D(spinnerPosition.getX() + spinner.getWidth(), spinnerPosition.getY());
+				}
+			}
+
+			@Override
+			public void setCastleView(Castle castle) {
+				super.setCastleView(castle);
+
+				final int spinnerValues[] = {castle.getNbKnights(), castle.getNbPikemen(), castle.getNbOnagers()};
+				for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
+					moveValueFactories.remove(0);
+					moveValueFactories.add(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues[i], 0));
+				}
 			}
 		};
 		centerStatusBar.setDefaultMenuView();
