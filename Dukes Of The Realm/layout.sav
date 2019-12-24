@@ -6,6 +6,7 @@ number of different troop types
 number of castles
 for each castle:
     owner
+    owner name
     level
     treasure
     position

@@ -1,17 +1,15 @@
 package base;
 
-import java.util.BitSet;
-
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
-
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
-public class Input {
+import java.util.BitSet;
 
+public class Input {
     /**
      * Bitset which registers if any {@link KeyCode} keeps being pressed or if it is
      * released.

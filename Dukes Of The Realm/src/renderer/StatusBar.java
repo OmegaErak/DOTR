@@ -2,7 +2,6 @@ package renderer;
 
 import base.DayHolder;
 import buildings.Castle;
-
 import javafx.geometry.Point2D;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -33,23 +32,26 @@ public abstract class StatusBar {
     }
 
     public void loadResources() {
-
     }
 
     public abstract void updateView();
 
     private StatusBarView view;
+    protected boolean shouldRefreshView = false;
 
     public void setDefaultMenuView() {
         view = StatusBarView.DefaultMenuView;
+        shouldRefreshView = true;
     }
 
     public void setCreditsView() {
         view = StatusBarView.CreditsView;
+        shouldRefreshView = true;
     }
 
     public void setDefaultGameView() {
         view = StatusBarView.DefaultGameView;
+        shouldRefreshView = true;
     }
 
     private Castle castle;
@@ -58,18 +60,20 @@ public abstract class StatusBar {
         return this.castle;
     }
 
-
     public void setCastleView(Castle castle) {
         view = StatusBarView.CastleView;
         this.castle = castle;
+        shouldRefreshView = true;
     }
 
     public void setTroopsRecruitView() {
         view = StatusBarView.TroopsRecruitView;
+        shouldRefreshView = true;
     }
 
     public void setTroopsMoveView() {
         view = StatusBarView.TroopsMoveView;
+        shouldRefreshView = true;
     }
 
     public StatusBarView getView() {
@@ -111,11 +115,15 @@ public abstract class StatusBar {
         return this.dayHolder.day;
     }
 
+    public void addToCanvas() {
+        this.renderLayer.getChildren().add(statusBar);
+    }
+
     public void removeFromCanvas() {
         this.renderLayer.getChildren().remove(statusBar);
     }
 
-    public void addToCanvas() {
-        this.renderLayer.getChildren().add(statusBar);
+    public HBox getBox() {
+        return statusBar;
     }
 }

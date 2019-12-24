@@ -21,7 +21,7 @@ public class Settings {
 	static final public int minimumCastleDistance = 200;
 
 	static public final int nbMaxCastles = 10;
-	static public final int nbMinCastles = 6;
+	static public final int nbMinCastles = 8;
 	
 	// Knight, onager and pikeman
 	static public final int nbDiffTroopTypes = 3;

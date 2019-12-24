@@ -1,12 +1,10 @@
 package troops;
 
-import renderer.Sprite;
-
 import buildings.Castle;
-
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import renderer.Sprite;
 
 abstract public class Troop  extends Sprite {
 	protected int prodTime;

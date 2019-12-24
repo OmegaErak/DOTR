@@ -24,12 +24,6 @@ public abstract class Sprite {
         this.position = position;
     }
 
-    public Sprite(Pane renderLayer, Point2D position, Image texture) {
-        this(renderLayer, position);
-
-        setTexture(texture);
-    }
-
     protected void setTexture(Image texture) {
         textureView.setImage(texture);
     }

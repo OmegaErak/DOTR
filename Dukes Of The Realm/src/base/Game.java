@@ -2,16 +2,18 @@ package base;
 
 import buildings.Castle;
 
-import javafx.scene.control.*;
-import renderer.*;
+import renderer.Button;
+import renderer.Background;
+import renderer.StatusBar;
+import renderer.StatusBarView;
 
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
-import renderer.Button;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,11 +36,11 @@ public class Game {
 		this.renderLayer = new Pane();
 		this.renderLayer.setPrefSize(Settings.windowWidth, Settings.windowHeight);
 		this.renderLayer.setOnMouseClicked(e -> {
-			if (this.gameMode == GameMode.Menu) {
+			if (gameMode == GameMode.Menu) {
 				for (StatusBar statusBar : statusBars) {
 					statusBar.setDefaultMenuView();
 				}
-			} else if (this.gameMode == GameMode.Game) {
+			} else if (gameMode == GameMode.Game) {
 				for (StatusBar statusBar : statusBars) {
 					statusBar.setDefaultGameView();
 				}
@@ -47,8 +49,6 @@ public class Game {
 		});
 
 		root.getChildren().add(this.renderLayer);
-
-		gameMode = GameMode.Menu;
 	}
 
 	private boolean isRunning = true;
@@ -114,7 +114,7 @@ public class Game {
 
 		createMenuButtons();
 
-		// Set to default view
+		// Set to Menu view by default
 		setMenuView();
 	}
 
@@ -218,7 +218,7 @@ public class Game {
 				} else if (getView() == StatusBarView.DefaultGameView) {
 					setText("Jour actuel: " + getCurrentDay());
 				} else if (getView() == StatusBarView.CastleView) {
-					String text = "Duc du château: " + getCurrentCastle().getOwner() + "\n"
+					String text = "Duc du château: " + getCurrentCastle().getOwnerName() + "\n"
 							+ "Niveau: " + getCurrentCastle().getLevel() + "\n"
 							+ "Revenu: " + getCurrentCastle().getPassiveIncome() + "\n"
 							+ "Trésor: " + getCurrentCastle().getTreasure() + "\n";
@@ -237,52 +237,52 @@ public class Game {
 
 		statusBarPos = new Point2D(statusBarPos.getX() + Settings.windowWidth / 3, statusBarPos.getY());
 		StatusBar centerStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "centerStatusBar") {
-			private int displayLevel = 0;
-
-			private List<Button> buttons1;
+			private List<Button> decisionButtons;
 			private List<Spinner> recruitSpinners;
-
-			private List<SpinnerValueFactory<Integer>> moveValueFactories;
 			private List<Spinner> moveSpinners;
 
 			@Override
 			public void updateView() {
-				if (getView() == StatusBarView.DefaultGameView) {
-					if (displayLevel != 0) {
-						for (Button button : buttons1) {
-							button.removeFromCanvas();
-						}
-						displayLevel = 0;
-					}
-				} else if (getView() == StatusBarView.CastleView) {
-					if (displayLevel != 1) {
-						for (Button button : buttons1) {
-							button.addToCanvas();
-						}
-						displayLevel = 1;
-					}
+				if (shouldRefreshView) {
+					setText("");
 
-
-				} else if (getView() == StatusBarView.TroopsRecruitView) {
-					for (Button button : buttons1) {
+					for (Button button : decisionButtons) {
 						button.removeFromCanvas();
 					}
 
-
-				} else if (getView() == StatusBarView.TroopsMoveView) {
-					for (Button button : buttons1) {
-						button.removeFromCanvas();
+					for (Spinner spinner : recruitSpinners) {
+						spinner.setVisible(false);
 					}
 
 					for (Spinner spinner : moveSpinners) {
-						spinner.setVisible(true);
+						spinner.setVisible(false);
 					}
+
+					if (getView() == StatusBarView.CastleView) {
+						if (getCurrentCastle().getOwner() == 0) {
+							for (Button button : decisionButtons) {
+								button.addToCanvas();
+							}
+						}
+					} else if (getView() == StatusBarView.TroopsRecruitView) {
+						setText("Chevaliers:                 Onagres:                    Piquiers:");
+						for (Spinner spinner : recruitSpinners) {
+							spinner.setVisible(true);
+						}
+					} else if (getView() == StatusBarView.TroopsMoveView) {
+						// TODO
+						setText("Chevaliers:                 Onagres:                    Piquiers:");
+						for (Spinner spinner : moveSpinners) {
+							spinner.setVisible(true);
+						}
+					}
+					shouldRefreshView = false;
 				}
 			}
 
 			@Override
 			public void loadResources() {
-				buttons1 = new ArrayList<>();
+				decisionButtons = new ArrayList<>();
 
 				Image texture = new Image("resources/sprites/buttons/recruit.png");
 				final double buttonWidth = texture.getWidth();
@@ -296,22 +296,22 @@ public class Game {
 
 				for (String buttonPath : buttonPaths1) {
 					Button button = new Button(renderLayer, buttonPos, new Image("resources/sprites/buttons/" + buttonPath));
-					buttons1.add(button);
+					decisionButtons.add(button);
 
 					buttonPos = new Point2D(buttonPos.getX() + buttonWidth, buttonPos.getY());
 				}
 
-				buttons1.get(0).getTextureView().setOnMouseClicked(e -> {
+				decisionButtons.get(0).getTextureView().setOnMouseClicked(e -> {
 					setTroopsRecruitView();
 					e.consume();
 				});
 
-				buttons1.get(1).getTextureView().setOnMouseClicked(e -> {
+				decisionButtons.get(1).getTextureView().setOnMouseClicked(e -> {
 					setTroopsMoveView();
 					e.consume();
 				});
 
-				buttons1.get(2).getTextureView().setOnMouseClicked(e -> {
+				decisionButtons.get(2).getTextureView().setOnMouseClicked(e -> {
 					Alert alert = new Alert(Alert.AlertType.NONE);
 					if (getCurrentCastle().getOwner() == 0) {
 						if (getCurrentCastle().canLevelUp()) {
@@ -336,27 +336,31 @@ public class Game {
 					e.consume();
 				});
 
+				// Spinners for recruitment
+				// TODO
+				recruitSpinners = new ArrayList<>();
+
 				// Spinners for troop selection
 				moveSpinners = new ArrayList<>();
-				moveValueFactories = new ArrayList<>();
 
-				final int fontSize = 16;
+				final int yOffset = 30;
 				Point2D spinnerPosition = new Point2D(getPosition().getX(), getPosition().getY());
 
+				final double spinnerSize = getSize().getX() / Settings.nbDiffTroopTypes;
 				for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
 					final Spinner<Integer> spinner = new Spinner<>();
 
 					spinner.setTranslateX(spinnerPosition.getX());
-					spinner.setTranslateY(spinnerPosition.getY() + fontSize);
+					spinner.setTranslateY(spinnerPosition.getY() + yOffset);
 
-					spinner.setMaxWidth(getSize().getX() / Settings.nbDiffTroopTypes);
+					spinner.setPrefWidth(spinnerSize);
 
-					spinner.setVisible(false);
 					root.getChildren().addAll(spinner);
-					moveSpinners.add(spinner);
-					moveValueFactories.add(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
+					spinner.setVisible(false);
 
-					spinnerPosition = new Point2D(spinnerPosition.getX() + spinner.getWidth(), spinnerPosition.getY());
+					moveSpinners.add(spinner);
+
+					spinnerPosition = new Point2D(spinnerPosition.getX() + spinnerSize, spinnerPosition.getY());
 				}
 			}
 
@@ -364,10 +368,12 @@ public class Game {
 			public void setCastleView(Castle castle) {
 				super.setCastleView(castle);
 
-				final int spinnerValues[] = {castle.getNbKnights(), castle.getNbPikemen(), castle.getNbOnagers()};
-				for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
-					moveValueFactories.remove(0);
-					moveValueFactories.add(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues[i], 0));
+				if (castle.getOwner() == 0) {
+					final int spinnerValues[] = {castle.getNbKnights(), castle.getNbPikemen(), castle.getNbOnagers()};
+					for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
+						SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues[i], 0);
+						moveSpinners.get(i).setValueFactory(factory);
+					}
 				}
 			}
 		};
@@ -378,13 +384,8 @@ public class Game {
 		StatusBar rightStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "rightStatusBar") {
 			@Override
 			public void updateView() {
-				if (getView() == StatusBarView.DefaultMenuView) {
-					setText("");
-				} else if (getView() == StatusBarView.CreditsView) {
-					setText("");
-				} else if (getView() == StatusBarView.DefaultGameView) {
-					setText("");
-				} else if (getView() == StatusBarView.CastleView) {
+				setText("");
+				if (getView() == StatusBarView.CastleView) {
 					String text = "Chevaliers: " + getCurrentCastle().getNbKnights() + "\n"
 							+ "Onagres: " + getCurrentCastle().getNbOnagers() + "\n"
 							+ "Piquiers: " + getCurrentCastle().getNbPikemen() + "\n";
@@ -397,12 +398,15 @@ public class Game {
 		statusBars.add(rightStatusBar);
 
 		for (StatusBar statusBar : statusBars) {
+			statusBar.getBox().setOnMouseClicked(e -> {
+				e.consume();
+			});
 			statusBar.addToCanvas();
 		}
 	}
 	
 	private void setMenuView() {
-    	gameMode = GameMode.Menu;
+		gameMode = GameMode.Menu;
 
 		for (Castle castle : castles) {
 			castle.removeFromCanvas();

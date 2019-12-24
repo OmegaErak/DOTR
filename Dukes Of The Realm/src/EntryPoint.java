@@ -1,11 +1,11 @@
-import javafx.application.Application;
-import javafx.scene.image.Image;
-import javafx.stage.Stage;
-import javafx.scene.Scene;
-
 import base.Game;
 
-public class EntryPoint extends Application {	
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
+
+public class EntryPoint extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		Game game = new Game();
 

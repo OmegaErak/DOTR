@@ -2,25 +2,59 @@ package buildings;
 
 import base.Direction;
 import base.Settings;
+import javafx.geometry.Point2D;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
 import renderer.Sprite;
-
 import troops.Knight;
 import troops.Onager;
 import troops.Pikeman;
 import troops.Troop;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
-import javafx.geometry.Point2D;
-import javafx.scene.image.Image;
-import javafx.scene.layout.Pane;
+public class Castle extends Sprite {
+	final static private List<String> dukeNames = new ArrayList<String>(Arrays.asList(
+			"Jean-Cloud Van Damme",
 
-public class Castle extends Sprite {	
+			"Jean-Eudes",
+			"Jean-Michel",
+			"Jean-Marie",
+			"Jean-Loup",
+			"Jean-Côme",
+			"Jean-Alex",
+			"Jean-Kévin",
+			"Jean-René",
+			"Jean-Maurice",
+			"Jean-Francis",
+			"Jean-Jacques",
+			"Jean-Noël",
+			"Jean-George",
+			"Jean-Brice",
+			"Jean-Blaise",
+			"Jean-Aimée",
+			"Jean-Baptiste",
+			"Jean-Bernard",
+			"Jean-Briac",
+			"Jean-Charles",
+			"Jean-Jean",
+			"Jean-Paul",
+			"Jean-Ti",
+			"Jean-Rêve",
+			"Jean-Yves",
+
+			"Jean-Cérien"
+	));
+
 	private Image texture;
 	private Image buildingTexture;
 
 	private int owner;
+	private String ownerName;
+
 	private int level;
 	private int treasure;
 	
@@ -55,6 +89,11 @@ public class Castle extends Sprite {
 		}
 
 		this.owner = owner;
+
+		final int index = rdGen.nextInt(dukeNames.size());
+		this.ownerName = dukeNames.get(index);
+		dukeNames.remove(index);
+
 		this.level = 1;
 		this.treasure = Settings.initialTreasure;
 		this.doorDirection = rdGen.nextInt(Direction.nbDirections);
@@ -121,6 +160,10 @@ public class Castle extends Sprite {
 
 	public void setOwner(int owner) {
 		this.owner = owner;
+	}
+
+	public String getOwnerName() {
+		return ownerName;
 	}
 
 	public int getDoorDirection() {

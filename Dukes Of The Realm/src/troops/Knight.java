@@ -2,7 +2,6 @@ package troops;
 
 import base.Settings;
 import buildings.Castle;
-
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
