@@ -200,7 +200,7 @@ public class Game {
 			if (castle.getOwner() == 0) {
 				continue;
 			}
-			
+
 			Point2D pos = new Point2D(castle.getPosition().getX(), castle.getPosition().getY());
 			Button targetButton = new Button(renderLayer, pos, target);
 			targetButton.getTextureView().setFitWidth(Settings.castleSize);
@@ -357,9 +357,10 @@ public class Game {
 				super.setCastleView(castle);
 
 				if (castle.getOwner() == 0) {
-					final int spinnerValues[] = {castle.getNbKnights()};
+					final ArrayList<Integer> spinnerValues = new ArrayList<>(0);
+					spinnerValues.add(castle.getNbKnights());
 					for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
-						SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues[i], 0);
+						SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues.get(i), 0);
 						moveSpinners.get(i).setValueFactory(factory);
 					}
 				}

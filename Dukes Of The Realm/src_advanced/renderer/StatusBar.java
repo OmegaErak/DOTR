@@ -1,6 +1,5 @@
 package renderer;
 
-import base.DayHolder;
 import buildings.Castle;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.HBox;
