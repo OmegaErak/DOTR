@@ -20,10 +20,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
+import alorithms.AEtoile;
+import alorithms.Node;
+
 public class Game {
 	private Group root;
 	private Pane renderLayer;
 	private Input input;
+	public static int[][]tab = new int[Settings.gridCellsCountX/Settings.cellSize][Settings.gridCellsCountY/Settings.cellSize];
 
 	private Random rdGen = new Random();
 
@@ -174,7 +178,8 @@ public class Game {
 		// [1+nbActiveDukes, 1+nbActiveDukes+nbNeutralDukes] is for neutral dukes
 		int castleOwner = 0;
 		while (castles.size() < nbCastles) {
-			Point2D position = new Point2D(rdGen.nextInt(widthUpperBound), Settings.statusBarHeight + rdGen.nextInt(heightUpperBound));
+			int cellSize = Settings.cellSize;
+			Point2D position = new Point2D(rdGen.nextInt(widthUpperBound/cellSize)*cellSize, Settings.statusBarHeight + rdGen.nextInt(heightUpperBound/cellSize)*cellSize);
 			if (!isPositionNearACastle(position)) {
 				castles.add(new Castle(renderLayer, castleOwner, position));
 				++castleOwner;
@@ -182,6 +187,16 @@ public class Game {
 		}
 
 		for (Castle castle : castles) {
+			
+//			for(int i = 0; i < Settings.castleSize/Settings.cellSize; i++) {
+//			for(int j = 0; j < Settings.castleSize/Settings.cellSize ; j++) {
+//				double x = castle.getPosition().getX()/Settings.cellSize;
+//				double y = castle.getPosition().getY()/Settings.cellSize;
+//				Game.tab[(int) x - 1 + i][(int) y - 1 + j] = 1;
+//			}
+//		}
+//
+			
 			castle.getTextureView().setOnMouseClicked(e -> {
 				for (StatusBar statusBar : statusBars) {
 					statusBar.setCastleView(castle);
@@ -276,6 +291,25 @@ public class Game {
 							spinner.setVisible(true);
 						}
 					}
+					
+					Image target = new Image("resources/sprites/castles/target.png");
+					for(Castle castle : castles) {
+						if(castle.getOwner() == 0) {
+							continue;
+						}
+						Point2D pos = new Point2D(castle.getPosition().getX()-10, castle.getPosition().getY()-10);
+						Button btn = new Button(renderLayer, pos, target);
+						btn.addToCanvas();
+						btn.getTextureView().setPickOnBounds(true);
+						btn.getTextureView().setOnMouseClicked(e -> {
+							Node start = new Node(getCurrentCastle().getPosition().getX(), getCurrentCastle().getPosition().getY(),0,0);
+							Node end = new Node(castle.getPosition().getX(),castle.getPosition().getY(),0,0);
+							AEtoile.CheminPlusCourt(start, end, renderLayer, true);							
+							e.consume();
+						});
+						buttons1.add(btn);
+					}
+					
 					shouldRefreshView = false;
 				}
 			}
