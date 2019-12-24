@@ -11,6 +11,8 @@ public class Settings {
 
 	static final public int gridCellsCountX = windowWidth;
 	static final public int gridCellsCountY = (windowHeight - statusBarHeight);
+	
+	static final public int cellSize = 10;
 
 	static final public int cellSizeYpx = windowHeight / gridCellsCountX;
 	static final public int cellSizeXpx = windowWidth / gridCellsCountY;
