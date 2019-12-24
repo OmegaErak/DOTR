@@ -6,7 +6,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 
 public abstract class Sprite {
-    private Pane renderLayer;
+    protected Pane renderLayer;
 
     protected ImageView textureView;
 
@@ -50,22 +50,6 @@ public abstract class Sprite {
 
     public void setPosition(Point2D position) {
         this.position = position;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
     }
 
     public boolean collidesWith(Sprite sprite) {
