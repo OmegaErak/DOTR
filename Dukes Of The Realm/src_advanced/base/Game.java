@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import alorithms.AEtoile;
-import alorithms.Node;
+import algorithms.AStar;
+import algorithms.Node;
 
 public class Game {
 	private Group root;
@@ -35,7 +35,7 @@ public class Game {
 
 	public Game() {
 		this.root = new Group();
-		this.root.getStylesheets().add("resources/css/application.css");
+		this.root.getStylesheets().add("/css/application.css");
 
 		this.renderLayer = new Pane();
 		this.renderLayer.setPrefSize(Settings.windowWidth, Settings.windowHeight);
@@ -108,8 +108,8 @@ public class Game {
 	private void loadGame() {
 		input = new Input(this.root.getScene());
 
-		menuBackground = new Background(renderLayer, new Image("resources/sprites/backgrounds/menu_background.png"));
-		gameBackground = new Background(renderLayer, new Image("resources/sprites/backgrounds/game_background.png"));
+		menuBackground = new Background(renderLayer, new Image("/sprites/backgrounds/menu_background.png"));
+		gameBackground = new Background(renderLayer, new Image("/sprites/backgrounds/game_background.png"));
 
 		// TODO: Initialise input and add listeners
 		input.addListeners();
@@ -125,7 +125,7 @@ public class Game {
 	private List<Button> defaultMenuButtons = new ArrayList<>();
 
 	private void createMenuButtons() {
-		Image texture = new Image("resources/sprites/buttons/new_game.png");
+		Image texture = new Image("/sprites/buttons/new_game.png");
 
     	final double buttonWidth = texture.getWidth();
     	final double buttonHeight = texture.getHeight();
@@ -141,7 +141,7 @@ public class Game {
 
 		for (String buttonPath : buttonsPath) {
 			buttonPos = new Point2D(buttonPosX, buttonPos.getY() + 2 * buttonHeight);
-			button = new Button(renderLayer, buttonPos, new Image("resources/sprites/buttons/" + buttonPath));
+			button = new Button(renderLayer, buttonPos, new Image("/sprites/buttons/" + buttonPath));
 
 			defaultMenuButtons.add(button);
 		}
@@ -164,6 +164,7 @@ public class Game {
 	}
 
 	private List<Castle> castles = new ArrayList<>();
+	private List<Button> castleTargets = new ArrayList<>();
 
 	private void createCastles() {
 		final int widthUpperBound = Settings.gridCellsCountX - Settings.castleSize;
@@ -186,8 +187,10 @@ public class Game {
 			}
 		}
 
+		Image target = new Image("/sprites/castles/target.png");
+
+		final Castle playerCastle = castles.get(0);
 		for (Castle castle : castles) {
-			
 //			for(int i = 0; i < Settings.castleSize/Settings.cellSize; i++) {
 //			for(int j = 0; j < Settings.castleSize/Settings.cellSize ; j++) {
 //				double x = castle.getPosition().getX()/Settings.cellSize;
@@ -196,13 +199,28 @@ public class Game {
 //			}
 //		}
 //
-			
 			castle.getTextureView().setOnMouseClicked(e -> {
 				for (StatusBar statusBar : statusBars) {
 					statusBar.setCastleView(castle);
 				}
 				e.consume();
 			});
+
+			if (castle.getOwner() == 0) {
+				continue;
+			}
+			Point2D pos = new Point2D(castle.getPosition().getX() - 10, castle.getPosition().getY() - 10);
+			Button targetButton = new Button(renderLayer, pos, target);
+			targetButton.addToCanvas();
+			targetButton.getTextureView().setPickOnBounds(true);
+			targetButton.getTextureView().setOnMouseClicked(e -> {
+				// We use targetButton.getPosition because it's the same as castle position
+				Node start = new Node(playerCastle.getPosition().getX(), playerCastle.getPosition().getY(), 0, 0);
+				Node end = new Node(castle.getPosition().getX(), castle.getPosition().getY(), 0, 0);
+				AStar.CheminPlusCourt(start, end, renderLayer, true);
+				e.consume();
+			});
+			castleTargets.add(targetButton);
 		}
 	}
 
@@ -253,6 +271,7 @@ public class Game {
 		statusBarPos = new Point2D(statusBarPos.getX() + Settings.windowWidth / 3, statusBarPos.getY());
 		StatusBar centerStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "centerStatusBar") {
 			private List<Button> decisionButtons;
+
 			private List<Spinner> recruitSpinners;
 			private List<Spinner> moveSpinners;
 
@@ -273,6 +292,10 @@ public class Game {
 						spinner.setVisible(false);
 					}
 
+					for (Button target : castleTargets) {
+						target.removeFromCanvas();
+					}
+
 					if (getView() == StatusBarView.CastleView) {
 						if (getCurrentCastle().getOwner() == 0) {
 							for (Button button : decisionButtons) {
@@ -290,24 +313,10 @@ public class Game {
 						for (Spinner spinner : moveSpinners) {
 							spinner.setVisible(true);
 						}
-					}
-					
-					Image target = new Image("resources/sprites/castles/target.png");
-					for(Castle castle : castles) {
-						if(castle.getOwner() == 0) {
-							continue;
+
+						for (Button target : castleTargets) {
+							target.addToCanvas();
 						}
-						Point2D pos = new Point2D(castle.getPosition().getX()-10, castle.getPosition().getY()-10);
-						Button btn = new Button(renderLayer, pos, target);
-						btn.addToCanvas();
-						btn.getTextureView().setPickOnBounds(true);
-						btn.getTextureView().setOnMouseClicked(e -> {
-							Node start = new Node(getCurrentCastle().getPosition().getX(), getCurrentCastle().getPosition().getY(),0,0);
-							Node end = new Node(castle.getPosition().getX(),castle.getPosition().getY(),0,0);
-							AEtoile.CheminPlusCourt(start, end, renderLayer, true);							
-							e.consume();
-						});
-						buttons1.add(btn);
 					}
 					
 					shouldRefreshView = false;
@@ -318,7 +327,7 @@ public class Game {
 			public void loadResources() {
 				decisionButtons = new ArrayList<>();
 
-				Image texture = new Image("resources/sprites/buttons/recruit.png");
+				Image texture = new Image("/sprites/buttons/recruit.png");
 				final double buttonWidth = texture.getWidth();
 
 				String[] buttonPaths1 = new String[3];
@@ -329,7 +338,7 @@ public class Game {
 				Point2D buttonPos = new Point2D(getPosition().getX(), getPosition().getY());
 
 				for (String buttonPath : buttonPaths1) {
-					Button button = new Button(renderLayer, buttonPos, new Image("resources/sprites/buttons/" + buttonPath));
+					Button button = new Button(renderLayer, buttonPos, new Image("/sprites/buttons/" + buttonPath));
 					decisionButtons.add(button);
 
 					buttonPos = new Point2D(buttonPos.getX() + buttonWidth, buttonPos.getY());

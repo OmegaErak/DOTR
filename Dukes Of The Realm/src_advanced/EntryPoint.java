@@ -11,7 +11,7 @@ public class EntryPoint extends Application {
 
 		primaryStage.setTitle("Dukes of the realm");
 		primaryStage.setResizable(false);
-		primaryStage.getIcons().add(new Image("resources/icons/application.png"));
+		primaryStage.getIcons().add(new Image("/icons/application.png"));
 		primaryStage.setScene(new Scene(game.getRoot()));
 		primaryStage.show();
 

@@ -1,9 +1,7 @@
-package alorithms;
+package algorithms;
 import java.util.ArrayList;
 
-import base.Game;
 import base.Settings;
-import javafx.geometry.Point2D;
 
 
 public class Node {

@@ -17,9 +17,9 @@ public class Knight extends Troop {
 		this.damage 	= 5;
 		
 		if (castle.getOwner() <= Settings.nbMaxActiveDukes) {
-			texture = new Image("resources/sprites/troops/knight_" + castle.getOwner() + ".png");
+			texture = new Image("/sprites/troops/knight_" + castle.getOwner() + ".png");
 		} else {
-			texture = new Image("resources/sprites/troops/knight_neutral.png");
+			texture = new Image("/sprites/troops/knight_neutral.png");
 		}
 
 		
