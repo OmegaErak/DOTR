@@ -15,7 +15,7 @@ You are playing one of the dukes and must defeat all the others to get the thron
  ### Import into IDE
  
  Next step is to import the project into an IDE.
- Officially we cover Eclipse and IntelliJ IDEA, so if you have questions about those, please send a mail to [Rynhho](ryngetsu@gmail.com).
+ Officially we cover Eclipse and IntelliJ IDEA, so if you have questions about those, please send a mail to [Rynhho](mailto:ryngetsu@gmail.com).
    
  Import the three folders (resources, src_advanced ,src_basic).
  Then you must mark **resources** and the folder corresponding to the version you want to play (**src_advanced** or **src_basic**) as source folders using your IDE.
