@@ -27,7 +27,7 @@ public class Game {
 	private Group root;
 	private Pane renderLayer;
 	private Input input;
-	public static int[][]tab = new int[Settings.gridCellsCountX/Settings.cellSize][Settings.gridCellsCountY/Settings.cellSize];
+	private  int[][]tab = new int[Settings.gridCellsCountX/Settings.cellSize][Settings.gridCellsCountY/Settings.cellSize];
 
 	
 	
@@ -198,26 +198,26 @@ public class Game {
 				for(int j = 0; j <= Settings.castleSize/Settings.cellSize; j++) {
 					double x = castle.getPosition().getX()/Settings.cellSize;
 					double y = (castle.getPosition().getY() - Settings.statusBarHeight)/Settings.cellSize;
-					Game.tab[(int) x - 1 + i][(int) y - 1 + j] = 1;
+					tab[(int) x - 1 + i][(int) y - 1 + j] = 1;
 					switch(castle.getDoorDirection()) {
 					case(0):
 						for(int k = 0; k < 4; k++) {
-							Game.tab[(int) (x+2)][(int) (y+2+k)] = 0;
+							tab[(int) (x+2)][(int) (y+2+k)] = 0;
 						}
 					break;
 					case(1):
 						for(int k = 0; k < 4; k++) {
-							Game.tab[(int) (x+2-k)][(int) (y+2)] = 0;
+							tab[(int) (x+2-k)][(int) (y+2)] = 0;
 						}
 					break;
 					case(2):
 						for(int k = 0; k < 4; k++) {
-							Game.tab[(int) (x+2)][(int) (y+2-k)] = 0;
+							tab[(int) (x+2)][(int) (y+2-k)] = 0;
 						}
 					break;
 					case(3):
 						for(int k = 0; k < 4; k++) {
-							Game.tab[(int) (x+2+k)][(int) (y+2)] = 0;
+							tab[(int) (x+2+k)][(int) (y+2)] = 0;
 						}
 					break;
 					}
@@ -245,7 +245,7 @@ public class Game {
 				int dxy = Settings.castleSize/2;
 				Node start = new Node(playerCastle.getPosition().getX() + dxy, playerCastle.getPosition().getY() + dxy, 0, 0);
 				Node end = new Node(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy, 0, 0);
-				AStar.CheminPlusCourt(start, end, renderLayer, true);
+				AStar.CheminPlusCourt(start, end, tab , renderLayer, true);
 				e.consume();
 			});
 			castleTargets.add(targetButton);

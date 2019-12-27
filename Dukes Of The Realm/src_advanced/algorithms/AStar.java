@@ -35,7 +35,7 @@ public abstract class AStar {
 			return totalPath;
 		}
 
-	public static List<Node> CheminPlusCourt(Node start , Node end , Pane root, boolean allowDiagonale) {
+	public static List<Node> CheminPlusCourt(Node start , Node end , int[][] tab, Pane root, boolean allowDiagonale) {
 		Node current = null;
 		boolean containsNeighbor;
 		
@@ -73,7 +73,7 @@ public abstract class AStar {
 			
 			closedList.add(current);
 			
-			for(Node neighbor : current.voisin(allowDiagonale)) {
+			for(Node neighbor : current.voisin(tab,allowDiagonale)) {
 				double x = neighbor.getX();
 				double y = neighbor.getY();
 				

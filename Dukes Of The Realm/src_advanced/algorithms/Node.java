@@ -22,7 +22,7 @@ public class Node {
 		this.heuristique = heuristique;
 	}
 	
-	public ArrayList<Node> voisin(boolean allowDiagonale){
+	public ArrayList<Node> voisin(int[][] tab , boolean allowDiagonale){
 		ArrayList<Node> voisin = new ArrayList<Node>();
 		
 		double xm = x - Settings.cellSize;
@@ -32,44 +32,44 @@ public class Node {
 		
 		
 		
-		if(xp < Settings.windowWidth && isCrossable((int) xp,(int) y)) {
+		if(xp < Settings.windowWidth && isCrossable((int) xp,(int) y , tab)) {
 		Node v0 = new Node(xp,y,cout,heuristique);
 		voisin.add(v0);
 		}
 		
-		if(xp < Settings.windowWidth && yp < Settings.windowHeight && isCrossable((int) xp ,(int) yp) && allowDiagonale) {
+		if(xp < Settings.windowWidth && yp < Settings.windowHeight && isCrossable((int) xp ,(int) yp , tab) && allowDiagonale) {
 		Node vd0 = new Node(xp , yp,cout,heuristique);
 		voisin.add(vd0);
 		}
 		
-		if(xm >= 0 && isCrossable((int) xm,(int) y)) {
+		if(xm >= 0 && isCrossable((int) xm,(int) y, tab)) {
 		Node v1 = new Node(xm,y,cout,heuristique);
 		voisin.add(v1);
 		}
 		
-		if(xm >= 0 && yp < Settings.windowHeight && isCrossable((int) xm ,(int) yp) && allowDiagonale) {
+		if(xm >= 0 && yp < Settings.windowHeight && isCrossable((int) xm ,(int) yp, tab) && allowDiagonale) {
 		Node vd1 = new Node(xm , yp,cout,heuristique);
 		voisin.add(vd1);
 		}
 		
 		
-		if(yp < Settings.windowHeight && isCrossable((int) x,(int) yp)) {
+		if(yp < Settings.windowHeight && isCrossable((int) x,(int) yp, tab)) {
 		Node v2 = new Node(x , yp,cout,heuristique);
 		voisin.add(v2);
 		}
 		
-		if(xm >= 0 && ym >= Settings.statusBarHeight && isCrossable((int) xm ,(int) ym) && allowDiagonale) {
+		if(xm >= 0 && ym >= Settings.statusBarHeight && isCrossable((int) xm ,(int) ym, tab) && allowDiagonale) {
 		Node vd2 = new Node(xm , ym,cout,heuristique);
 		voisin.add(vd2);
 		}
 		
 		
-		if(ym >= Settings.statusBarHeight && isCrossable((int) x,(int) ym)) {
+		if(ym >= Settings.statusBarHeight && isCrossable((int) x,(int) ym, tab)) {
 		Node v3 = new Node(x , ym,cout,heuristique);
 		voisin.add(v3);
 		}
 		
-		if(xp < Settings.windowWidth && ym >= Settings.statusBarHeight && isCrossable((int) xp ,(int) ym) && allowDiagonale) {
+		if(xp < Settings.windowWidth && ym >= Settings.statusBarHeight && isCrossable((int) xp ,(int) ym, tab) && allowDiagonale) {
 		Node vd3 = new Node(xp , ym,cout,heuristique);
 		voisin.add(vd3);
 		}
@@ -77,9 +77,9 @@ public class Node {
 		return voisin;
 	}
 	
-	public boolean isCrossable(int x, int y) {
+	public boolean isCrossable(int x, int y,int[][] tab) {
 		
-		if(Game.tab[x / Settings.cellSize][(y - Settings.statusBarHeight) / Settings.cellSize] == 1) {
+		if(tab[x / Settings.cellSize][(y - Settings.statusBarHeight) / Settings.cellSize] == 1) {
 			return false;
 		}else {
 			return true;
