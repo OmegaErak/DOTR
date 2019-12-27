@@ -1,6 +1,7 @@
 package algorithms;
 import java.util.ArrayList;
 
+import base.Game;
 import base.Settings;
 
 
@@ -19,8 +20,6 @@ public class Node {
 		this.y = y;
 		this.cout = cout;
 		this.heuristique = heuristique;
-		this.f = f;
-		this.cameFrom = cameFrom;
 	}
 	
 	public ArrayList<Node> voisin(boolean allowDiagonale){
@@ -59,18 +58,18 @@ public class Node {
 		voisin.add(v2);
 		}
 		
-		if(xm >= 0 && ym >= 0 && isCrossable((int) xm ,(int) ym) && allowDiagonale) {
+		if(xm >= 0 && ym >= Settings.statusBarHeight && isCrossable((int) xm ,(int) ym) && allowDiagonale) {
 		Node vd2 = new Node(xm , ym,cout,heuristique);
 		voisin.add(vd2);
 		}
 		
 		
-		if(ym >= 0 && isCrossable((int) x,(int) ym)) {
+		if(ym >= Settings.statusBarHeight && isCrossable((int) x,(int) ym)) {
 		Node v3 = new Node(x , ym,cout,heuristique);
 		voisin.add(v3);
 		}
 		
-		if(xp < Settings.windowWidth && ym >= 0 && isCrossable((int) xp ,(int) ym) && allowDiagonale) {
+		if(xp < Settings.windowWidth && ym >= Settings.statusBarHeight && isCrossable((int) xp ,(int) ym) && allowDiagonale) {
 		Node vd3 = new Node(xp , ym,cout,heuristique);
 		voisin.add(vd3);
 		}
@@ -80,14 +79,21 @@ public class Node {
 	
 	public boolean isCrossable(int x, int y) {
 		
-//		if(Game.tab[x / Settings.cellSize][y / Settings.cellSize] == 0) {
-//			return false;
-//		}else {
-//			return true;
-//		}
+		if(Game.tab[x / Settings.cellSize][(y - Settings.statusBarHeight) / Settings.cellSize] == 1) {
+			return false;
+		}else {
+			return true;
+		}
 		
-		return true;
 		
+	}
+	
+	public boolean arround(Node node) {
+		double dx = Math.sqrt( (x - node.getX()) * (x - node.getX()) );
+		double dy = Math.sqrt( (y - node.getY()) * (y - node.getY()) );
+		
+		return(dx <=40 && dy <= 40);
+
 	}
 	
 

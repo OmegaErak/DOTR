@@ -55,16 +55,16 @@ public abstract class AStar {
 			}
 			
 			current  = openList.poll();
-			if(current.getX() == end.getX() && current.getY() == end.getY()) {
+			if(current.getX() == end.getX() && current.getY() == end.getY() || current.arround(end)) {
 				List<Node>reconstructedPath = reconstructPath(current);
 				for(int i = 0 ; i < reconstructedPath.size() - 1 ; i++) {
 					Point2D from = new Point2D(reconstructedPath.get(i).getX() , reconstructedPath.get(i).getY());
 					Point2D to = new Point2D(reconstructedPath.get(i+1).getX() , reconstructedPath.get(i+1).getY());
 					Line line = new Line();
-					line.setStartX(from.getX() + Settings.castleSize/2);
-					line.setStartY(from.getY()+ Settings.castleSize/2);
-					line.setEndX(to.getX()+ Settings.castleSize/2);
-					line.setEndY(to.getY()+ Settings.castleSize/2);
+					line.setStartX(from.getX());
+					line.setStartY(from.getY());
+					line.setEndX(to.getX());
+					line.setEndY(to.getY());
 					root.getChildren().add(line);
 				}
 				

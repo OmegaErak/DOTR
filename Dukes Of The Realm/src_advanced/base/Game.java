@@ -29,6 +29,8 @@ public class Game {
 	private Input input;
 	public static int[][]tab = new int[Settings.gridCellsCountX/Settings.cellSize][Settings.gridCellsCountY/Settings.cellSize];
 
+	
+	
 	private Random rdGen = new Random();
 
 	private GameMode gameMode;
@@ -180,7 +182,7 @@ public class Game {
 		int castleOwner = 0;
 		while (castles.size() < nbCastles) {
 			int cellSize = Settings.cellSize;
-			Point2D position = new Point2D(rdGen.nextInt(widthUpperBound/cellSize)*cellSize, Settings.statusBarHeight + rdGen.nextInt(heightUpperBound/cellSize)*cellSize);
+			Point2D position = new Point2D(rdGen.nextInt(widthUpperBound/cellSize -3)*cellSize +20, Settings.statusBarHeight + 30 + rdGen.nextInt(heightUpperBound/cellSize - 4)*cellSize);
 			if (!isPositionNearACastle(position)) {
 				castles.add(new Castle(renderLayer, castleOwner, position));
 				++castleOwner;
@@ -191,14 +193,37 @@ public class Game {
 
 		final Castle playerCastle = castles.get(0);
 		for (Castle castle : castles) {
-//			for(int i = 0; i < Settings.castleSize/Settings.cellSize; i++) {
-//			for(int j = 0; j < Settings.castleSize/Settings.cellSize ; j++) {
-//				double x = castle.getPosition().getX()/Settings.cellSize;
-//				double y = castle.getPosition().getY()/Settings.cellSize;
-//				Game.tab[(int) x - 1 + i][(int) y - 1 + j] = 1;
-//			}
-//		}
-//
+			
+			for(int i = 0; i <= Settings.castleSize/Settings.cellSize; i++) {
+				for(int j = 0; j <= Settings.castleSize/Settings.cellSize; j++) {
+					double x = castle.getPosition().getX()/Settings.cellSize;
+					double y = (castle.getPosition().getY() - Settings.statusBarHeight)/Settings.cellSize;
+					Game.tab[(int) x - 1 + i][(int) y - 1 + j] = 1;
+					switch(castle.getDoorDirection()) {
+					case(0):
+						for(int k = 0; k < 4; k++) {
+							Game.tab[(int) (x+2)][(int) (y+2+k)] = 0;
+						}
+					break;
+					case(1):
+						for(int k = 0; k < 4; k++) {
+							Game.tab[(int) (x+2-k)][(int) (y+2)] = 0;
+						}
+					break;
+					case(2):
+						for(int k = 0; k < 4; k++) {
+							Game.tab[(int) (x+2)][(int) (y+2-k)] = 0;
+						}
+					break;
+					case(3):
+						for(int k = 0; k < 4; k++) {
+							Game.tab[(int) (x+2+k)][(int) (y+2)] = 0;
+						}
+					break;
+					}
+				}
+			}
+			
 			castle.getTextureView().setOnMouseClicked(e -> {
 				for (StatusBar statusBar : statusBars) {
 					statusBar.setCastleView(castle);
@@ -209,19 +234,23 @@ public class Game {
 			if (castle.getOwner() == 0) {
 				continue;
 			}
-			Point2D pos = new Point2D(castle.getPosition().getX() - 10, castle.getPosition().getY() - 10);
+			Point2D pos = new Point2D(castle.getPosition().getX(), castle.getPosition().getY());
 			Button targetButton = new Button(renderLayer, pos, target);
+			targetButton.getTextureView().setFitWidth(Settings.castleSize);
+			targetButton.getTextureView().setFitHeight(Settings.castleSize);
 			targetButton.addToCanvas();
 			targetButton.getTextureView().setPickOnBounds(true);
 			targetButton.getTextureView().setOnMouseClicked(e -> {
 				// We use targetButton.getPosition because it's the same as castle position
-				Node start = new Node(playerCastle.getPosition().getX(), playerCastle.getPosition().getY(), 0, 0);
-				Node end = new Node(castle.getPosition().getX(), castle.getPosition().getY(), 0, 0);
+				int dxy = Settings.castleSize/2;
+				Node start = new Node(playerCastle.getPosition().getX() + dxy, playerCastle.getPosition().getY() + dxy, 0, 0);
+				Node end = new Node(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy, 0, 0);
 				AStar.CheminPlusCourt(start, end, renderLayer, true);
 				e.consume();
 			});
 			castleTargets.add(targetButton);
 		}
+		
 	}
 
 	private boolean isPositionNearACastle(Point2D position) {
