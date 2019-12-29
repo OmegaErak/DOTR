@@ -2,6 +2,7 @@ package base;
 
 import buildings.Castle;
 
+import javafx.scene.input.KeyCode;
 import renderer.Button;
 import renderer.Background;
 import renderer.StatusBar;
@@ -12,7 +13,6 @@ import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
@@ -21,11 +21,11 @@ import java.util.Random;
 
 import algorithms.AStar;
 import algorithms.Node;
+import troops.Knight;
 
 public class Game {
 	private Group root;
 	private Pane renderLayer;
-	private Input input;
 	public static int[][]tab = new int[Settings.gridCellsCountX/Settings.cellSize][Settings.gridCellsCountY/Settings.cellSize];
 
 	private Random rdGen = new Random();
@@ -38,6 +38,7 @@ public class Game {
 
 		this.renderLayer = new Pane();
 		this.renderLayer.setPrefSize(Settings.windowWidth, Settings.windowHeight);
+		this.renderLayer.setFocusTraversable(true);
 		this.renderLayer.setOnMouseClicked(e -> {
 			if (gameMode == GameMode.Menu) {
 				for (StatusBar statusBar : statusBars) {
@@ -51,12 +52,20 @@ public class Game {
 			e.consume();
 		});
 
+		this.renderLayer.setOnKeyPressed(key -> {
+			if (key.getCode() == KeyCode.SPACE) {
+				isRunning = !isRunning;
+			} else if (key.getCode() == KeyCode.ESCAPE) {
+				// TODO open quick menu
+			}
+		});
+
 		root.getChildren().add(this.renderLayer);
 	}
 
 	private boolean isRunning = true;
 	private int frameCounter = 0;
-	private int framesPerDay = 60; // One second.
+	private int framesPerDay = 120; // Two seconds.
 
 	private DayHolder currentDayHolder = new DayHolder();
 
@@ -66,14 +75,11 @@ public class Game {
 		AnimationTimer gameLoop = new AnimationTimer() {
 			@Override
 			public void handle(long now) {
-				processInput(input, now);
 				for (StatusBar statusBar : statusBars) {
 					statusBar.updateView();
 				}
 
 				if (isRunning) {
-					processInput(input, now);
-
 					if (gameMode == GameMode.Game) {
 						++frameCounter;
 						if (frameCounter >= framesPerDay) {
@@ -84,17 +90,13 @@ public class Game {
 								castle.onUpdate();
 							}
 						}
+
+						for (Castle castle : castles) {
+							for (Knight knight : castle.getTroops()) {
+								knight.onUpdate();
+							}
+						}
 					}
-				}
-			}
-
-			private void processInput(Input input, long now) {
-				if (input.isKeyPressed(KeyCode.SPACE)) {
-					isRunning = !isRunning;
-				}
-
-				if (input.isKeyPressed(KeyCode.ESCAPE)) {
-//					openQuickMenu();
 				}
 			}
 		};
@@ -105,13 +107,8 @@ public class Game {
 	private Background gameBackground;
 
 	private void loadGame() {
-		input = new Input(this.root.getScene());
-
 		menuBackground = new Background(renderLayer, new Image("/sprites/backgrounds/menu_background.png"));
 		gameBackground = new Background(renderLayer, new Image("/sprites/backgrounds/game_background.png"));
-
-		// TODO: Initialise input and add listeners
-		input.addListeners();
 
 		createStatusBar();
 
@@ -145,14 +142,15 @@ public class Game {
 			defaultMenuButtons.add(button);
 		}
 
-		// TODO: Is there a way to store functions in array?
 		defaultMenuButtons.get(0).getTextureView().setOnMouseClicked(e -> {
 			setGameView();
 			e.consume();
 		});
 
 		defaultMenuButtons.get(1).getTextureView().setOnMouseClicked(e -> {
-//			setLoadGameView();
+			GameIO gameIO = new GameIO();
+			// I don't get why I need to add resources/ here and not when dealing with JavaFX, my guess is that JavaFX does it internally.
+			gameIO.loadGame(this, "resources/dukes.sav");
 			e.consume();
 		});
 
@@ -208,10 +206,7 @@ public class Game {
 			targetButton.addToCanvas();
 			targetButton.getTextureView().setPickOnBounds(true);
 			targetButton.getTextureView().setOnMouseClicked(e -> {
-				// We use targetButton.getPosition because it's the same as castle position
-				Node start = new Node(playerCastle.getPosition().getX(), playerCastle.getPosition().getY(), 0, 0);
-				Node end = new Node(castle.getPosition().getX(), castle.getPosition().getY(), 0, 0);
-				AStar.CheminPlusCourt(start, end, renderLayer, true);
+				playerCastle.launchTroops(castle, selectedTroops);
 				e.consume();
 			});
 			castleTargets.add(targetButton);
@@ -229,10 +224,11 @@ public class Game {
 		return false;
 	}
 
+	private List<Knight> selectedTroops = new ArrayList<>();
 	private List<StatusBar> statusBars = new ArrayList<>();
 
 	private void createStatusBar() {
-		final Point2D statusBarSize = new Point2D(Settings.windowWidth / 3.0, Settings.statusBarHeight);
+		Point2D statusBarSize = new Point2D(Settings.leftStatusBarWidth, Settings.statusBarHeight);
 		Point2D statusBarPos = new Point2D(0, 0);
 		StatusBar leftStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "leftStatusBar") {
 			@Override
@@ -253,14 +249,42 @@ public class Game {
 		leftStatusBar.setDefaultMenuView();
 		statusBars.add(leftStatusBar);
 
-		statusBarPos = new Point2D(statusBarPos.getX() + Settings.windowWidth / 3.0, statusBarPos.getY());
+		statusBarSize = new Point2D(Settings.centerStatusBarWidth, Settings.statusBarHeight);
+		statusBarPos = new Point2D(statusBarPos.getX() + leftStatusBar.getSize().getX(), statusBarPos.getY());
 		StatusBar centerStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "centerStatusBar") {
 			private List<Button> decisionButtons;
 
 			private List<Spinner<Integer>> moveSpinners;
 
+			private Boolean firstFrame = true;
+
 			@Override
 			public void updateView() {
+				// Should be done every frame
+				if (getView() == StatusBarView.TroopsMoveView) {
+					if (getCurrentCastle().getOwner() == 0) {
+						final ArrayList<Integer> spinnerValues = new ArrayList<>(0);
+						spinnerValues.add(getCurrentCastle().getNbKnights());
+						for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
+							final int initialValue;
+							if (firstFrame) {
+								initialValue = 0;
+								firstFrame = false;
+							} else {
+								initialValue = moveSpinners.get(i).getValue();
+							}
+							final SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues.get(i), initialValue);
+							moveSpinners.get(i).setValueFactory(factory);
+						}
+
+						selectedTroops = new ArrayList<>();
+						for (int i = 0; i < moveSpinners.get(0).getValue(); ++i) {
+							selectedTroops.add(getCurrentCastle().getKnightByIndex(i));
+						}
+					}
+				}
+
+				// Should be done only when the view is changed
 				if (shouldRefreshView) {
 					setText("");
 
@@ -268,9 +292,7 @@ public class Game {
 						button.removeFromCanvas();
 					}
 
-					for (Spinner<Integer> spinner : moveSpinners) {
-						spinner.setVisible(false);
-					}
+					removeSpinnersFromCanvas(moveSpinners);
 
 					for (Button target : castleTargets) {
 						target.removeFromCanvas();
@@ -283,11 +305,8 @@ public class Game {
 							}
 						}
 					} else if (getView() == StatusBarView.TroopsMoveView) {
-						// TODO
 						setText("Chevaliers:");
-						for (Spinner<Integer> spinner : moveSpinners) {
-							spinner.setVisible(true);
-						}
+						addSpinnersToCanvas(moveSpinners);
 
 						for (Button target : castleTargets) {
 							target.addToCanvas();
@@ -305,9 +324,8 @@ public class Game {
 				Image texture = new Image("/sprites/buttons/recruit.png");
 				final double buttonWidth = texture.getWidth();
 
-				String[] decisionButtonsPaths = new String[2];
-				decisionButtonsPaths[0] = "recruit.png";
-				decisionButtonsPaths[1] = "select_troops.png";
+				String[] decisionButtonsPaths = new String[1];
+				decisionButtonsPaths[0] = "select_troops.png";
 
 				Point2D buttonPos = new Point2D(getPosition().getX(), getPosition().getY());
 
@@ -319,11 +337,6 @@ public class Game {
 				}
 
 				decisionButtons.get(0).getTextureView().setOnMouseClicked(e -> {
-					setTroopsRecruitView();
-					e.consume();
-				});
-
-				decisionButtons.get(1).getTextureView().setOnMouseClicked(e -> {
 					setTroopsMoveView();
 					e.consume();
 				});
@@ -343,33 +356,29 @@ public class Game {
 
 					spinner.setPrefWidth(spinnerSize);
 
-					root.getChildren().addAll(spinner);
-					spinner.setVisible(false);
-
 					moveSpinners.add(spinner);
 
 					spinnerPosition = new Point2D(spinnerPosition.getX() + spinnerSize, spinnerPosition.getY());
 				}
 			}
 
-			@Override
-			public void setCastleView(Castle castle) {
-				super.setCastleView(castle);
+			public void addSpinnersToCanvas(List<Spinner<Integer>> spinners) {
+				for (Spinner<Integer> spinner : spinners) {
+					renderLayer.getChildren().add(spinner);
+				}
+			}
 
-				if (castle.getOwner() == 0) {
-					final ArrayList<Integer> spinnerValues = new ArrayList<>(0);
-					spinnerValues.add(castle.getNbKnights());
-					for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
-						SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues.get(i), 0);
-						moveSpinners.get(i).setValueFactory(factory);
-					}
+			public void removeSpinnersFromCanvas(List<Spinner<Integer>> spinners) {
+				for (Spinner<Integer> spinner : spinners) {
+					renderLayer.getChildren().remove(spinner);
 				}
 			}
 		};
 		centerStatusBar.setDefaultMenuView();
 		statusBars.add(centerStatusBar);
 
-		statusBarPos = new Point2D(statusBarPos.getX() + Settings.windowWidth / 3.0, statusBarPos.getY());
+		statusBarSize = new Point2D(Settings.centerStatusBarWidth, Settings.statusBarHeight);
+		statusBarPos = new Point2D(statusBarPos.getX() + centerStatusBar.getSize().getX(), statusBarPos.getY());
 		StatusBar rightStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "rightStatusBar") {
 			@Override
 			public void updateView() {

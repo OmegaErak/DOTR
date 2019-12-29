@@ -29,11 +29,9 @@ import algorithms.Node;
 public class Game {
 	private Group root;
 	private Pane renderLayer;
-	private Input input;
-	private  int[][]tab = new int[Settings.gridCellsCountX/Settings.cellSize][Settings.gridCellsCountY/Settings.cellSize];
 
-	
-	
+	private int[][]tab = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
+
 	private Random rdGen = new Random();
 
 	private GameMode gameMode;
@@ -72,14 +70,11 @@ public class Game {
 		AnimationTimer gameLoop = new AnimationTimer() {
 			@Override
 			public void handle(long now) {
-				processInput(input, now);
 				for (StatusBar statusBar : statusBars) {
 					statusBar.updateView();
 				}
 
 				if (isRunning) {
-					processInput(input, now);
-
 					if (gameMode == GameMode.Game) {
 						++frameCounter;
 						if (frameCounter >= framesPerDay) {
@@ -93,16 +88,6 @@ public class Game {
 					}
 				}
 			}
-
-			private void processInput(Input input, long now) {
-				if (input.isKeyPressed(KeyCode.SPACE)) {
-					isRunning = !isRunning;
-				}
-
-				if (input.isKeyPressed(KeyCode.ESCAPE)) {
-//					openQuickMenu();
-				}
-			}
 		};
 		gameLoop.start();
 	}
@@ -111,13 +96,8 @@ public class Game {
 	private Background gameBackground;
 
 	private void loadGame() {
-		input = new Input(this.root.getScene());
-
 		menuBackground = new Background(renderLayer, new Image("/sprites/backgrounds/menu_background.png"));
 		gameBackground = new Background(renderLayer, new Image("/sprites/backgrounds/game_background.png"));
-
-		// TODO: Initialise input and add listeners
-		input.addListeners();
 
 		createStatusBar();
 
