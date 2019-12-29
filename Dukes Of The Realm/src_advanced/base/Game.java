@@ -6,14 +6,17 @@ import renderer.Button;
 import renderer.Background;
 import renderer.StatusBar;
 import renderer.StatusBarView;
-
+import troops.Onager;
+import troops.Pikeman;
 import javafx.animation.AnimationTimer;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -194,29 +197,29 @@ public class Game {
 		final Castle playerCastle = castles.get(0);
 		for (Castle castle : castles) {
 			
-			for(int i = 0; i <= Settings.castleSize/Settings.cellSize; i++) {
-				for(int j = 0; j <= Settings.castleSize/Settings.cellSize; j++) {
+			for(int i = 0; i < Settings.castleSize/Settings.cellSize; i++) {
+				for(int j = 0; j < Settings.castleSize/Settings.cellSize; j++) {
 					double x = castle.getPosition().getX()/Settings.cellSize;
 					double y = (castle.getPosition().getY() - Settings.statusBarHeight)/Settings.cellSize;
-					tab[(int) x - 1 + i][(int) y - 1 + j] = 1;
+					tab[(int) x + i][(int) y + j] = 1;
 					switch(castle.getDoorDirection()) {
 					case(0):
-						for(int k = 0; k < 4; k++) {
+						for(int k = 0; k < 3; k++) {
 							tab[(int) (x+2)][(int) (y+2+k)] = 0;
 						}
 					break;
 					case(1):
-						for(int k = 0; k < 4; k++) {
+						for(int k = 0; k < 3; k++) {
 							tab[(int) (x+2-k)][(int) (y+2)] = 0;
 						}
 					break;
 					case(2):
-						for(int k = 0; k < 4; k++) {
+						for(int k = 0; k < 3; k++) {
 							tab[(int) (x+2)][(int) (y+2-k)] = 0;
 						}
 					break;
 					case(3):
-						for(int k = 0; k < 4; k++) {
+						for(int k = 0; k < 3; k++) {
 							tab[(int) (x+2+k)][(int) (y+2)] = 0;
 						}
 					break;
@@ -245,7 +248,10 @@ public class Game {
 				int dxy = Settings.castleSize/2;
 				Node start = new Node(playerCastle.getPosition().getX() + dxy, playerCastle.getPosition().getY() + dxy, 0, 0);
 				Node end = new Node(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy, 0, 0);
-				AStar.CheminPlusCourt(start, end, tab , renderLayer, true);
+				Double[] path = AStar.CheminPlusCourt(start, end, tab , renderLayer, true);
+				Onager pikeman = new Onager(renderLayer,playerCastle);
+				Button unitButton = pikeman.spawnTroop("onager", 0, playerCastle, path,renderLayer);	
+				pikeman.displacement(path, renderLayer,unitButton);
 				e.consume();
 			});
 			castleTargets.add(targetButton);

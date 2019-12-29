@@ -35,7 +35,7 @@ public abstract class AStar {
 			return totalPath;
 		}
 
-	public static List<Node> CheminPlusCourt(Node start , Node end , int[][] tab, Pane root, boolean allowDiagonale) {
+	public static Double[] CheminPlusCourt(Node start , Node end , int[][] tab, Pane root, boolean allowDiagonale) {
 		Node current = null;
 		boolean containsNeighbor;
 		
@@ -55,20 +55,17 @@ public abstract class AStar {
 			}
 			
 			current  = openList.poll();
-			if(current.getX() == end.getX() && current.getY() == end.getY() || current.arround(end)) {
+			if(current.getX() == end.getX() && current.getY() == end.getY() || current.isArround(end)) {
 				List<Node>reconstructedPath = reconstructPath(current);
-				for(int i = 0 ; i < reconstructedPath.size() - 1 ; i++) {
-					Point2D from = new Point2D(reconstructedPath.get(i).getX() , reconstructedPath.get(i).getY());
-					Point2D to = new Point2D(reconstructedPath.get(i+1).getX() , reconstructedPath.get(i+1).getY());
-					Line line = new Line();
-					line.setStartX(from.getX());
-					line.setStartY(from.getY());
-					line.setEndX(to.getX());
-					line.setEndY(to.getY());
-					root.getChildren().add(line);
+				Double[] path = new Double[2 * reconstructedPath.size()];
+				int k = 0;
+				for(int i = 0 ; i < path.length; i += 2) {
+					path[i] = reconstructedPath.get(reconstructedPath.size() - 1 - k).getX();
+					path[i+1] = reconstructedPath.get(reconstructedPath.size() - 1 - k).getY();
+					k++;
 				}
 				
-				return reconstructedPath;
+				return path;
 			}
 			
 			closedList.add(current);

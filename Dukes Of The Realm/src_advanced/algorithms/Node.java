@@ -88,11 +88,11 @@ public class Node {
 		
 	}
 	
-	public boolean arround(Node node) {
+	public boolean isArround(Node node) {
 		double dx = Math.sqrt( (x - node.getX()) * (x - node.getX()) );
 		double dy = Math.sqrt( (y - node.getY()) * (y - node.getY()) );
 		
-		return(dx <=40 && dy <= 40);
+		return(dx <=30 && dy <= 30);
 
 	}
 	
