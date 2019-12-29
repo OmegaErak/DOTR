@@ -12,9 +12,6 @@ public abstract class Sprite {
 
     protected Point2D position;
 
-    public int width;
-    public int height;
-
     public Sprite(Pane renderLayer, Point2D position) {
         this.renderLayer = renderLayer;
 
@@ -29,19 +26,15 @@ public abstract class Sprite {
     }
 
     public void addToCanvas() {
-        this.renderLayer.getChildren().add(this.textureView);
+        renderLayer.getChildren().add(textureView);
     }
 
     public void removeFromCanvas() {
-        this.renderLayer.getChildren().remove(this.textureView);
+        renderLayer.getChildren().remove(textureView);
     }
 
     public ImageView getTextureView() {
         return textureView;
-    }
-
-    public void setTextureView(ImageView textureView) {
-        this.textureView = textureView;
     }
 
     public Point2D getPosition() {
@@ -50,6 +43,7 @@ public abstract class Sprite {
 
     public void setPosition(Point2D position) {
         this.position = position;
+        textureView.relocate(this.position.getX(), this.position.getY());
     }
 
     public boolean collidesWith(Sprite sprite) {

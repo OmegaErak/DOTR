@@ -2,6 +2,9 @@ package base;
 
 public class Settings {
 	static final public int statusBarHeight = 100;
+	static final public int leftStatusBarWidth = Settings.windowWidth / 3;
+	static final public int centerStatusBarWidth = Settings.windowWidth / 3;
+	static final public int rightStatusBarWidth = Settings.windowWidth / 3;
 
 	static final public int nbMaxActiveDukes = 5;
 
@@ -12,9 +15,6 @@ public class Settings {
 	static final public int gridCellsCountY = (windowHeight - statusBarHeight);
 	
 	static final public int cellSize = 10;
-
-	static final public int cellSizeYpx = windowHeight / gridCellsCountX;
-	static final public int cellSizeXpx = windowWidth / gridCellsCountY;
 
 	static final public int castleSize = 50; // In pixels
 	static final public int knightSize = 15; // In pixels

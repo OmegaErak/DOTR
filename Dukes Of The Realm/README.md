@@ -20,9 +20,16 @@ You are playing one of the dukes and must defeat all the others to get the thron
  Import the three folders (resources, src_advanced ,src_basic).
  Then you must mark **resources** and the folder corresponding to the version you want to play (**src_advanced** or **src_basic**) as source folders using your IDE.
  
+ #### How to mark as resources
+ 
+ IntelliJ: File > Project Structure > Modules > Chose folder and click on "Sources"
+ 
+ [comment]: <> (TODO)
+ Eclipse: 
+ 
  ### JavaFX again
  
- If you had to download JavaFX, this is the time where you have to link it to the project by following these [steps](https://openjfx.io/openjfx-docs/) (there is only a section about IntelliJ, but Eclipse should be analog).
+ If you had to download JavaFX, this is where you have to link it to the project by following these [steps](https://openjfx.io/openjfx-docs/) (there is only a section about IntelliJ, but Eclipse should be analog).
  
  ### Launch
  

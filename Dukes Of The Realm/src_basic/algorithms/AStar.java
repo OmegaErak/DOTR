@@ -19,34 +19,33 @@ public abstract class AStar {
 	public static class NodeComparator implements Comparator<Node>	{
 	    @Override
 	    public int compare(Node a, Node b) {
-	    	return Double.compare(a.getF(), b.getF());
+	    	return Double.compare(a.getTotalCost(), b.getTotalCost());
 	    }
 	}
 
-	private static List<Node> reconstructPath( Node current) {
-			List<Node> totalPath = new ArrayList<>(200); // arbitrary value, we'll most likely have more than 10 which is default for java
-			totalPath.add( current);
-				
-			while( (current = current.getCameFrom()) != null) {
-				totalPath.add(current);
-			}
-	        
-			// return total_path
-			return totalPath;
+	private static ArrayList<Node> reconstructPath( Node current) {
+		ArrayList<Node> totalPath = new ArrayList<>();
+		totalPath.add(current);
+
+		while((current = current.getFatherNode()) != null) {
+			totalPath.add(current);
 		}
 
-	public static List<Node> CheminPlusCourt(Node start , Node end , Pane root, boolean allowDiagonale) {
-		Node current = null;
+		return totalPath;
+	}
+
+	public static ArrayList<Node> shortestPath(Node start, Node end, Pane root, boolean allowDiagonals) {
+		Node currentNode = null;
 		boolean containsNeighbor;
 		
-		int cellCount = Settings.gridCellsCountX/Settings.cellSize * Settings.gridCellsCountY/Settings.cellSize;
+		int cellCount = Settings.gridCellsCountX / Settings.cellSize * Settings.gridCellsCountY / Settings.cellSize;
 		Set<Node> closedList = new HashSet<>(cellCount);
 
 		PriorityQueue<Node> openList = new PriorityQueue<>(cellCount , new NodeComparator());
 		openList.add(start);
 		
-		start.setCout(0);
-		start.setF(start.getCout() + heuristicCostEstimate(start,end));
+		start.setCost(0);
+		start.setTotalCost(start.getCost() + heuristicCostEstimate(start,end));
 		
 		while(!openList.isEmpty()) {
 			if(closedList.size() > cellCount) {
@@ -54,57 +53,57 @@ public abstract class AStar {
 				return null;
 			}
 			
-			current  = openList.poll();
-			if(current.getX() == end.getX() && current.getY() == end.getY()) {
-				List<Node>reconstructedPath = reconstructPath(current);
-				for(int i = 0 ; i < reconstructedPath.size() - 1 ; i++) {
-					Point2D from = new Point2D(reconstructedPath.get(i).getX() , reconstructedPath.get(i).getY());
-					Point2D to = new Point2D(reconstructedPath.get(i+1).getX() , reconstructedPath.get(i+1).getY());
+			currentNode  = openList.poll();
+			if(currentNode.getPosition().getX() == end.getPosition().getX() && currentNode.getPosition().getY() == end.getPosition().getY()) {
+				ArrayList<Node> reconstructedPath = reconstructPath(currentNode);
+				for(int i = 0; i < reconstructedPath.size() - 1; i++) {
+					Point2D semiStart = new Point2D(reconstructedPath.get(i).getPosition().getX(), reconstructedPath.get(i).getPosition().getY());
+					Point2D semiEnd = new Point2D(reconstructedPath.get(i+1).getPosition().getX(), reconstructedPath.get(i+1).getPosition().getY());
 					Line line = new Line();
-					line.setStartX(from.getX() + Settings.castleSize/2);
-					line.setStartY(from.getY()+ Settings.castleSize/2);
-					line.setEndX(to.getX()+ Settings.castleSize/2);
-					line.setEndY(to.getY()+ Settings.castleSize/2);
+					line.setStartX(semiStart.getX());
+					line.setStartY(semiStart.getY());
+					line.setEndX(semiEnd.getX());
+					line.setEndY(semiEnd.getY());
 					root.getChildren().add(line);
 				}
-				
+
 				return reconstructedPath;
 			}
 			
-			closedList.add(current);
+			closedList.add(currentNode);
 			
-			for(Node neighbor : current.voisin(allowDiagonale)) {
-				double x = neighbor.getX();
-				double y = neighbor.getY();
+			for(Node neighbor : currentNode.getNeighbours(allowDiagonals)) {
+				double x = neighbor.getPosition().getX();
+				double y = neighbor.getPosition().getY();
 				
-				boolean allReadyVisited = false;
+				boolean alreadyVisited = false;
 				
-				for(Node v : closedList) {
-					if(v.getX() == x && v.getY() == y) {
-						allReadyVisited = true;
+				for(Node node : closedList) {
+					if(node.getPosition().getX() == x && node.getPosition().getY() == y) {
+						alreadyVisited = true;
 						break;
 					}
 				}
 						
-				if(allReadyVisited){
+				if(alreadyVisited){
 					continue;
 				}
 				
-				double tentativeScoreG = current.getCout() + 1;
+				double tentativeScoreG = currentNode.getCost() + 1;
 				
 				containsNeighbor = false;
-				for(Node v : openList) {
-					if(v.getX() == x && v.getY() == y) {
+				for(Node node : openList) {
+					if(node.getPosition().getX() == x && node.getPosition().getY() == y) {
 						containsNeighbor = true;
 						break;
 					}
 				}
 				
-				if(!containsNeighbor || Double.compare(tentativeScoreG, neighbor.getCout()) < 0) {
-					neighbor.setCameFrom(current);
-					neighbor.setCout(tentativeScoreG);
-					neighbor.setHeuristique(heuristicCostEstimate(neighbor, end));
-					neighbor.setF(neighbor.getCout() + neighbor.getHeuristique());
+				if(!containsNeighbor || Double.compare(tentativeScoreG, neighbor.getCost()) < 0) {
+					neighbor.setFatherNode(currentNode);
+					neighbor.setCost(tentativeScoreG);
+					neighbor.setHeuristicCost(heuristicCostEstimate(neighbor, end));
+					neighbor.setTotalCost(neighbor.getCost() + neighbor.getHeuristicCost());
 				}
 				
 				if(!containsNeighbor) {
@@ -115,19 +114,17 @@ public abstract class AStar {
 		System.out.println("No path");
 		return null;
 	}
-	
-	private static double distBetween(Node current, Node neighbor) {
-		return heuristicCostEstimate( current, neighbor);
-	}
-	
+
 	/**
 	 * Distance between two cells. We use the euclidian distance here. 
 	 * Used in the algorithm as distance calculation between a cell and the goal. 
 	 */
-	private static double heuristicCostEstimate(Node from, Node to) {
-		Point2D p1 = new Point2D(from.getX() , from.getY());
-		Point2D p2 = new Point2D(to.getX() , to.getY());
+	private static double heuristicCostEstimate(Node start, Node end) {
+		final int heuristicWeight = 6;
+
+		Point2D p1 = new Point2D(start.getPosition().getX() , start.getPosition().getY());
+		Point2D p2 = new Point2D(end.getPosition().getX() , end.getPosition().getY());
 		
-		return p1.distance(p2)/Settings.castleSize * 5;
+		return p1.distance(p2) / Settings.castleSize * heuristicWeight;
 	}
 }

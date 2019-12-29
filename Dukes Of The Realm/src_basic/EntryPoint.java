@@ -17,7 +17,7 @@ public class EntryPoint extends Application {
 
 		game.run();
 	}
-	 	
+
 	public static void main(String[] args) {
 		launch(args);
 	}
