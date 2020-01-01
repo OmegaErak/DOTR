@@ -109,20 +109,28 @@ public class Castle extends Sprite {
 		Random rdGen = new Random();
 		// Check if getting attacked
 		if (attackingTroops.size() != 0) {
+			Boolean isAttackFinished = false;
 			for (Knight attackingKnight : attackingTroops) {
 				for (int i = 0; i < attackingKnight.getDamage(); ++i) {
+
+					// Castle is conquered
+					if (availableKnights.size() == 0) {
+						this.owner = attackingTroops.get(0).getAttachedCastle().getOwner();
+						this.ownerName = attackingTroops.get(0).getAttachedCastle().getOwnerName();
+						isAttackFinished = true;
+						break;
+					}
+
 					final Knight attackedKnight = availableKnights.get(rdGen.nextInt(availableKnights.size()));
 					attackedKnight.setHealth(attackedKnight.getHealth() - 1);
 					if (attackedKnight.getHealth() == 0) {
 						availableKnights.remove(attackedKnight);
 					}
 				}
-			}
 
-			// Castle is conquered
-			if (availableKnights.size() == 0) {
-				this.owner = attackingTroops.get(0).getAttachedCastle().getOwner();
-				this.ownerName = attackingTroops.get(0).getAttachedCastle().getOwnerName();
+				if (isAttackFinished) {
+					break;
+				}
 			}
 		}
 	}
@@ -168,17 +176,16 @@ public class Castle extends Sprite {
 				// TODO: Not the best way to do this. Is there a way to check if every animation is finished?
 				ArrayList<Knight> troopsList = new ArrayList<>();
 				troopsList.add(knight);
-				castle.receiveTroops(troopsList);
+				castle.receiveTroops(this, troopsList);
 			});
 			moveAnimation.play();
 
 			availableKnights.remove(knight);
-			selectedTroops.remove(knight);
 		}
 	}
 
-	public void receiveTroops(ArrayList<Knight> troops) {
-		if (attackingTroops.get(0).getAttachedCastle().getOwner() == this.owner) {
+	public void receiveTroops(Castle sender, ArrayList<Knight> troops) {
+		if (sender.getOwner() == this.owner) {
 			availableKnights.addAll(troops);
 		} else {
 			attackingTroops.addAll(troops);
