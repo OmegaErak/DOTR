@@ -1,9 +1,12 @@
 package buildings;
 
-import base.Direction;
+import algorithms.AStar;
+import algorithms.Node;
+
 import base.Settings;
 
 import renderer.Sprite;
+
 import troops.Knight;
 
 import javafx.animation.PathTransition;
@@ -24,7 +27,7 @@ import java.util.List;
 import java.util.Random;
 
 public class Castle extends Sprite {
-	final static private List<String> dukeNames = new ArrayList<String>(Arrays.asList(
+	final static private List<String> dukeNames = new ArrayList<>(Arrays.asList(
 			"Jean-Cloud Van Damme",
 
 			"Jean-Eudes",
@@ -59,9 +62,6 @@ public class Castle extends Sprite {
 	private int owner;
 	private String ownerName;
 
-	private Point2D position;
-	private int doorDirection;
-
 	private ArrayList<Knight> availableKnights = new ArrayList<>();
 
 	private ArrayList<Knight> attackingTroops = new ArrayList<>();
@@ -84,7 +84,8 @@ public class Castle extends Sprite {
 		this.ownerName = dukeNames.get(index);
 		dukeNames.remove(index);
 
-		this.doorDirection = rdGen.nextInt(Direction.nbDirections);
+		final int nbDirections = 4;
+		final int doorDirection = rdGen.nextInt(nbDirections);
 
 		this.position = position;
 		
@@ -106,42 +107,44 @@ public class Castle extends Sprite {
 			availableKnights.add(new Knight(renderLayer, this));
 		}
 
-		Random rdGen = new Random();
 		// Check if getting attacked
 		if (attackingTroops.size() != 0) {
-			Boolean isAttackFinished = false;
-			for (Knight attackingKnight : attackingTroops) {
-				for (int i = 0; i < attackingKnight.getDamage(); ++i) {
+			Random rdGen = new Random();
+			final Knight attackingKnight = attackingTroops.get(0);
 
-					// Castle is conquered
-					if (availableKnights.size() == 0) {
-						this.owner = attackingTroops.get(0).getAttachedCastle().getOwner();
-						this.ownerName = attackingTroops.get(0).getAttachedCastle().getOwnerName();
-						isAttackFinished = true;
-						break;
-					}
-
-					final Knight attackedKnight = availableKnights.get(rdGen.nextInt(availableKnights.size()));
-					attackedKnight.setHealth(attackedKnight.getHealth() - 1);
-					if (attackedKnight.getHealth() == 0) {
-						availableKnights.remove(attackedKnight);
-					}
-				}
-
-				if (isAttackFinished) {
+			for (int i = 0; i < attackingKnight.getDamage(); ++i) {
+				// Castle is conquered
+				if (availableKnights.size() == 0) {
+					this.owner = attackingTroops.get(0).getAttachedCastle().getOwner();
+					this.ownerName = attackingTroops.get(0).getAttachedCastle().getOwnerName();
+					this.textureView.setImage(new Image("/sprites/castles/castle_" + owner + ".png"));
+					this.availableKnights.addAll(attackingTroops);
 					break;
 				}
+
+				final Knight attackedKnight = availableKnights.get(rdGen.nextInt(availableKnights.size()));
+				attackedKnight.setHealth(attackedKnight.getHealth() - 1);
+				if (attackedKnight.getHealth() == 0) {
+					availableKnights.remove(attackedKnight);
+				}
 			}
+
+			attackingKnight.removeFromCanvas();
+			attackingTroops.remove(attackingKnight);
 		}
 	}
 
-	// TODO: Variable sized and fixed sized arrays in same function
-	public void moveTroops(Castle castle, ArrayList<Knight> selectedTroops, Double[] usedPath) {
-		// TODO: Two polylines?
-		Polyline polyLine = new Polyline();
-		polyLine.getPoints().addAll(usedPath);
-		renderLayer.getChildren().add(polyLine);
-		Polyline poly = new Polyline();
+	public void moveTroops(Castle castle, ArrayList<Knight> selectedTroops, int[][] gameGrid) {
+		int dxy = Settings.castleSize / 2;
+		Node start = new Node(new Point2D(getPosition().getX() + dxy, getPosition().getY() + dxy), 0, 0);
+		Node end = new Node(new Point2D(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy), 0, 0);
+		Double[] usedPath = AStar.shortestPath(start, end, gameGrid, true);
+
+		Polyline pathLine = new Polyline();
+		pathLine.getPoints().addAll(usedPath);
+		renderLayer.getChildren().add(pathLine);
+
+		Polyline usedPathPolyLine = new Polyline();
 		double dx = usedPath[0];
 		double dy = usedPath[1];
 		for(int i = 0; i < usedPath.length; i++) {
@@ -151,26 +154,30 @@ public class Castle extends Sprite {
 				usedPath[i] -= dy;
 			}
 		}
-		poly.getPoints().addAll(usedPath);
+		usedPathPolyLine.getPoints().addAll(usedPath);
 
 		for (Knight knight : selectedTroops) {
 			knight.addToCanvas();
 
 			// TODO: Magic constant
-			final PathTransition moveAnimation = new PathTransition(Duration.seconds(usedPath.length / 6.0), poly);
+			final PathTransition moveAnimation = new PathTransition(Duration.seconds(usedPath.length / 6.0), usedPathPolyLine);
+			moveAnimation.setNode(knight.getTextureView());
 			moveAnimation.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
 			moveAnimation.setOnFinished(e -> {
-				renderLayer.getChildren().remove(polyLine);
-				Random rdGen = new Random();
-				int oofType = rdGen.nextInt(2);
-				File oof = new File("resources/sound/oof" + oofType + ".wav");
-				try {
-					Clip clip = AudioSystem.getClip();
-					AudioInputStream inputStream = AudioSystem.getAudioInputStream(oof);
-					clip.open(inputStream);
-					clip.start();
-				} catch (Exception e1) {
-					e1.printStackTrace();
+				renderLayer.getChildren().remove(pathLine);
+
+				if (castle.getOwner() != this.getOwner()) {
+					Random rdGen = new Random();
+					int oofType = rdGen.nextInt(2);
+					File oof = new File("resources/sound/oof" + oofType + ".wav");
+					try {
+						Clip clip = AudioSystem.getClip();
+						AudioInputStream inputStream = AudioSystem.getAudioInputStream(oof);
+						clip.open(inputStream);
+						clip.start();
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
 				}
 
 				// TODO: Not the best way to do this. Is there a way to check if every animation is finished?

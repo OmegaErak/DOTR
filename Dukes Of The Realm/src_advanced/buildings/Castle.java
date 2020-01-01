@@ -1,6 +1,5 @@
 package buildings;
 
-import base.Direction;
 import base.Settings;
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
