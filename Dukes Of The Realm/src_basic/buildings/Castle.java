@@ -178,7 +178,11 @@ public class Castle extends Sprite {
 	}
 
 	public void receiveTroops(ArrayList<Knight> troops) {
-		attackingTroops.addAll(troops);
+		if (attackingTroops.get(0).getAttachedCastle().getOwner() == this.owner) {
+			availableKnights.addAll(troops);
+		} else {
+			attackingTroops.addAll(troops);
+		}
 	}
 
 	public int getOwner() {
