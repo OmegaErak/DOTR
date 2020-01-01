@@ -3,14 +3,12 @@ package algorithms;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
 import base.Settings;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.Pane;
-import javafx.scene.shape.Line;
 
 public abstract class AStar {
 	public AStar() {
@@ -23,8 +21,8 @@ public abstract class AStar {
 	    }
 	}
 
-	private static List<Node> reconstructPath( Node current) {
-			List<Node> totalPath = new ArrayList<>(200); // arbitrary value, we'll most likely have more than 10 which is default for java
+	private static ArrayList<Node> reconstructPath( Node current) {
+		ArrayList<Node> totalPath = new ArrayList<>();
 			totalPath.add( current);
 				
 			while( (current = current.getCameFrom()) != null) {
@@ -35,7 +33,7 @@ public abstract class AStar {
 			return totalPath;
 		}
 
-	public static Double[] CheminPlusCourt(Node start , Node end , int[][] tab, Pane root, boolean allowDiagonale) {
+	public static Double[] CheminPlusCourt(Node start , Node end , int[][] tab, Pane root, boolean allowDiagonale, boolean castleOwned) {
 		Node current = null;
 		boolean containsNeighbor;
 		
@@ -55,13 +53,13 @@ public abstract class AStar {
 			}
 			
 			current  = openList.poll();
-			if(current.getX() == end.getX() && current.getY() == end.getY() || current.isArround(end)) {
-				List<Node>reconstructedPath = reconstructPath(current);
+			if(current.getX() == end.getX() && current.getY() == end.getY() || (current.isArround(end) && !castleOwned)) {
+				ArrayList<Node>reconstructedPath = reconstructPath(current);
 				Double[] path = new Double[2 * reconstructedPath.size()];
 				int k = 0;
 				for(int i = 0 ; i < path.length; i += 2) {
-					path[i] = reconstructedPath.get(reconstructedPath.size() - 1 - k).getX();
-					path[i+1] = reconstructedPath.get(reconstructedPath.size() - 1 - k).getY();
+					path[i] = reconstructedPath.get(reconstructedPath.size()-1-k).getX();
+					path[i+1] = reconstructedPath.get(reconstructedPath.size()-1-k).getY();
 					k++;
 				}
 				
@@ -113,9 +111,6 @@ public abstract class AStar {
 		return null;
 	}
 	
-	private static double distBetween(Node current, Node neighbor) {
-		return heuristicCostEstimate( current, neighbor);
-	}
 	
 	/**
 	 * Distance between two cells. We use the euclidian distance here. 

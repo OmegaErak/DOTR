@@ -209,6 +209,10 @@ public class Castle extends Sprite {
 	public boolean isLevelingUp() {
 		return isLevelingUp;
 	}
+	
+	public ArrayList<Troop> getAvailableTroops(){
+		return availableTroops;
+	}
 
 	public Point2D getPosition() {
 		return position;

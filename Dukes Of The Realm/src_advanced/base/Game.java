@@ -6,8 +6,10 @@ import renderer.Button;
 import renderer.Background;
 import renderer.StatusBar;
 import renderer.StatusBarView;
+import troops.Knight;
 import troops.Onager;
 import troops.Pikeman;
+import troops.Troop;
 import javafx.animation.AnimationTimer;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Point2D;
@@ -172,35 +174,38 @@ public class Game {
 			}
 		}
 
-		Image target = new Image("/sprites/castles/target.png");
+		Image ennemyTarget = new Image("/sprites/castles/ennemyTarget.png");
+		Image allyTarget = new Image("/sprites/castles/allyTarget.png");
 
 		final Castle playerCastle = castles.get(0);
+		ArrayList<Castle> castleOwned = new ArrayList<Castle>();
+		castleOwned.add(playerCastle);
 		for (Castle castle : castles) {
 			
 			for(int i = 0; i < Settings.castleSize/Settings.cellSize; i++) {
 				for(int j = 0; j < Settings.castleSize/Settings.cellSize; j++) {
-					double x = castle.getPosition().getX()/Settings.cellSize;
-					double y = (castle.getPosition().getY() - Settings.statusBarHeight)/Settings.cellSize;
+					int x = (int) castle.getPosition().getX()/Settings.cellSize;
+					int y = (int) (castle.getPosition().getY() - Settings.statusBarHeight)/Settings.cellSize;
 					tab[(int) x + i][(int) y + j] = 1;
 					switch(castle.getDoorDirection()) {
 					case(0):
 						for(int k = 0; k < 3; k++) {
-							tab[(int) (x+2)][(int) (y+2+k)] = 0;
+							tab[x+2][y+2+k] = 0;
 						}
 					break;
 					case(1):
 						for(int k = 0; k < 3; k++) {
-							tab[(int) (x+2-k)][(int) (y+2)] = 0;
+							tab[x+2-k][y+2] = 0;
 						}
 					break;
 					case(2):
 						for(int k = 0; k < 3; k++) {
-							tab[(int) (x+2)][(int) (y+2-k)] = 0;
+							tab[x+2][y+2-k] = 0;
 						}
 					break;
 					case(3):
 						for(int k = 0; k < 3; k++) {
-							tab[(int) (x+2+k)][(int) (y+2)] = 0;
+							tab[x+2+k][y+2] = 0;
 						}
 					break;
 					}
@@ -213,30 +218,59 @@ public class Game {
 				}
 				e.consume();
 			});
-
-			if (castle.getOwner() == 0) {
-				continue;
-			}
-			Point2D pos = new Point2D(castle.getPosition().getX(), castle.getPosition().getY());
-			Button targetButton = new Button(renderLayer, pos, target);
+			if (castleOwned.contains(castle)) {
+				Button targetButton = new Button(renderLayer, castle.getPosition(), allyTarget);
+				targetButton.getTextureView().setFitWidth(Settings.castleSize);
+				targetButton.getTextureView().setFitHeight(Settings.castleSize);
+				targetButton.getTextureView().setPickOnBounds(true);
+				targetButton.getTextureView().setOnMouseClicked(e -> {
+					// We use targetButton.getPosition because it's the same as castle position
+					Pikeman pikeman = new Pikeman(renderLayer,playerCastle);
+					Knight knight = new Knight(renderLayer,playerCastle);
+					Onager onager = new Onager(renderLayer,playerCastle);
+					displacement(playerCastle.getPosition(),castle,pikeman,true);
+					displacement(playerCastle.getPosition(),castle,onager,true);
+					displacement(playerCastle.getPosition(),castle,knight,true);
+					e.consume();
+				});
+				castleTargets.add(targetButton);
+			}else {
+				
+			Button targetButton = new Button(renderLayer, castle.getPosition(), ennemyTarget);
 			targetButton.getTextureView().setFitWidth(Settings.castleSize);
 			targetButton.getTextureView().setFitHeight(Settings.castleSize);
-			targetButton.addToCanvas();
 			targetButton.getTextureView().setPickOnBounds(true);
 			targetButton.getTextureView().setOnMouseClicked(e -> {
 				// We use targetButton.getPosition because it's the same as castle position
-				int dxy = Settings.castleSize/2;
-				Node start = new Node(playerCastle.getPosition().getX() + dxy, playerCastle.getPosition().getY() + dxy, 0, 0);
-				Node end = new Node(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy, 0, 0);
-				Double[] path = AStar.CheminPlusCourt(start, end, tab , renderLayer, true);
-				Onager pikeman = new Onager(renderLayer,playerCastle);
-				Button unitButton = pikeman.spawnTroop("onager", 0, playerCastle, path,renderLayer);	
-				pikeman.displacement(path, renderLayer,unitButton);
+				Pikeman pikeman = new Pikeman(renderLayer,playerCastle);
+				Knight knight = new Knight(renderLayer,playerCastle);
+				Onager onager = new Onager(renderLayer,playerCastle);
+				displacement(playerCastle.getPosition(),castle,pikeman,false);
+				displacement(playerCastle.getPosition(),castle,onager,false);
+				displacement(playerCastle.getPosition(),castle,knight,false);
 				e.consume();
 			});
 			castleTargets.add(targetButton);
+			}
 		}
 		
+	}
+	
+	private void displacement(Point2D playerCastlePosition, Castle targetedCastle,Troop unit, boolean castleOwned) {
+		int dxy = Settings.castleSize/2;
+		Node start = new Node(playerCastlePosition.getX() + dxy, playerCastlePosition.getY() + dxy, 0, 0);
+		Node end = new Node(targetedCastle.getPosition().getX() + dxy, targetedCastle.getPosition().getY() + dxy, 0, 0);
+		Double[] path = AStar.CheminPlusCourt(start, end, tab , renderLayer, true,castleOwned);
+		String unitName;
+		if(unit.getClass() == Pikeman.class) {
+			unitName = "pikeman";
+		}else if(unit.getClass() == Knight.class){
+			unitName = "knight";
+		}else {
+			unitName = "onager";
+		}
+		Button unitButton = unit.spawnTroop(unitName, 0, playerCastlePosition, path,renderLayer);	
+		unit.displace(path, renderLayer,unitButton, tab,targetedCastle);
 	}
 
 	private boolean isPositionNearACastle(Point2D position) {
@@ -427,7 +461,7 @@ public class Game {
 				super.setCastleView(castle);
 
 				if (castle.getOwner() == 0) {
-					final int spinnerValues[] = {castle.getNbKnights(), castle.getNbPikemen(), castle.getNbOnagers()};
+					final int spinnerValues[] = {castle.getNbKnights(), castle.getNbOnagers(), castle.getNbPikemen()};
 					for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
 						SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues[i], 0);
 						moveSpinners.get(i).setValueFactory(factory);

@@ -79,7 +79,7 @@ public class Node {
 	
 	public boolean isCrossable(int x, int y,int[][] tab) {
 		
-		if(tab[x / Settings.cellSize][(y - Settings.statusBarHeight) / Settings.cellSize] == 1) {
+		if(tab[x / Settings.cellSize][(y - Settings.statusBarHeight) / Settings.cellSize] != 0) {
 			return false;
 		}else {
 			return true;

@@ -7,6 +7,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 
+import base.Settings;
 import buildings.Castle;
 import javafx.animation.PathTransition;
 import javafx.geometry.Point2D;
@@ -30,9 +31,9 @@ abstract public class Troop  extends Sprite {
 		super(renderLayer, castle.getPosition());
 	}
 	
-	public Button spawnTroop(String troop, int owner,Castle castle, Double[] path, Pane renderLayer) {	
+	public Button spawnTroop(String troop, int owner,Point2D castlePosition, Double[] path, Pane renderLayer) {	
 		Image unit = new Image("/sprites/troops/" + troop + "_"+owner+".png");
-		Point2D startPosition = new Point2D(castle.getPosition().getX() + 15,castle.getPosition().getY() + 15);
+		Point2D startPosition = new Point2D(castlePosition.getX() + 25,castlePosition.getY() + 25);
 		Button unitButton = new Button(renderLayer,startPosition,unit);
 		unitButton.setPosition(startPosition);
 		unitButton.getTextureView().setFitHeight(20);
@@ -42,13 +43,18 @@ abstract public class Troop  extends Sprite {
 		return unitButton;
 	}
 	
-	public void displacement(Double[] path, Pane renderLayer,Button unitButton) {		
+	public void displace(Double[] path, Pane renderLayer,Button unitButton, int[][] tab, Castle castleTargeted) {
+		if(path != null) {	
+		Double x = path[path.length-2];
+		Double y = path[path.length-1] - Settings.statusBarHeight;
+		tab[(int) (x-5)/Settings.cellSize][(int) (y-5)/Settings.cellSize] = 2;
 		Polyline polyLine = new Polyline();
 		polyLine.getPoints().addAll(path);
 		renderLayer.getChildren().add(polyLine);
 		Polyline poly = new Polyline();
 		double dx = path[0];
 		double dy = path[1];
+		tab[(int)(dx-5)/Settings.cellSize][(int)(dy-5-Settings.statusBarHeight)/Settings.cellSize]=0;
 		for(int i = 0; i < path.length; i++) {
 			if(i % 2 == 0) {
 				path[i] -= dx;
@@ -64,6 +70,10 @@ abstract public class Troop  extends Sprite {
 		moveAnimation.play();
 		moveAnimation.setOnFinished(e -> {
 			renderLayer.getChildren().remove(polyLine);
+			if(castleTargeted.getOwner() == 0) {
+				unitButton.removeFromCanvas();
+				
+			}
 			Random r = new Random();
 			int oofType = r.nextInt(2);
 			File oof = new File("resources/sound/oof" + oofType + ".wav");
@@ -76,6 +86,7 @@ abstract public class Troop  extends Sprite {
 				e1.printStackTrace();
 			}
 		});
+		}
 	}
 	
 	public boolean isAlive() {
