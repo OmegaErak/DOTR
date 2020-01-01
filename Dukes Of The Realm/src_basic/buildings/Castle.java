@@ -1,15 +1,23 @@
 package buildings;
 
-import algorithms.AStar;
-import algorithms.Node;
 import base.Direction;
 import base.Settings;
-import javafx.geometry.Point2D;
-import javafx.scene.image.Image;
-import javafx.scene.layout.Pane;
+
 import renderer.Sprite;
 import troops.Knight;
 
+import javafx.animation.PathTransition;
+import javafx.geometry.Point2D;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
+import javafx.scene.shape.Polyline;
+import javafx.util.Duration;
+
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,8 +61,10 @@ public class Castle extends Sprite {
 
 	private Point2D position;
 	private int doorDirection;
-	
+
 	private ArrayList<Knight> availableKnights = new ArrayList<>();
+
+	private ArrayList<Knight> attackingTroops = new ArrayList<>();
 
 	private Random rdGen = new Random();
 
@@ -95,20 +105,90 @@ public class Castle extends Sprite {
 		for (int i = 0; i < nbNewTroops; ++i) {
 			availableKnights.add(new Knight(renderLayer, this));
 		}
+
+		Random rdGen = new Random();
+		// Check if getting attacked
+		if (attackingTroops.size() != 0) {
+			Boolean isAttackFinished = false;
+			for (Knight attackingKnight : attackingTroops) {
+				for (int i = 0; i < attackingKnight.getDamage(); ++i) {
+
+					// Castle is conquered
+					if (availableKnights.size() == 0) {
+						this.owner = attackingTroops.get(0).getAttachedCastle().getOwner();
+						this.ownerName = attackingTroops.get(0).getAttachedCastle().getOwnerName();
+						isAttackFinished = true;
+						break;
+					}
+
+					final Knight attackedKnight = availableKnights.get(rdGen.nextInt(availableKnights.size()));
+					attackedKnight.setHealth(attackedKnight.getHealth() - 1);
+					if (attackedKnight.getHealth() == 0) {
+						availableKnights.remove(attackedKnight);
+					}
+				}
+
+				if (isAttackFinished) {
+					break;
+				}
+			}
+		}
 	}
 
-	public void launchTroops(Castle receiver, List<Knight> selectedTroops) {
-		// We use targetButton.getPosition because it's the same as castle position
-		final int xyOffset = Settings.castleSize / 2;
-		Node start = new Node(new Point2D(getPosition().getX() + xyOffset, getPosition().getY() + xyOffset), 0, 0);
-		Node end = new Node(new Point2D(receiver.getPosition().getX() + xyOffset, receiver.getPosition().getY() + xyOffset), 0, 0);
-		ArrayList<Node> path = AStar.shortestPath(start, end, renderLayer, true);
+	// TODO: Variable sized and fixed sized arrays in same function
+	public void moveTroops(Castle castle, ArrayList<Knight> selectedTroops, Double[] usedPath) {
+		// TODO: Two polylines?
+		Polyline polyLine = new Polyline();
+		polyLine.getPoints().addAll(usedPath);
+		renderLayer.getChildren().add(polyLine);
+		Polyline poly = new Polyline();
+		double dx = usedPath[0];
+		double dy = usedPath[1];
+		for(int i = 0; i < usedPath.length; i++) {
+			if(i % 2 == 0) {
+				usedPath[i] -= dx;
+			} else {
+				usedPath[i] -= dy;
+			}
+		}
+		poly.getPoints().addAll(usedPath);
 
 		for (Knight knight : selectedTroops) {
 			knight.addToCanvas();
-			knight.moveToCastle(receiver, path);
+
+			// TODO: Magic constant
+			final PathTransition moveAnimation = new PathTransition(Duration.seconds(usedPath.length / 6.0), poly);
+			moveAnimation.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
+			moveAnimation.setOnFinished(e -> {
+				renderLayer.getChildren().remove(polyLine);
+				Random rdGen = new Random();
+				int oofType = rdGen.nextInt(2);
+				File oof = new File("resources/sound/oof" + oofType + ".wav");
+				try {
+					Clip clip = AudioSystem.getClip();
+					AudioInputStream inputStream = AudioSystem.getAudioInputStream(oof);
+					clip.open(inputStream);
+					clip.start();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+
+				// TODO: Not the best way to do this. Is there a way to check if every animation is finished?
+				ArrayList<Knight> troopsList = new ArrayList<>();
+				troopsList.add(knight);
+				castle.receiveTroops(this, troopsList);
+			});
+			moveAnimation.play();
 
 			availableKnights.remove(knight);
+		}
+	}
+
+	public void receiveTroops(Castle sender, ArrayList<Knight> troops) {
+		if (sender.getOwner() == this.owner) {
+			availableKnights.addAll(troops);
+		} else {
+			attackingTroops.addAll(troops);
 		}
 	}
 
@@ -118,10 +198,6 @@ public class Castle extends Sprite {
 
 	public String getOwnerName() {
 		return ownerName;
-	}
-
-	public int getDoorDirection() {
-		return doorDirection;
 	}
 
 	public ArrayList<Knight> getTroops() {

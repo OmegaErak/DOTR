@@ -1,6 +1,5 @@
 package troops;
 
-import algorithms.Node;
 import base.Settings;
 
 import buildings.Castle;
@@ -11,23 +10,19 @@ import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
-import java.util.ArrayList;
-
 public class Knight extends Sprite {
+	private Castle attachedCastle;
+
 	private int prodTime;
 	private int prodCost;
 	private int speed;
 	private int health;
 	private int damage;
 
-	private Boolean isMoving = false;
-	private int currentNodeIndex = 0;
-	private ArrayList<Node> movingPath;
-	private Castle movingTarget;
-
 	public Knight(Pane renderLayer, Castle castle) {
 		super(renderLayer, castle.getPosition());
-		
+
+		this.attachedCastle = castle;
 		this.prodCost 	= 500;
 		this.prodTime 	= 20;
 		this.speed 		= 6;
@@ -46,19 +41,6 @@ public class Knight extends Sprite {
 		textureView.setFitWidth(Settings.knightSize);
 		textureView.setFitHeight(Settings.knightSize);
 		setPosition(new Point2D(castle.getPosition().getX() + Settings.castleSize / 2.0 - Settings.knightSize / 2.0, castle.getPosition().getY() + Settings.castleSize / 2.0 - Settings.knightSize / 2.0));
-	}
-
-	public void onUpdate() {
-		if (isMoving) {
-			++currentNodeIndex;
-			setPosition(movingPath.get(currentNodeIndex).getPosition());
-		}
-	}
-
-	public void moveToCastle(Castle castle, ArrayList<Node> path) {
-		isMoving = true;
-		movingPath = path;
-		movingTarget = castle;
 	}
 
 	public boolean isAlive() {
@@ -91,5 +73,13 @@ public class Knight extends Sprite {
 
 	public int getDamage() {
 		return damage;
+	}
+
+	public Castle getAttachedCastle() {
+		return attachedCastle;
+	}
+
+	public void setAttachedCastle(Castle attachedCastle) {
+		this.attachedCastle = attachedCastle;
 	}
 }

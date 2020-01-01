@@ -16,7 +16,6 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import algorithms.AStar;
@@ -90,12 +89,6 @@ public class Game {
 								castle.onUpdate();
 							}
 						}
-
-						for (Castle castle : castles) {
-							for (Knight knight : castle.getTroops()) {
-								knight.onUpdate();
-							}
-						}
 					}
 				}
 			}
@@ -118,7 +111,7 @@ public class Game {
 		setMenuView();
 	}
 
-	private List<Button> defaultMenuButtons = new ArrayList<>();
+	private ArrayList<Button> defaultMenuButtons = new ArrayList<>();
 
 	private void createMenuButtons() {
 		Image texture = new Image("/sprites/buttons/new_game.png");
@@ -160,8 +153,8 @@ public class Game {
 		});
 	}
 
-	private List<Castle> castles = new ArrayList<>();
-	private List<Button> castleTargets = new ArrayList<>();
+	private ArrayList<Castle> castles = new ArrayList<>();
+	private ArrayList<Button> castleTargets = new ArrayList<>();
 
 	private void createCastles() {
 		final int widthUpperBound = Settings.gridCellsCountX - Settings.castleSize;
@@ -203,10 +196,13 @@ public class Game {
 			Button targetButton = new Button(renderLayer, pos, target);
 			targetButton.getTextureView().setFitWidth(Settings.castleSize);
 			targetButton.getTextureView().setFitHeight(Settings.castleSize);
-			targetButton.addToCanvas();
 			targetButton.getTextureView().setPickOnBounds(true);
 			targetButton.getTextureView().setOnMouseClicked(e -> {
-				playerCastle.launchTroops(castle, selectedTroops);
+				int dxy = Settings.castleSize / 2;
+				Node start = new Node(new Point2D(playerCastle.getPosition().getX() + dxy, playerCastle.getPosition().getY() + dxy), 0, 0);
+				Node end = new Node(new Point2D(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy), 0, 0);
+				Double[] path = AStar.shortestPath(start, end, tab, true);
+				playerCastle.moveTroops(castle, selectedTroops, path);
 				e.consume();
 			});
 			castleTargets.add(targetButton);
@@ -224,8 +220,8 @@ public class Game {
 		return false;
 	}
 
-	private List<Knight> selectedTroops = new ArrayList<>();
-	private List<StatusBar> statusBars = new ArrayList<>();
+	private ArrayList<Knight> selectedTroops = new ArrayList<>();
+	private ArrayList<StatusBar> statusBars = new ArrayList<>();
 
 	private void createStatusBar() {
 		Point2D statusBarSize = new Point2D(Settings.leftStatusBarWidth, Settings.statusBarHeight);
@@ -252,9 +248,9 @@ public class Game {
 		statusBarSize = new Point2D(Settings.centerStatusBarWidth, Settings.statusBarHeight);
 		statusBarPos = new Point2D(statusBarPos.getX() + leftStatusBar.getSize().getX(), statusBarPos.getY());
 		StatusBar centerStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "centerStatusBar") {
-			private List<Button> decisionButtons;
+			private ArrayList<Button> decisionButtons;
 
-			private List<Spinner<Integer>> moveSpinners;
+			private ArrayList<Spinner<Integer>> moveSpinners;
 
 			private Boolean firstFrame = true;
 
@@ -362,13 +358,13 @@ public class Game {
 				}
 			}
 
-			public void addSpinnersToCanvas(List<Spinner<Integer>> spinners) {
+			public void addSpinnersToCanvas(ArrayList<Spinner<Integer>> spinners) {
 				for (Spinner<Integer> spinner : spinners) {
 					renderLayer.getChildren().add(spinner);
 				}
 			}
 
-			public void removeSpinnersFromCanvas(List<Spinner<Integer>> spinners) {
+			public void removeSpinnersFromCanvas(ArrayList<Spinner<Integer>> spinners) {
 				for (Spinner<Integer> spinner : spinners) {
 					renderLayer.getChildren().remove(spinner);
 				}

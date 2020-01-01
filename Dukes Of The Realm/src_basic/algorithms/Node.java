@@ -83,6 +83,14 @@ public class Node {
 		return neighbours;
 	}
 
+	public boolean isAroundNode(Node node) {
+		double dx = Math.sqrt((position.getX() - node.getPosition().getX()) * (position.getX() - node.getPosition().getX()));
+		double dy = Math.sqrt((position.getY() - node.getPosition().getY()) * (position.getY() - node.getPosition().getY()));
+
+		return(dx <=30 && dy <= 30);
+
+	}
+
 	public double getTotalCost() {
 		return totalCost;
 	}
