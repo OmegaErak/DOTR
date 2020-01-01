@@ -111,11 +111,6 @@ public abstract class AStar {
 		return null;
 	}
 
-	// TODO: unused function?
-	private static double distBetweenNodes(Node current, Node neighbor) {
-		return heuristicCostEstimate( current, neighbor);
-	}
-
 	/**
 	 * Distance between two cells. We use the euclidian distance here.
 	 * Used in the algorithm as distance calculation between a cell and the goal.
