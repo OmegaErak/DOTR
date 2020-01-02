@@ -9,12 +9,15 @@ import java.util.Set;
 
 import base.Settings;
 import javafx.geometry.Point2D;
-import javafx.scene.layout.Pane;
 
+/**
+ * Class for the algorithm AStar, used to calculate short paths between buildings.
+ * It cannot be instantiated but has static methods to be used.
+ */
 public abstract class AStar {
-	public AStar() {
-	}
-
+	/**
+	 * Basic comparator for nodes, based on their total cost.
+	 */
 	public static class NodeComparator implements Comparator<Node>	{
 		@Override
 		public int compare(Node a, Node b) {
@@ -33,7 +36,14 @@ public abstract class AStar {
 		return totalPath;
 	}
 
-	public static Double[] shortestPath(Node start, Node end, int[][] tab, boolean allowDiagonals) {
+	/**
+	 * Returns the shortest path it found using the heuristic.
+	 * @param start Starting node.
+	 * @param end End node.
+	 * @param allowDiagonals The name speaks for itself.
+	 * @return The shortest path, in a format that JavaFX can understand.
+	 */
+	public static Double[] shortestPath(Node start, Node end, boolean allowDiagonals) {
 		Node currentNode = null;
 		boolean containsNeighbor;
 
