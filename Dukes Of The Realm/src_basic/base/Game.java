@@ -181,7 +181,7 @@ public class Game {
 		currentPlayerCastle = castles.get(0);
 		for (Castle castle : castles) {
 			castle.getTextureView().setOnMouseClicked(e -> {
-				if (currentPlayerCastle.getOwner() == 0) {
+				if (castle.getOwner() == 0) {
 					currentPlayerCastle = castle;
 				}
 
@@ -272,7 +272,7 @@ public class Game {
 							moveSpinners.get(i).setValueFactory(factory);
 						}
 
-						selectedTroops = new ArrayList<>();
+						selectedTroops.clear();
 						for (int i = 0; i < moveSpinners.get(0).getValue(); ++i) {
 							selectedTroops.add(getCurrentCastle().getKnightByIndex(i));
 						}
@@ -372,7 +372,7 @@ public class Game {
 		centerStatusBar.setDefaultMenuView();
 		statusBars.add(centerStatusBar);
 
-		statusBarSize = new Point2D(Settings.centerStatusBarWidth, Settings.statusBarHeight);
+		statusBarSize = new Point2D(Settings.rightStatusBarWidth, Settings.statusBarHeight);
 		statusBarPos = new Point2D(statusBarPos.getX() + centerStatusBar.getSize().getX(), statusBarPos.getY());
 		StatusBar rightStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "rightStatusBar") {
 			@Override

@@ -110,9 +110,14 @@ public class Castle extends Sprite {
 		// Check if getting attacked
 		if (attackingTroops.size() != 0) {
 			Random rdGen = new Random();
-			final Knight attackingKnight = attackingTroops.get(0);
 
-			for (int i = 0; i < attackingKnight.getDamage(); ++i) {
+			int damageTaken = 0;
+			for (final Knight attackingKnight : attackingTroops) {
+				damageTaken += attackingKnight.getDamage();
+				attackingKnight.removeFromCanvas();
+			}
+
+			for (int i = 0; i < damageTaken; ++i) {
 				// Castle is conquered
 				if (availableKnights.size() == 0) {
 					this.owner = attackingTroops.get(0).getAttachedCastle().getOwner();
@@ -123,14 +128,13 @@ public class Castle extends Sprite {
 				}
 
 				final Knight attackedKnight = availableKnights.get(rdGen.nextInt(availableKnights.size()));
-				attackedKnight.setHealth(attackedKnight.getHealth() - 1);
-				if (attackedKnight.getHealth() == 0) {
+				attackedKnight.addHP(-1);
+				if (!attackedKnight.isAlive()) {
 					availableKnights.remove(attackedKnight);
 				}
 			}
 
-			attackingKnight.removeFromCanvas();
-			attackingTroops.remove(attackingKnight);
+			attackingTroops.clear();
 		}
 	}
 
@@ -159,16 +163,16 @@ public class Castle extends Sprite {
 		for (Knight knight : selectedTroops) {
 			knight.addToCanvas();
 
-			// TODO: Magic constant
-			final PathTransition moveAnimation = new PathTransition(Duration.seconds(usedPath.length / 6.0), usedPathPolyLine);
+			final PathTransition moveAnimation = new PathTransition(Duration.seconds((double)usedPath.length / knight.getSpeed()), usedPathPolyLine);
 			moveAnimation.setNode(knight.getTextureView());
 			moveAnimation.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
 			moveAnimation.setOnFinished(e -> {
 				renderLayer.getChildren().remove(pathLine);
 
 				if (castle.getOwner() != this.getOwner()) {
+					final int nbDiffSounds = 2;
 					Random rdGen = new Random();
-					int oofType = rdGen.nextInt(2);
+					int oofType = rdGen.nextInt(nbDiffSounds);
 					File oof = new File("resources/sound/oof" + oofType + ".wav");
 					try {
 						Clip clip = AudioSystem.getClip();
@@ -189,11 +193,17 @@ public class Castle extends Sprite {
 
 			availableKnights.remove(knight);
 		}
+
+		selectedTroops.clear();
 	}
 
 	public void receiveTroops(Castle sender, ArrayList<Knight> troops) {
 		if (sender.getOwner() == this.owner) {
 			availableKnights.addAll(troops);
+			for (Knight knight : troops) {
+				knight.setAttachedCastle(this);
+				knight.removeFromCanvas();
+			}
 		} else {
 			attackingTroops.addAll(troops);
 		}
@@ -207,7 +217,7 @@ public class Castle extends Sprite {
 		return ownerName;
 	}
 
-	public ArrayList<Knight> getTroops() {
+	public ArrayList<Knight> getKnights() {
 		return availableKnights;
 	}
 

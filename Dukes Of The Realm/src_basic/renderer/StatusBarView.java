@@ -8,6 +8,5 @@ public enum StatusBarView {
 
 	CastleView,
 
-	TroopsRecruitView,
 	TroopsMoveView
 }

@@ -113,8 +113,8 @@ public abstract class AStar {
 	private static double heuristicCostEstimate(Node start, Node end) {
 		final int heuristicWeight = 6;
 
-		Point2D p1 = new Point2D(start.getPosition().getX() , start.getPosition().getY());
-		Point2D p2 = new Point2D(end.getPosition().getX() , end.getPosition().getY());
+		Point2D p1 = new Point2D(start.getPosition().getX(), start.getPosition().getY());
+		Point2D p2 = new Point2D(end.getPosition().getX(), end.getPosition().getY());
 
 		return p1.distance(p2) / Settings.castleSize * heuristicWeight;
 	}
