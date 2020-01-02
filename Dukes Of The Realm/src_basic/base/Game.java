@@ -23,7 +23,6 @@ import java.util.Random;
 public class Game {
 	private Group root;
 	private Pane renderLayer;
-	private int[][] gameGrid = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
 
 	private Random rdGen = new Random();
 
@@ -205,7 +204,7 @@ public class Game {
 			targetButton.getTextureView().setFitHeight(Settings.castleSize);
 			targetButton.getTextureView().setPickOnBounds(true);
 			targetButton.getTextureView().setOnMouseClicked(e -> {
-				currentPlayerCastle.moveTroops(castle, selectedTroops, gameGrid);
+				currentPlayerCastle.moveTroops(castle, selectedTroops);
 				e.consume();
 			});
 			castleTargets.add(targetButton);

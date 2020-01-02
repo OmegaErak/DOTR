@@ -138,11 +138,11 @@ public class Castle extends Sprite {
 		}
 	}
 
-	public void moveTroops(Castle castle, ArrayList<Knight> selectedTroops, int[][] gameGrid) {
+	public void moveTroops(Castle castle, ArrayList<Knight> selectedTroops) {
 		int dxy = Settings.castleSize / 2;
 		Node start = new Node(new Point2D(getPosition().getX() + dxy, getPosition().getY() + dxy), 0, 0);
 		Node end = new Node(new Point2D(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy), 0, 0);
-		Double[] usedPath = AStar.shortestPath(start, end, gameGrid, true);
+		Double[] usedPath = AStar.shortestPath(start, end, true);
 
 		Polyline pathLine = new Polyline();
 		pathLine.getPoints().addAll(usedPath);
