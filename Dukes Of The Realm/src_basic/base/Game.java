@@ -177,7 +177,7 @@ public class Game {
 			}
 		}
 
-		Image target = new Image("/sprites/castles/target.png");
+		Image target = new Image("/sprites/castles/ennemyTarget.png");
 
 		final Castle playerCastle = castles.get(0);
 		for (Castle castle : castles) {

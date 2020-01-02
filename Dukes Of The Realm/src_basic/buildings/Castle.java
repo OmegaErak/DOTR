@@ -159,6 +159,8 @@ public class Castle extends Sprite {
 			// TODO: Magic constant
 			final PathTransition moveAnimation = new PathTransition(Duration.seconds(usedPath.length / 6.0), poly);
 			moveAnimation.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
+			moveAnimation.setNode(knight.getTextureView());
+			moveAnimation.play();
 			moveAnimation.setOnFinished(e -> {
 				renderLayer.getChildren().remove(polyLine);
 				Random rdGen = new Random();
@@ -178,7 +180,6 @@ public class Castle extends Sprite {
 				troopsList.add(knight);
 				castle.receiveTroops(this, troopsList);
 			});
-			moveAnimation.play();
 
 			availableKnights.remove(knight);
 		}
