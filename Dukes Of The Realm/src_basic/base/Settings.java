@@ -1,5 +1,8 @@
 package base;
 
+/**
+ * The different settings we have in the application.
+ */
 public class Settings {
 	static final public int statusBarHeight = 100;
 	static final public int leftStatusBarWidth = Settings.windowWidth / 3;

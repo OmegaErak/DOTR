@@ -5,6 +5,10 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+/**
+ * Main class of the application.
+ * Launches JavaFX and Game classes.
+ */
 public class EntryPoint extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		Game game = new Game();

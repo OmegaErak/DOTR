@@ -26,7 +26,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Castle class.
+ */
 public class Castle extends Sprite {
+	/**
+	 * The different possible names for the dukes of the realm.
+	 */
 	final static private List<String> dukeNames = new ArrayList<>(Arrays.asList(
 			"Jean-Cloud Van Damme",
 
@@ -68,6 +74,12 @@ public class Castle extends Sprite {
 
 	private Random rdGen = new Random();
 
+	/**
+	 * Default constructor
+	 * @param renderLayer The JavaFX canvas onto which we draw.
+	 * @param owner The ownerID of the owner.
+	 * @param position The position of the castle in the window.
+	 */
 	public Castle(Pane renderLayer, int owner, Point2D position) {
 		super(renderLayer, position);
 
@@ -101,6 +113,9 @@ public class Castle extends Sprite {
 		textureView.setFitHeight(Settings.castleSize);
 	}
 
+	/**
+	 * Update function that is called every turn (2 seconds).
+	 */
 	public void onUpdate() {
 		final int nbNewTroops = Settings.minNbTroopsAddedPerTurn + rdGen.nextInt(1 + Settings.maxNbTroopsAddedPerTurn - Settings.minNbTroopsAddedPerTurn);
 		for (int i = 0; i < nbNewTroops; ++i) {
@@ -124,6 +139,9 @@ public class Castle extends Sprite {
 					this.ownerName = attackingTroops.get(0).getAttachedCastle().getOwnerName();
 					this.textureView.setImage(new Image("/sprites/castles/castle_" + owner + ".png"));
 					this.availableKnights.addAll(attackingTroops);
+					for (Knight knight : attackingTroops) {
+						knight.setPosition(position);
+					}
 					break;
 				}
 
@@ -138,6 +156,11 @@ public class Castle extends Sprite {
 		}
 	}
 
+	/**
+	 * Moves troops from the castle to another castle.
+	 * @param castle The target castle.
+	 * @param selectedTroops The selected troops to move.
+	 */
 	public void moveTroops(Castle castle, ArrayList<Knight> selectedTroops) {
 		int dxy = Settings.castleSize / 2;
 		Node start = new Node(new Point2D(getPosition().getX() + dxy, getPosition().getY() + dxy), 0, 0);
@@ -198,10 +221,16 @@ public class Castle extends Sprite {
 		selectedTroops.clear();
 	}
 
+	/**
+	 * Receives troops from a sender castle.
+	 * @param sender The castle that sent the troops.
+	 * @param troops The troops.
+	 */
 	public void receiveTroops(Castle sender, ArrayList<Knight> troops) {
 		if (sender.getOwner() == this.owner) {
 			availableKnights.addAll(troops);
 			for (Knight knight : troops) {
+				knight.setPosition(position);
 				knight.setAttachedCastle(this);
 				knight.removeFromCanvas();
 			}
@@ -210,22 +239,31 @@ public class Castle extends Sprite {
 		}
 	}
 
+	/**
+	 * @return The ownerID of the owner.
+	 */
 	public int getOwner() {
 		return owner;
 	}
 
+	/**
+	 * @return The name of the owner.
+	 */
 	public String getOwnerName() {
 		return ownerName;
 	}
 
-	public ArrayList<Knight> getKnights() {
-		return availableKnights;
-	}
-
+	/**
+	 * @return The number of knights inside the castle.
+	 */
 	public int getNbKnights() {
 		return availableKnights.size();
 	}
 
+	/**
+	 * @param index The index of the knight from 0 to the number of knights.
+	 * @return The knight.
+	 */
 	public Knight getKnightByIndex(int index) {
 		return availableKnights.get(index);
 	}

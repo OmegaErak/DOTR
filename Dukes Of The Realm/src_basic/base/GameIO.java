@@ -4,11 +4,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-public class GameIO {
-    public GameIO() {
-    }
-
-    public void loadGame(Game game, String filepath) {
+public abstract class GameIO {
+    /**
+     * Loads a game from a file
+     * @param game The game to be changed
+     * @param filepath The path to the save file
+     */
+    public static void loadGame(Game game, String filepath) {
         try {
             File myObj = new File(filepath);
             Scanner myReader = new Scanner(myObj);
@@ -22,7 +24,12 @@ public class GameIO {
         }
     }
 
-    public void saveGame(Game game, String filepath) {
+    /**
+     * Saves a game into a file
+     * @param game The game to save
+     * @param filepath The path to the save file
+     */
+    public static void saveGame(Game game, String filepath) {
         try {
             File myObj = new File(filepath);
             Scanner myReader = new Scanner(myObj);

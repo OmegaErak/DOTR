@@ -20,6 +20,9 @@ import javafx.scene.layout.Pane;
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ * Game class that manages the game's inner workings. It also manages JavaFX resources.
+ */
 public class Game {
 	private Group root;
 	private Pane renderLayer;
@@ -28,6 +31,9 @@ public class Game {
 
 	private GameMode gameMode;
 
+	/**
+	 * Default constructor. Initialises JavaFX variables and configures them to adapt to our application.
+	 */
 	public Game() {
 		this.root = new Group();
 		this.root.getStylesheets().add("/css/application.css");
@@ -65,6 +71,11 @@ public class Game {
 
 	private DayHolder currentDayHolder = new DayHolder();
 
+	/**
+	 * Core function. It will load the resources.
+	 * It also manages the update of the game, which happens at 60 fps.
+	 * However, a day in the game is equal to two seconds in real life.
+	 */
 	public void run() {
 		loadGame();
 
@@ -96,6 +107,9 @@ public class Game {
 	private Background menuBackground;
 	private Background gameBackground;
 
+	/**
+	 * Loads the game resources. It also puts the player in the game menu.
+	 */
 	private void loadGame() {
 		menuBackground = new Background(renderLayer, new Image("/sprites/backgrounds/menu_background.png"));
 		gameBackground = new Background(renderLayer, new Image("/sprites/backgrounds/game_background.png"));
@@ -109,6 +123,9 @@ public class Game {
 
 	private ArrayList<Button> defaultMenuButtons = new ArrayList<>();
 
+	/**
+	 * Loads the menu buttons.
+	 */
 	private void createMenuButtons() {
 		Image texture = new Image("/sprites/buttons/new_game.png");
 
@@ -137,9 +154,8 @@ public class Game {
 		});
 
 		defaultMenuButtons.get(1).getTextureView().setOnMouseClicked(e -> {
-			GameIO gameIO = new GameIO();
 			// I don't get why I need to add resources/ here and not when dealing with JavaFX, my guess is that JavaFX does it internally.
-			gameIO.loadGame(this, "resources/dukes.sav");
+			GameIO.loadGame(this, "resources/dukes.sav");
 			e.consume();
 		});
 
@@ -151,10 +167,14 @@ public class Game {
 
 	private Castle currentPlayerCastle;
 	private ArrayList<Castle> castles = new ArrayList<>();
-	private ArrayList<Button> castleTargets = new ArrayList<>();
 
+	private ArrayList<Button> castleEnemyTargets = new ArrayList<>();
+	private ArrayList<Button> castleAllyTargets = new ArrayList<>();
+
+	/**
+	 * Loads the castles textures and creates them.
+	 */
 	private void createCastles() {
-		// TODO: Adapt to have a game grid
 		final int widthUpperBound = Settings.gridCellsCountX - Settings.castleSize;
 		final int heightUpperBound = Settings.gridCellsCountY - Settings.castleSize;
 
@@ -175,11 +195,8 @@ public class Game {
 			}
 		}
 
-<<<<<<< HEAD
-		Image target = new Image("/sprites/castles/ennemyTarget.png");
-=======
-		Image targetTexture = new Image("/sprites/castles/ennemyTarget.png");
->>>>>>> b37558dd56bc0707ef02259e7b18ff4c5b034c93
+		Image enemyTargetTexture = new Image("/sprites/castles/ennemyTarget.png");
+		Image allyTargetTexture = new Image("/sprites/castles/allyTarget.png");
 
 		currentPlayerCastle = castles.get(0);
 		for (Castle castle : castles) {
@@ -194,23 +211,34 @@ public class Game {
 				e.consume();
 			});
 
-			if (castle.getOwner() == 0) {
-				continue;
-			}
-
 			Point2D pos = new Point2D(castle.getPosition().getX(), castle.getPosition().getY());
-			Button targetButton = new Button(renderLayer, pos, targetTexture);
-			targetButton.getTextureView().setFitWidth(Settings.castleSize);
-			targetButton.getTextureView().setFitHeight(Settings.castleSize);
-			targetButton.getTextureView().setPickOnBounds(true);
-			targetButton.getTextureView().setOnMouseClicked(e -> {
+			Button enemyTargetButton = new Button(renderLayer, pos, enemyTargetTexture);
+			enemyTargetButton.getTextureView().setFitWidth(Settings.castleSize);
+			enemyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
+			enemyTargetButton.getTextureView().setPickOnBounds(true);
+			enemyTargetButton.getTextureView().setOnMouseClicked(e -> {
 				currentPlayerCastle.moveTroops(castle, selectedTroops);
 				e.consume();
 			});
-			castleTargets.add(targetButton);
+			castleEnemyTargets.add(enemyTargetButton);
+
+			Button allyTargetButton = new Button(renderLayer, pos, allyTargetTexture);
+			allyTargetButton.getTextureView().setFitWidth(Settings.castleSize);
+			allyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
+			allyTargetButton.getTextureView().setPickOnBounds(true);
+			allyTargetButton.getTextureView().setOnMouseClicked(e -> {
+				currentPlayerCastle.moveTroops(castle, selectedTroops);
+				e.consume();
+			});
+			castleAllyTargets.add(allyTargetButton);
 		}
 	}
 
+	/**
+	 * Checks if there is a castle around the position passed as parameter, depending on the setting specified in the Settings class.
+	 * @param position The position to check.
+	 * @return True if there is a castle nearby, false otherwise.
+	 */
 	private boolean isPositionNearACastle(Point2D position) {
 		for (Castle castle : castles) {
 			Point2D position2 = castle.getPosition();
@@ -225,6 +253,9 @@ public class Game {
 	private ArrayList<Knight> selectedTroops = new ArrayList<>();
 	private ArrayList<StatusBar> statusBars = new ArrayList<>();
 
+	/**
+	 * Loads the status bars that are at the top of the application.
+	 */
 	private void createStatusBar() {
 		Point2D statusBarSize = new Point2D(Settings.leftStatusBarWidth, Settings.statusBarHeight);
 		Point2D statusBarPos = new Point2D(0, 0);
@@ -292,7 +323,11 @@ public class Game {
 
 					removeSpinnersFromCanvas(moveSpinners);
 
-					for (Button target : castleTargets) {
+					for (Button target : castleEnemyTargets) {
+						target.removeFromCanvas();
+					}
+
+					for (Button target : castleAllyTargets) {
 						target.removeFromCanvas();
 					}
 
@@ -306,8 +341,16 @@ public class Game {
 						setText("Chevaliers:");
 						addSpinnersToCanvas(moveSpinners);
 
-						for (Button target : castleTargets) {
-							target.addToCanvas();
+						for (int i = 0; i < castles.size(); ++i) {
+							if (castles.get(i) == getCurrentCastle()) {
+								continue;
+							}
+
+							if (castles.get(i).getOwner() == getCurrentCastle().getOwner()) {
+								castleAllyTargets.get(i).addToCanvas();
+							} else {
+								castleEnemyTargets.get(i).addToCanvas();
+							}
 						}
 					}
 					
@@ -358,6 +401,8 @@ public class Game {
 
 					spinnerPosition = new Point2D(spinnerPosition.getX() + spinnerSize, spinnerPosition.getY());
 				}
+
+
 			}
 
 			public void addSpinnersToCanvas(ArrayList<Spinner<Integer>> spinners) {
@@ -399,7 +444,10 @@ public class Game {
 			statusBar.addToCanvas();
 		}
 	}
-	
+
+	/**
+	 * Puts the player into the game menu.
+	 */
 	private void setMenuView() {
 		gameMode = GameMode.Menu;
 
@@ -414,6 +462,9 @@ public class Game {
 		}
 	}
 
+	/**
+	 * Puts the player into the game.
+	 */
 	private void setGameView() {
     	gameMode = GameMode.Game;
     	for (StatusBar statusBar : statusBars) {
@@ -430,12 +481,19 @@ public class Game {
 		}
 	}
 
+	/**
+	 * Displays the credits.
+	 */
 	private void setCreditsView() {
 		for (StatusBar statusBar : statusBars) {
 			statusBar.setCreditsView();
 		}
 	}
 
+	/**
+	 * Returns the JavaFX group used by the application to be used by JavaFX to display.
+	 * @return The JavaFX group used by the application.
+	 */
 	public Group getRoot() {
 		return root;
 	}
