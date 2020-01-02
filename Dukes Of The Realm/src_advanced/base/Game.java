@@ -32,7 +32,8 @@ public class Game {
 	private Group root;
 	private Pane renderLayer;
 
-	private int[][]tab = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
+	private int[][]gameMap = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
+	public static ArrayList<Castle> castleOwned = new ArrayList<Castle>();
 
 	private Random rdGen = new Random();
 
@@ -85,6 +86,8 @@ public class Game {
 
 							for (Castle castle : castles) {
 								castle.onUpdate();
+								castle.unitAroundAction();
+								castle.isAlive();
 							}
 						}
 					}
@@ -178,7 +181,6 @@ public class Game {
 		Image allyTarget = new Image("/sprites/castles/allyTarget.png");
 
 		final Castle playerCastle = castles.get(0);
-		ArrayList<Castle> castleOwned = new ArrayList<Castle>();
 		castleOwned.add(playerCastle);
 		for (Castle castle : castles) {
 			
@@ -186,26 +188,26 @@ public class Game {
 				for(int j = 0; j < Settings.castleSize/Settings.cellSize; j++) {
 					int x = (int) castle.getPosition().getX()/Settings.cellSize;
 					int y = (int) (castle.getPosition().getY() - Settings.statusBarHeight)/Settings.cellSize;
-					tab[(int) x + i][(int) y + j] = 1;
+					gameMap[(int) x + i][(int) y + j] = 1;
 					switch(castle.getDoorDirection()) {
 					case(0):
 						for(int k = 0; k < 3; k++) {
-							tab[x+2][y+2+k] = 0;
+							gameMap[x+2][y+2+k] = 0;
 						}
 					break;
 					case(1):
 						for(int k = 0; k < 3; k++) {
-							tab[x+2-k][y+2] = 0;
+							gameMap[x+2-k][y+2] = 0;
 						}
 					break;
 					case(2):
 						for(int k = 0; k < 3; k++) {
-							tab[x+2][y+2-k] = 0;
+							gameMap[x+2][y+2-k] = 0;
 						}
 					break;
 					case(3):
 						for(int k = 0; k < 3; k++) {
-							tab[x+2+k][y+2] = 0;
+							gameMap[x+2+k][y+2] = 0;
 						}
 					break;
 					}
@@ -215,10 +217,11 @@ public class Game {
 			castle.getTextureView().setOnMouseClicked(e -> {
 				for (StatusBar statusBar : statusBars) {
 					statusBar.setCastleView(castle);
+					castle.setCurrentCastle(true);
 				}
 				e.consume();
 			});
-			if (castleOwned.contains(castle)) {
+			if (castleOwned.contains(castle) && !castle.isSurrounded() && !castle.getCurrentCastle()) {
 				Button targetButton = new Button(renderLayer, castle.getPosition(), allyTarget);
 				targetButton.getTextureView().setFitWidth(Settings.castleSize);
 				targetButton.getTextureView().setFitHeight(Settings.castleSize);
@@ -234,7 +237,7 @@ public class Game {
 					e.consume();
 				});
 				castleTargets.add(targetButton);
-			}else {
+			}else{
 				
 			Button targetButton = new Button(renderLayer, castle.getPosition(), ennemyTarget);
 			targetButton.getTextureView().setFitWidth(Settings.castleSize);
@@ -248,6 +251,7 @@ public class Game {
 				displacement(playerCastle.getPosition(),castle,pikeman,false);
 				displacement(playerCastle.getPosition(),castle,onager,false);
 				displacement(playerCastle.getPosition(),castle,knight,false);
+				
 				e.consume();
 			});
 			castleTargets.add(targetButton);
@@ -260,7 +264,7 @@ public class Game {
 		int dxy = Settings.castleSize/2;
 		Node start = new Node(playerCastlePosition.getX() + dxy, playerCastlePosition.getY() + dxy, 0, 0);
 		Node end = new Node(targetedCastle.getPosition().getX() + dxy, targetedCastle.getPosition().getY() + dxy, 0, 0);
-		Double[] path = AStar.CheminPlusCourt(start, end, tab , renderLayer, true,castleOwned);
+		Double[] path = AStar.CheminPlusCourt(start, end, gameMap , renderLayer, true,castleOwned);
 		String unitName;
 		if(unit.getClass() == Pikeman.class) {
 			unitName = "pikeman";
@@ -269,8 +273,9 @@ public class Game {
 		}else {
 			unitName = "onager";
 		}
-		Button unitButton = unit.spawnTroop(unitName, 0, playerCastlePosition, path,renderLayer);	
-		unit.displace(path, renderLayer,unitButton, tab,targetedCastle);
+		Button unitButton = unit.spawnTroop(unitName, 0, playerCastlePosition, path,renderLayer);
+		unit.setUnitButton(unitButton);
+		unit.displace(path, renderLayer,unitButton,unit, gameMap,targetedCastle);
 	}
 
 	private boolean isPositionNearACastle(Point2D position) {
@@ -283,6 +288,8 @@ public class Game {
 
 		return false;
 	}
+	
+	private ArrayList<Troop> selectedTroops = new ArrayList<>();
 
 	private List<StatusBar> statusBars = new ArrayList<>();
 
@@ -310,6 +317,8 @@ public class Game {
 					}
 
 					setText(text);
+				}else if(getView() == StatusBarView.TroopsMoveView) {
+					
 				}
 			}
 		};
@@ -481,7 +490,6 @@ public class Game {
 					String text = "Chevaliers: " + getCurrentCastle().getNbKnights() + "\n"
 							+ "Onagres: " + getCurrentCastle().getNbOnagers() + "\n"
 							+ "Piquiers: " + getCurrentCastle().getNbPikemen() + "\n";
-
 					setText(text);
 				}
 			}

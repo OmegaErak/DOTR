@@ -166,6 +166,8 @@ public class Castle extends Sprite {
 			final PathTransition moveAnimation = new PathTransition(Duration.seconds((double)usedPath.length / knight.getSpeed()), usedPathPolyLine);
 			moveAnimation.setNode(knight.getTextureView());
 			moveAnimation.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
+			moveAnimation.setNode(knight.getTextureView());
+			moveAnimation.play();
 			moveAnimation.setOnFinished(e -> {
 				renderLayer.getChildren().remove(pathLine);
 
@@ -189,7 +191,6 @@ public class Castle extends Sprite {
 				troopsList.add(knight);
 				castle.receiveTroops(this, troopsList);
 			});
-			moveAnimation.play();
 
 			availableKnights.remove(knight);
 		}

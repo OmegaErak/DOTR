@@ -175,7 +175,11 @@ public class Game {
 			}
 		}
 
+<<<<<<< HEAD
+		Image target = new Image("/sprites/castles/ennemyTarget.png");
+=======
 		Image targetTexture = new Image("/sprites/castles/ennemyTarget.png");
+>>>>>>> b37558dd56bc0707ef02259e7b18ff4c5b034c93
 
 		currentPlayerCastle = castles.get(0);
 		for (Castle castle : castles) {

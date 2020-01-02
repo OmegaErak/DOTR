@@ -24,11 +24,14 @@ abstract public class Troop  extends Sprite {
 	protected int speed;
 	protected int health;
 	protected int damage;
+	protected int owner;
+	protected Button unitButton;
 
 	protected Image texture;
 	
 	public Troop(Pane renderLayer, Castle castle) {
 		super(renderLayer, castle.getPosition());
+		this.owner = castle.getOwner();
 	}
 	
 	public Button spawnTroop(String troop, int owner,Point2D castlePosition, Double[] path, Pane renderLayer) {	
@@ -43,7 +46,7 @@ abstract public class Troop  extends Sprite {
 		return unitButton;
 	}
 	
-	public void displace(Double[] path, Pane renderLayer,Button unitButton, int[][] tab, Castle castleTargeted) {
+	public void displace(Double[] path, Pane renderLayer,Button unitButton,Troop unit , int[][] tab, Castle castleTargeted) {
 		if(path != null) {	
 		Double x = path[path.length-2];
 		Double y = path[path.length-1] - Settings.statusBarHeight;
@@ -69,11 +72,17 @@ abstract public class Troop  extends Sprite {
 		moveAnimation.setNode(unitButton.getTextureView());
 		moveAnimation.play();
 		moveAnimation.setOnFinished(e -> {
-			renderLayer.getChildren().remove(polyLine);
-			if(castleTargeted.getOwner() == 0) {
+			castleTargeted.addTroopAround(unit);
+			if(unit.getOwner() == castleTargeted.getOwner()) {
 				unitButton.removeFromCanvas();
-				
+				tab[(int) (x-5)/Settings.cellSize][(int) (y-5)/Settings.cellSize] = 0;
 			}
+			
+			renderLayer.getChildren().remove(polyLine);
+//			if(castleTargeted.getOwner() == 0) {
+//				unitButton.removeFromCanvas();
+//				
+//			}
 			Random r = new Random();
 			int oofType = r.nextInt(2);
 			File oof = new File("resources/sound/oof" + oofType + ".wav");
@@ -89,6 +98,23 @@ abstract public class Troop  extends Sprite {
 		}
 	}
 	
+	
+	public Button getUnitButton() {
+		return unitButton;
+	}
+
+	public void setUnitButton(Button unitButton) {
+		this.unitButton = unitButton;
+	}
+
+	public int getOwner() {
+		return owner;
+	}
+
+	public void setOwner(int owner) {
+		this.owner = owner;
+	}
+
 	public boolean isAlive() {
 		return health > 0;
 	}
