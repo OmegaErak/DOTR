@@ -2,30 +2,28 @@ package base;
 
 import buildings.Castle;
 
-import javafx.scene.input.KeyCode;
 import renderer.Button;
 import renderer.Background;
 import renderer.StatusBar;
 import renderer.StatusBarView;
+
+import troops.Knight;
 
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import algorithms.AStar;
-import algorithms.Node;
-import troops.Knight;
-
 public class Game {
 	private Group root;
 	private Pane renderLayer;
-	public static int[][]tab = new int[Settings.gridCellsCountX/Settings.cellSize][Settings.gridCellsCountY/Settings.cellSize];
+	private int[][] gameGrid = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
 
 	private Random rdGen = new Random();
 
@@ -55,7 +53,7 @@ public class Game {
 			if (key.getCode() == KeyCode.SPACE) {
 				isRunning = !isRunning;
 			} else if (key.getCode() == KeyCode.ESCAPE) {
-				// TODO open quick menu
+				// TODO: open quick menu to save
 			}
 		});
 
@@ -104,7 +102,6 @@ public class Game {
 		gameBackground = new Background(renderLayer, new Image("/sprites/backgrounds/game_background.png"));
 
 		createStatusBar();
-
 		createMenuButtons();
 
 		// Set to Menu view by default
@@ -153,10 +150,12 @@ public class Game {
 		});
 	}
 
+	private Castle currentPlayerCastle;
 	private ArrayList<Castle> castles = new ArrayList<>();
 	private ArrayList<Button> castleTargets = new ArrayList<>();
 
 	private void createCastles() {
+		// TODO: Adapt to have a game grid
 		final int widthUpperBound = Settings.gridCellsCountX - Settings.castleSize;
 		final int heightUpperBound = Settings.gridCellsCountY - Settings.castleSize;
 
@@ -166,7 +165,7 @@ public class Game {
 
 		// 0 is the player
 		// [1, nbActiveDukes] is for active dukes
-		// [1+nbActiveDukes, 1+nbActiveDukes+nbNeutralDukes] is for neutral dukes
+		// [1 + nbActiveDukes, 1 + nbActiveDukes+nbNeutralDukes] is for neutral dukes
 		int castleOwner = 0;
 		while (castles.size() < nbCastles) {
 			int cellSize = Settings.cellSize;
@@ -177,11 +176,19 @@ public class Game {
 			}
 		}
 
+<<<<<<< HEAD
 		Image target = new Image("/sprites/castles/ennemyTarget.png");
+=======
+		Image targetTexture = new Image("/sprites/castles/ennemyTarget.png");
+>>>>>>> b37558dd56bc0707ef02259e7b18ff4c5b034c93
 
-		final Castle playerCastle = castles.get(0);
+		currentPlayerCastle = castles.get(0);
 		for (Castle castle : castles) {
 			castle.getTextureView().setOnMouseClicked(e -> {
+				if (castle.getOwner() == 0) {
+					currentPlayerCastle = castle;
+				}
+
 				for (StatusBar statusBar : statusBars) {
 					statusBar.setCastleView(castle);
 				}
@@ -193,16 +200,12 @@ public class Game {
 			}
 
 			Point2D pos = new Point2D(castle.getPosition().getX(), castle.getPosition().getY());
-			Button targetButton = new Button(renderLayer, pos, target);
+			Button targetButton = new Button(renderLayer, pos, targetTexture);
 			targetButton.getTextureView().setFitWidth(Settings.castleSize);
 			targetButton.getTextureView().setFitHeight(Settings.castleSize);
 			targetButton.getTextureView().setPickOnBounds(true);
 			targetButton.getTextureView().setOnMouseClicked(e -> {
-				int dxy = Settings.castleSize / 2;
-				Node start = new Node(new Point2D(playerCastle.getPosition().getX() + dxy, playerCastle.getPosition().getY() + dxy), 0, 0);
-				Node end = new Node(new Point2D(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy), 0, 0);
-				Double[] path = AStar.shortestPath(start, end, tab, true);
-				playerCastle.moveTroops(castle, selectedTroops, path);
+				currentPlayerCastle.moveTroops(castle, selectedTroops, gameGrid);
 				e.consume();
 			});
 			castleTargets.add(targetButton);
@@ -273,7 +276,7 @@ public class Game {
 							moveSpinners.get(i).setValueFactory(factory);
 						}
 
-						selectedTroops = new ArrayList<>();
+						selectedTroops.clear();
 						for (int i = 0; i < moveSpinners.get(0).getValue(); ++i) {
 							selectedTroops.add(getCurrentCastle().getKnightByIndex(i));
 						}
@@ -373,7 +376,7 @@ public class Game {
 		centerStatusBar.setDefaultMenuView();
 		statusBars.add(centerStatusBar);
 
-		statusBarSize = new Point2D(Settings.centerStatusBarWidth, Settings.statusBarHeight);
+		statusBarSize = new Point2D(Settings.rightStatusBarWidth, Settings.statusBarHeight);
 		statusBarPos = new Point2D(statusBarPos.getX() + centerStatusBar.getSize().getX(), statusBarPos.getY());
 		StatusBar rightStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "rightStatusBar") {
 			@Override

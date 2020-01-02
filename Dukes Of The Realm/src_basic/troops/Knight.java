@@ -13,8 +13,6 @@ import javafx.scene.layout.Pane;
 public class Knight extends Sprite {
 	private Castle attachedCastle;
 
-	private int prodTime;
-	private int prodCost;
 	private int speed;
 	private int health;
 	private int damage;
@@ -23,8 +21,6 @@ public class Knight extends Sprite {
 		super(renderLayer, castle.getPosition());
 
 		this.attachedCastle = castle;
-		this.prodCost 	= 500;
-		this.prodTime 	= 20;
 		this.speed 		= 6;
 		this.health 	= 3;
 		this.damage 	= 5;
@@ -47,28 +43,12 @@ public class Knight extends Sprite {
 		return health > 0;
 	}
 
-	public int getProdTime() {
-		return prodTime;
-	}
-
-	public int getProdCost() {
-		return prodCost;
-	}
-
 	public int getSpeed() {
 		return speed;
 	}
 
-	public void setSpeed(int speed) {
-		this.speed = speed;
-	}
-
-	public int getHealth() {
-		return health;
-	}
-
-	public void setHealth(int health) {
-		this.health = health;
+	public void addHP(int hp) {
+		health += hp;
 	}
 
 	public int getDamage() {

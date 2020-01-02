@@ -66,11 +66,6 @@ public abstract class StatusBar {
         shouldRefreshView = true;
     }
 
-    public void setTroopsRecruitView() {
-        view = StatusBarView.TroopsRecruitView;
-        shouldRefreshView = true;
-    }
-
     public void setTroopsMoveView() {
         view = StatusBarView.TroopsMoveView;
         shouldRefreshView = true;

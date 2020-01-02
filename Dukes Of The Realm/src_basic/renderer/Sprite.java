@@ -45,8 +45,4 @@ public abstract class Sprite {
         this.position = position;
         textureView.relocate(this.position.getX(), this.position.getY());
     }
-
-    public boolean collidesWith(Sprite sprite) {
-        return getTextureView().getBoundsInParent().intersects(sprite.getTextureView().getBoundsInParent());
-    }
 }

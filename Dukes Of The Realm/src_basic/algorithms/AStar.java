@@ -22,7 +22,7 @@ public abstract class AStar {
 		}
 	}
 
-	private static ArrayList<Node> reconstructPath( Node current) {
+	private static ArrayList<Node> reconstructPath(Node current) {
 		ArrayList<Node> totalPath = new ArrayList<>();
 		totalPath.add(current);
 
@@ -47,11 +47,6 @@ public abstract class AStar {
 		start.setTotalCost(start.getCost() + heuristicCostEstimate(start,end));
 
 		while(!openList.isEmpty()) {
-			if(closedList.size() > cellCount) {
-				System.out.println("Error infinite loop");
-				return null;
-			}
-
 			currentNode = openList.poll();
 			if(currentNode.getPosition().getX() == end.getPosition().getX() && currentNode.getPosition().getY() == end.getPosition().getY() || currentNode.isAroundNode(end)) {
 				List<Node>reconstructedPath = reconstructPath(currentNode);
@@ -118,8 +113,8 @@ public abstract class AStar {
 	private static double heuristicCostEstimate(Node start, Node end) {
 		final int heuristicWeight = 6;
 
-		Point2D p1 = new Point2D(start.getPosition().getX() , start.getPosition().getY());
-		Point2D p2 = new Point2D(end.getPosition().getX() , end.getPosition().getY());
+		Point2D p1 = new Point2D(start.getPosition().getX(), start.getPosition().getY());
+		Point2D p2 = new Point2D(end.getPosition().getX(), end.getPosition().getY());
 
 		return p1.distance(p2) / Settings.castleSize * heuristicWeight;
 	}

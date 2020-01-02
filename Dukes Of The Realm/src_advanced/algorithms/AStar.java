@@ -33,7 +33,7 @@ public abstract class AStar {
 			return totalPath;
 		}
 
-	public static Double[] CheminPlusCourt(Node start , Node end , int[][] tab, Pane root, boolean allowDiagonale, boolean castleOwned) {
+	public static Double[] CheminPlusCourt(Node start , Node end , int[][] gameMap, Pane root, boolean allowDiagonale, boolean castleOwned) {
 		Node current = null;
 		boolean containsNeighbor;
 		
@@ -68,7 +68,7 @@ public abstract class AStar {
 			
 			closedList.add(current);
 			
-			for(Node neighbor : current.voisin(tab,allowDiagonale)) {
+			for(Node neighbor : current.voisin(gameMap,allowDiagonale)) {
 				double x = neighbor.getX();
 				double y = neighbor.getY();
 				
