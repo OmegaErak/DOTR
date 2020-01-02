@@ -26,6 +26,8 @@ abstract public class Troop  extends Sprite {
 	protected int damage;
 	protected int owner;
 	protected Button unitButton;
+	protected int xPosMap;
+	protected int yPosMap;
 
 	protected Image texture;
 	
@@ -46,18 +48,20 @@ abstract public class Troop  extends Sprite {
 		return unitButton;
 	}
 	
-	public void displace(Double[] path, Pane renderLayer,Button unitButton,Troop unit , int[][] tab, Castle castleTargeted) {
+	public void displace(Double[] path, Pane renderLayer,Button unitButton,Troop unit , int[][] gameMap, Castle castleTargeted) {
 		if(path != null) {	
 		Double x = path[path.length-2];
 		Double y = path[path.length-1] - Settings.statusBarHeight;
-		tab[(int) (x-5)/Settings.cellSize][(int) (y-5)/Settings.cellSize] = 2;
+		xPosMap = (int) ((x-5)/Settings.cellSize);
+		yPosMap = (int) ((y-5)/Settings.cellSize);
+		gameMap[(int) (x-5)/Settings.cellSize][(int) (y-5)/Settings.cellSize] = 2;
 		Polyline polyLine = new Polyline();
 		polyLine.getPoints().addAll(path);
 		renderLayer.getChildren().add(polyLine);
 		Polyline poly = new Polyline();
 		double dx = path[0];
 		double dy = path[1];
-		tab[(int)(dx-5)/Settings.cellSize][(int)(dy-5-Settings.statusBarHeight)/Settings.cellSize]=0;
+		gameMap[(int)(dx-5)/Settings.cellSize][(int)(dy-5-Settings.statusBarHeight)/Settings.cellSize]=0;
 		for(int i = 0; i < path.length; i++) {
 			if(i % 2 == 0) {
 				path[i] -= dx;
@@ -70,19 +74,15 @@ abstract public class Troop  extends Sprite {
 		final PathTransition moveAnimation = new PathTransition(Duration.seconds(path.length/6), poly);
 		moveAnimation.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
 		moveAnimation.setNode(unitButton.getTextureView());
+		
 		moveAnimation.play();
 		moveAnimation.setOnFinished(e -> {
 			castleTargeted.addTroopAround(unit);
 			if(unit.getOwner() == castleTargeted.getOwner()) {
 				unitButton.removeFromCanvas();
-				tab[(int) (x-5)/Settings.cellSize][(int) (y-5)/Settings.cellSize] = 0;
-			}
-			
+				gameMap[(int) (x-5)/Settings.cellSize][(int) (y-5)/Settings.cellSize] = 0;
+			}		
 			renderLayer.getChildren().remove(polyLine);
-//			if(castleTargeted.getOwner() == 0) {
-//				unitButton.removeFromCanvas();
-//				
-//			}
 			Random r = new Random();
 			int oofType = r.nextInt(2);
 			File oof = new File("resources/sound/oof" + oofType + ".wav");
@@ -99,6 +99,22 @@ abstract public class Troop  extends Sprite {
 	}
 	
 	
+	public int getxPosMap() {
+		return xPosMap;
+	}
+
+	public void setxPosMap(int xPosMap) {
+		this.xPosMap = xPosMap;
+	}
+
+	public int getyPosMap() {
+		return yPosMap;
+	}
+
+	public void setyPosMap(int yPosMap) {
+		this.yPosMap = yPosMap;
+	}
+
 	public Button getUnitButton() {
 		return unitButton;
 	}

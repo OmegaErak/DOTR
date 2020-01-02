@@ -87,7 +87,7 @@ public class Game {
 							for (Castle castle : castles) {
 								castle.onUpdate();
 								castle.unitAroundAction();
-								castle.isAlive();
+								castle.isAlive(gameMap);
 							}
 						}
 					}
@@ -447,8 +447,8 @@ public class Game {
 				final int yOffset = 30;
 				Point2D spinnerPosition = new Point2D(getPosition().getX(), getPosition().getY());
 
-				final double spinnerSize = getSize().getX() / Settings.nbDiffTroopTypes;
-				for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
+				final double spinnerSize = getSize().getX() / Settings.nbTroopTypes;
+				for (int i = 0; i < Settings.nbTroopTypes; ++i) {
 					final Spinner<Integer> spinner = new Spinner<>();
 
 					spinner.setTranslateX(spinnerPosition.getX());
@@ -471,7 +471,7 @@ public class Game {
 
 				if (castle.getOwner() == 0) {
 					final int spinnerValues[] = {castle.getNbKnights(), castle.getNbOnagers(), castle.getNbPikemen()};
-					for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
+					for (int i = 0; i < Settings.nbTroopTypes; ++i) {
 						SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues[i], 0);
 						moveSpinners.get(i).setValueFactory(factory);
 					}

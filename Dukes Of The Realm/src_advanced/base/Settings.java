@@ -28,7 +28,7 @@ public class Settings {
 	static public final int surround = 24;
 	
 	// Knight, onager and pikeman
-	static public final int nbDiffTroopTypes = 3;
+	static public final int nbTroopTypes = 3;
 	
 	static public final int nbMinInitTroops = 4;
 	static public final int nbMaxInitTroops = 8;
