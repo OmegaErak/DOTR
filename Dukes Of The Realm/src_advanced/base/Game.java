@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import algorithms.AStar;
 import algorithms.Node;
@@ -32,8 +33,9 @@ public class Game {
 	private Group root;
 	private Pane renderLayer;
 
-	private int[][]gameMap = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
-	public static ArrayList<Castle> castleOwned = new ArrayList<Castle>();
+	private int[][] gameMap = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
+
+	public static ArrayList<Castle> castleOwned = new ArrayList<>();
 
 	private Random rdGen = new Random();
 
@@ -288,13 +290,14 @@ public class Game {
 
 		return false;
 	}
-	
+
+	private ArrayList<AtomicInteger> recruitCommand = new ArrayList<>();
 	private ArrayList<Troop> selectedTroops = new ArrayList<>();
 
 	private List<StatusBar> statusBars = new ArrayList<>();
 
 	private void createStatusBar() {
-		final Point2D statusBarSize = new Point2D(Settings.windowWidth / 3, Settings.statusBarHeight);
+		final Point2D statusBarSize = new Point2D(Settings.windowWidth / 3.0, Settings.statusBarHeight);
 		Point2D statusBarPos = new Point2D(0, 0);
 		StatusBar leftStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "leftStatusBar") {
 			@Override
@@ -326,15 +329,42 @@ public class Game {
 		leftStatusBar.setDefaultMenuView();
 		statusBars.add(leftStatusBar);
 
-		statusBarPos = new Point2D(statusBarPos.getX() + Settings.windowWidth / 3, statusBarPos.getY());
+		statusBarPos = new Point2D(statusBarPos.getX() + Settings.windowWidth / 3.0, statusBarPos.getY());
 		StatusBar centerStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "centerStatusBar") {
 			private List<Button> decisionButtons;
 
-			private List<Spinner> recruitSpinners;
-			private List<Spinner> moveSpinners;
+			private List<Spinner<Integer>> recruitSpinners;
+			private List<Spinner<Integer>> moveSpinners;
+
+			private Boolean firstFrame = true;
 
 			@Override
 			public void updateView() {
+				// Should be done every frame
+				if (getView() == StatusBarView.TroopsRecruitView) {
+					if (getCurrentCastle().getOwner() == 0) {
+						final ArrayList<Integer> spinnerValues = new ArrayList<>();
+						spinnerValues.add(getCurrentCastle().getNbKnights());
+						for (int i = 0; i < Settings.nbTroopTypes; ++i) {
+							final int initialValue;
+							if (firstFrame) {
+								initialValue = 0;
+								firstFrame = false;
+							} else {
+								initialValue = moveSpinners.get(i).getValue();
+							}
+							final SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues.get(i), initialValue);
+							moveSpinners.get(i).setValueFactory(factory);
+						}
+
+						recruitCommand.clear();
+						for (int i = 0; i < recruitSpinners.size(); ++i) {
+							recruitCommand.get(i).set(recruitSpinners.get(i).getValue());
+						}
+					}
+				}
+
+				// Should be done only when the view is changed
 				if (shouldRefreshView) {
 					setText("");
 
@@ -342,11 +372,11 @@ public class Game {
 						button.removeFromCanvas();
 					}
 
-					for (Spinner spinner : recruitSpinners) {
+					for (Spinner<Integer> spinner : recruitSpinners) {
 						spinner.setVisible(false);
 					}
 
-					for (Spinner spinner : moveSpinners) {
+					for (Spinner<Integer> spinner : moveSpinners) {
 						spinner.setVisible(false);
 					}
 
@@ -361,14 +391,15 @@ public class Game {
 							}
 						}
 					} else if (getView() == StatusBarView.TroopsRecruitView) {
+						// TODO: White space in function of spinner size
 						setText("Chevaliers:                 Onagres:                    Piquiers:");
-						for (Spinner spinner : recruitSpinners) {
+						for (Spinner<Integer> spinner : recruitSpinners) {
 							spinner.setVisible(true);
 						}
 					} else if (getView() == StatusBarView.TroopsMoveView) {
-						// TODO
+						// TODO: White space in function of spinner size
 						setText("Chevaliers:                 Onagres:                    Piquiers:");
-						for (Spinner spinner : moveSpinners) {
+						for (Spinner<Integer> spinner : moveSpinners) {
 							spinner.setVisible(true);
 						}
 
@@ -440,14 +471,30 @@ public class Game {
 				// Spinners for recruitment
 				// TODO
 				recruitSpinners = new ArrayList<>();
-
-				// Spinners for troop selection
-				moveSpinners = new ArrayList<>();
-
 				final int yOffset = 30;
 				Point2D spinnerPosition = new Point2D(getPosition().getX(), getPosition().getY());
 
 				final double spinnerSize = getSize().getX() / Settings.nbTroopTypes;
+				for (int i = 0; i < Settings.nbTroopTypes; ++i) {
+					final Spinner<Integer> spinner = new Spinner<>();
+
+					spinner.setTranslateX(spinnerPosition.getX());
+					spinner.setTranslateY(spinnerPosition.getY() + yOffset);
+
+					spinner.setPrefWidth(spinnerSize);
+
+					root.getChildren().addAll(spinner);
+					spinner.setVisible(false);
+
+					recruitSpinners.add(spinner);
+
+					spinnerPosition = new Point2D(spinnerPosition.getX() + spinnerSize, spinnerPosition.getY());
+				}
+
+				// Spinners for troop selection
+				moveSpinners = new ArrayList<>();
+
+				spinnerPosition = new Point2D(getPosition().getX(), getPosition().getY());
 				for (int i = 0; i < Settings.nbTroopTypes; ++i) {
 					final Spinner<Integer> spinner = new Spinner<>();
 
@@ -470,9 +517,22 @@ public class Game {
 				super.setCastleView(castle);
 
 				if (castle.getOwner() == 0) {
-					final int spinnerValues[] = {castle.getNbKnights(), castle.getNbOnagers(), castle.getNbPikemen()};
+					// TODO: Add the real maximum value we can produce
+					final ArrayList<Integer> recruitSpinnerValues = new ArrayList<>();
+					recruitSpinnerValues.add(100);
+					recruitSpinnerValues.add(100);
+					recruitSpinnerValues.add(100);
 					for (int i = 0; i < Settings.nbTroopTypes; ++i) {
-						SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues[i], 0);
+						SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, recruitSpinnerValues.get(i), 0);
+						recruitSpinners.get(i).setValueFactory(factory);
+					}
+
+					final ArrayList<Integer> moveSpinnerValues = new ArrayList<>(0);
+					moveSpinnerValues.add(getCurrentCastle().getNbKnights());
+					moveSpinnerValues.add(getCurrentCastle().getNbOnagers());
+					moveSpinnerValues.add(getCurrentCastle().getNbPikemen());
+					for (int i = 0; i < Settings.nbTroopTypes; ++i) {
+						SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, moveSpinnerValues.get(i), 0);
 						moveSpinners.get(i).setValueFactory(factory);
 					}
 				}

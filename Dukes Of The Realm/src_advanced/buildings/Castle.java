@@ -17,8 +17,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import com.sun.xml.internal.bind.v2.runtime.reflect.ListIterator;
-
 public class Castle extends Sprite {
 	final static private List<String> dukeNames = new ArrayList<String>(Arrays.asList(
 			"Jean-Cloud Van Damme",

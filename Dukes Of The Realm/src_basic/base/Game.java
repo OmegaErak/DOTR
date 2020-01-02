@@ -292,7 +292,7 @@ public class Game {
 				// Should be done every frame
 				if (getView() == StatusBarView.TroopsMoveView) {
 					if (getCurrentCastle().getOwner() == 0) {
-						final ArrayList<Integer> spinnerValues = new ArrayList<>(0);
+						final ArrayList<Integer> spinnerValues = new ArrayList<>();
 						spinnerValues.add(getCurrentCastle().getNbKnights());
 						for (int i = 0; i < Settings.nbDiffTroopTypes; ++i) {
 							final int initialValue;
