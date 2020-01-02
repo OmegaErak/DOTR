@@ -91,8 +91,9 @@ public class Node {
 	public boolean isArround(Node node) {
 		double dx = Math.sqrt( (x - node.getX()) * (x - node.getX()) );
 		double dy = Math.sqrt( (y - node.getY()) * (y - node.getY()) );
+		final int distance = (Settings.castleSize + Settings.cellSize)/2;
 		
-		return(dx <=30 && dy <= 30);
+		return(dx <=distance && dy <= distance);
 
 	}
 	

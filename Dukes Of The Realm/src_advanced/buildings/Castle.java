@@ -113,7 +113,7 @@ public class Castle extends Sprite {
 		
 		final int nbTroops = Settings.nbMinInitTroops + rdGen.nextInt(Settings.nbMaxInitTroops - Settings.nbMinInitTroops);
 		for (int i = 0; i < nbTroops; ++i) {
-			final int troop = rdGen.nextInt(Settings.nbDiffTroopTypes);
+			final int troop = rdGen.nextInt(Settings.nbTroopTypes);
 			
 			if (troop == 0) {
 				availableKnight.add(new Knight(renderLayer, this));
@@ -167,53 +167,70 @@ public class Castle extends Sprite {
 			}
 			
 		}
-		for(int i=0;i<amountOfDamage;i++) {
+		int i=0;
+		while (i < amountOfDamage && (availableKnight.size() != 0 || availableOnager.size() != 0 || availablePikeman.size() != 0)) {
 			Random r = new Random();
-//			int whoIsTakingDamage = r.nextInt(3);
-			if(!availableKnight.isEmpty()) {
+			int whoIsTakingDamage = r.nextInt(Settings.nbTroopTypes);
+			if(whoIsTakingDamage == 0) {
 				//Knight takes damage
-				int indexOfUnitKnight = r.nextInt(availableKnight.size());
-				Knight knight = availableKnight.get(indexOfUnitKnight);
-				knight.setHealth(knight.getHealth()-1);
-				if(!knight.isAlive()) {
-					availableKnight.remove(indexOfUnitKnight);
-					--nbKnights;
+				if(availableKnight.isEmpty()) {
+					--i;
+				}else {		
+					Knight knight = availableKnight.get(0);
+					knight.setHealth(knight.getHealth()-1);
+					if(!knight.isAlive()) {
+						availableKnight.remove(0);
+						--nbKnights;
+					}
 				}
-			}else if(!availablePikeman.isEmpty()) {
+			}else if(whoIsTakingDamage == 1) {
 				//Pikeman takes damage
-				int indexOfUnitPikeman = r.nextInt(availablePikeman.size());
-				Pikeman pikeman = availablePikeman.get(indexOfUnitPikeman);
-				pikeman.setHealth(pikeman.getHealth()-1);
-				if(!pikeman.isAlive()) {
-					availablePikeman.remove(indexOfUnitPikeman);
-					--nbPikemen;
+				if(availablePikeman.isEmpty()) {
+					--i;
+				}else {
+					Pikeman pikeman = availablePikeman.get(0);
+					pikeman.setHealth(pikeman.getHealth()-1);
+					if(!pikeman.isAlive()) {
+						availablePikeman.remove(0);
+						--nbPikemen;
+					}
 				}
-			}else if(!availableOnager.isEmpty()) {
+			}else if(whoIsTakingDamage == 2) {
 				//Onager takes damage
-				int indexOfUnitOnager = r.nextInt(availableOnager.size());
-				Onager onager= availableOnager.get(indexOfUnitOnager);
-				onager.setHealth(onager.getHealth()-1);
-				if(!onager.isAlive()) {
-					availableOnager.remove(indexOfUnitOnager);
-					--nbOnagers;
+				if(availableOnager.isEmpty()) {
+					--i;
+				}else {
+					Onager onager= availableOnager.get(0);
+					onager.setHealth(onager.getHealth()-1);
+					if(!onager.isAlive()) {
+						availableOnager.remove(0);
+						--nbOnagers;
+					}
 				}
 			}else {
 				break;
 			}
+			++i;
 		}
 	}
 	
-	public void isAlive() {
+	public void isAlive(int[][] gameMap) {
 		if(availableKnight.isEmpty() && availablePikeman.isEmpty() && availableOnager.isEmpty()) {
 			Image newTexture = new Image("/sprites/castles/castle_" + troopAround.get(0).getOwner() + ".png");
+			Image newBuildTexture = new Image("/sprites/castles/castle_" + troopAround.get(0).getOwner() + "_build.png");
+			texture = newTexture;
+			buildingTexture = newBuildTexture;
+			
 			for(int i=0;i<troopAround.size();i++) {
 				transfertTroop(troopAround.get(i));
-				troopAround.get(i).getUnitButton().removeFromCanvas();
+				troopAround.get(i).getUnitButton().removeFromCanvas();			
+				System.out.println(gameMap[troopAround.get(i).getxPosMap()][troopAround.get(i).getyPosMap()]);
+				gameMap[troopAround.get(i).getxPosMap()][troopAround.get(i).getyPosMap()] = 0;
 			}
 			troopAround.clear();
 			setOwner(0);
 			removeFromCanvas();	
-			setTexture(newTexture);
+			setTexture(texture);
 			addToCanvas();
 			Game.castleOwned.add(this);
 		}
