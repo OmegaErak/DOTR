@@ -295,15 +295,17 @@ public class Game {
 		Node start = new Node(playerCastlePosition.getX() + dxy, playerCastlePosition.getY() + dxy, 0, 0);
 		Node end = new Node(targetedCastle.getPosition().getX() + dxy, targetedCastle.getPosition().getY() + dxy, 0, 0);
 		Double[] path = AStar.CheminPlusCourt(start, end, gameMap , renderLayer, true,castleOwned);
-		String unitName;
+		String unitPathName;
 		if(unit.getClass() == Pikeman.class) {
-			unitName = "pikeman";
+			unitPathName = "pikeman";
 		}else if(unit.getClass() == Knight.class){
-			unitName = "knight";
+			unitPathName = "knight";
+		}else if(unit.getClass() == Onager.class){
+			unitPathName = "onager";
 		}else {
-			unitName = "onager";
+			unitPathName = "money";
 		}
-		Button unitButton = unit.spawnTroop(unitName, 0, playerCastlePosition, path,renderLayer);
+		Button unitButton = unit.spawnTroop(unitPathName, 0, playerCastlePosition, path,renderLayer);
 		unit.setUnitButton(unitButton);
 		unit.displace(path, renderLayer,unitButton,unit, gameMap,targetedCastle ,castleOwned);
 	}
@@ -334,7 +336,8 @@ public class Game {
 					setText("Bienvenu à Dukes of the Realm.");
 				} else if (getView() == StatusBarView.CreditsView) {
 					setText("Réalisé par Enzo Carré et Luis L. Marques." + "\n"
-							+ "Merci à Morgane de m'avoir harcelé pendant la Nuit de l'Info.");
+							+ "Merci à Morgane de m'avoir harcelé pendant la Nuit de l'Info."
+							+ " Merci a Quentin Legrand pour sa participation au sprite");
 				} else if (getView() == StatusBarView.DefaultGameView) {
 					setText("Jour actuel: " + getCurrentDay());
 				} else if (getView() == StatusBarView.CastleView) {
@@ -345,6 +348,9 @@ public class Game {
 
 					if (getCurrentCastle().isLevelingUp()) {
 						text += "Jours jusqu'à évolution: " + getCurrentCastle().getNextLevelRemainingTime();
+					}
+					if (getCurrentCastle().isGettingWall()) {
+						text += "Jours jusqu'à construction des murailles: " + getCurrentCastle().getWallTimeCost();
 					}
 
 					setText(text);
@@ -444,7 +450,7 @@ public class Game {
 
 							if (castles.get(i).getOwner() == getCurrentCastle().getOwner()) {
 								castleAllyTargets.get(i).addToCanvas();
-							} else {
+							} else{
 								castleEnemyTargets.get(i).addToCanvas();
 							}
 						}
@@ -473,11 +479,12 @@ public class Game {
 				Image texture = new Image("/sprites/buttons/recruit.png");
 				final double buttonWidth = texture.getWidth();
 
-				String[] buttonPaths1 = new String[4];
+				String[] buttonPaths1 = new String[5];
 				buttonPaths1[0] = "recruit.png";
 				buttonPaths1[1] = "select_troops.png";
 				buttonPaths1[2] = "level_up.png";
 				buttonPaths1[3] = "money.png";
+				buttonPaths1[4] = "wall.png";
 
 				Point2D buttonPos = new Point2D(getPosition().getX(), getPosition().getY());
 
@@ -501,7 +508,7 @@ public class Game {
 				decisionButtons.get(2).getTextureView().setOnMouseClicked(e -> {
 					Alert alert = new Alert(Alert.AlertType.NONE);
 					if (getCurrentCastle().getOwner() == 0) {
-						if (getCurrentCastle().canLevelUp()) {
+						if (getCurrentCastle().canLevelUp() && !getCurrentCastle().isGettingWall()) {
 							alert.setAlertType(Alert.AlertType.CONFIRMATION);
 							alert.setContentText("Vous êtes sur? Ça vous coûtera " + getCurrentCastle().getNextLevelBuildCost() + " florains.");
 
@@ -511,7 +518,7 @@ public class Game {
 							}
 						} else {
 							alert.setAlertType(Alert.AlertType.WARNING);
-							alert.setContentText("Vous ne pouvez pas améliorer votre château, soit parce qu'il est déjà en construction, soit parce que vous n'avez pas assez de florains.");
+							alert.setContentText("Vous ne pouvez pas améliorer votre château, soit parce qu'il est déjà en travaux, soit parce que vous n'avez pas assez de florains.");
 							alert.show();
 						}
 					} else {
@@ -524,6 +531,31 @@ public class Game {
 				});
 				decisionButtons.get(3).getTextureView().setOnMouseClicked(e -> {
 					setMoneyTransfertView();
+					e.consume();
+				});
+				
+				decisionButtons.get(4).getTextureView().setOnMouseClicked(e -> {
+					Alert alert = new Alert(Alert.AlertType.NONE);
+					if (getCurrentCastle().getOwner() == 0) {
+						if (!getCurrentCastle().hasWall() && !getCurrentCastle().isLevelingUp() && getCurrentCastle().getTreasure() >= getCurrentCastle().getWallCost()) {
+							alert.setAlertType(Alert.AlertType.CONFIRMATION);
+							alert.setContentText("Vous �tes sur ? Cela vous co�teras " + getCurrentCastle().getWallCost() + " florains.");
+
+							Optional<ButtonType> result = alert.showAndWait();
+							if (result.get() == ButtonType.OK) {
+								getCurrentCastle().addWall();
+							}
+						} else {
+							alert.setAlertType(Alert.AlertType.WARNING);
+							alert.setContentText("Votre ch�teau poss�de d�j� des murailles ou vous n'avez pas assez de florains");
+							alert.show();
+						}
+					} else {
+						alert.setAlertType(Alert.AlertType.WARNING);
+						alert.setTitle("Attention");
+						alert.setContentText("Ce n'est pas votre ch�teau");
+						alert.show();
+					}
 					e.consume();
 				});
 

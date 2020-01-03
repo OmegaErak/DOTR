@@ -52,6 +52,7 @@ public class Castle extends Sprite {
 
 	private Image texture;
 	private Image buildingTexture;
+	private Image armoredTexture;
 
 	private int owner;
 	private String ownerName;
@@ -80,7 +81,13 @@ public class Castle extends Sprite {
 	private int passiveIncome;
 	private int nextLevelBuildCost;
 	private int nextLevelBuildTime;
-
+	private int wallHealth = 50;
+	private int wallCost = 3000;
+	private int wallTimeCost = 10;
+	
+	private boolean isGettingWall;
+	private boolean hasWall;
+	private boolean isBuildingWall;
 	private boolean isLevelingUp;
 	private int timeUntilLevelUp = -1;
 	
@@ -91,10 +98,12 @@ public class Castle extends Sprite {
 
 		if (owner <= Settings.nbMaxActiveDukes) {
 			texture = new Image("/sprites/castles/castle_" + owner + ".png");
+			armoredTexture = new Image("/sprites/castles/armored_castle_" + owner + ".png");
 			buildingTexture = new Image("/sprites/castles/castle_" + owner + "_build.png");
 		} else {
 			texture = new Image("/sprites/castles/castle_neutral.png");
 			buildingTexture = new Image("/sprites/castles/castle_neutral_build.png");
+			armoredTexture = new Image("/sprites/castles/armored_castle_neutral.png");
 		}
 
 		this.owner = owner;
@@ -146,12 +155,41 @@ public class Castle extends Sprite {
 				--timeUntilLevelUp;
 
 				removeFromCanvas();
-				setTexture(texture);
+				if(this.hasWall) {
+					setTexture(armoredTexture);
+				}else {					
+					setTexture(texture);
+				}
+				addToCanvas();
+				updateData();
+			}
+		}else if(this.isBuildingWall) {
+			if (this.wallTimeCost > 0) {
+				--this.wallTimeCost;
+			} else if (this.wallTimeCost == 0) {
+				this.isBuildingWall = false;
+				--wallTimeCost;
+				
+				this.hasWall = true;
+
+				removeFromCanvas();
+				setTexture(armoredTexture);
 				addToCanvas();
 				updateData();
 			}
 		}
 	}
+	
+	
+	public void addWall() {
+		this.isBuildingWall = true;
+		this.treasure -= this.wallCost;
+
+		removeFromCanvas();
+		setTexture(buildingTexture);
+		addToCanvas();
+	}
+
 	
 	public void unitAroundAction() {
 		int amountOfDamage = 0;
@@ -164,6 +202,15 @@ public class Castle extends Sprite {
 			amountOfDamage += unit.getDamage();
 			}
 			
+		}
+		if(this.hasWall) {
+			this.wallHealth -= amountOfDamage;
+			if(this.wallHealth <=0) {
+				this.hasWall = false;
+				removeFromCanvas();
+				setTexture(texture);
+				addToCanvas();
+			}
 		}
 		int i=0;
 		while (i < amountOfDamage && (availableKnight.size() != 0 || availableOnager.size() != 0 || availablePikeman.size() != 0)) {
@@ -216,13 +263,14 @@ public class Castle extends Sprite {
 		if(availableKnight.isEmpty() && availablePikeman.isEmpty() && availableOnager.isEmpty()) {
 			Image newTexture = new Image("/sprites/castles/castle_" + troopAround.get(0).getOwner() + ".png");
 			Image newBuildTexture = new Image("/sprites/castles/castle_" + troopAround.get(0).getOwner() + "_build.png");
+			Image newArmoredTexture = new Image("/sprites/castles/armored_castle_" + troopAround.get(0).getOwner() + ".png");
 			texture = newTexture;
 			buildingTexture = newBuildTexture;
+			armoredTexture = newArmoredTexture;
 			
 			for(int i=0;i<troopAround.size();i++) {
 				transfertTroop(troopAround.get(i));
 				troopAround.get(i).getUnitButton().removeFromCanvas();			
-				System.out.println(gameMap[troopAround.get(i).getxPosMap()][troopAround.get(i).getyPosMap()]);
 				gameMap[troopAround.get(i).getxPosMap()][troopAround.get(i).getyPosMap()] = 0;
 			}
 			troopAround.clear();
@@ -233,6 +281,7 @@ public class Castle extends Sprite {
 			Game.castleOwned.add(this);
 		}
 	}
+	
 	
 	public void transfertTroop(Troop troop) {
 		if(troop.getClass() == Pikeman.class) {
@@ -252,6 +301,32 @@ public class Castle extends Sprite {
 	
 	
 	
+	
+	
+	public boolean isGettingWall() {
+		return isGettingWall;
+	}
+
+	public void setGettingWall(boolean isGettingWall) {
+		this.isGettingWall = isGettingWall;
+	}
+
+	public boolean hasWall() {
+		return hasWall;
+	}
+
+	public void setHasWall(boolean hasWall) {
+		this.hasWall = hasWall;
+	}
+
+	public int getWallCost() {
+		return wallCost;
+	}
+
+	public void setWallCost(int wallCost) {
+		this.wallCost = wallCost;
+	}
+
 	public void setTreasure(int treasure) {
 		this.treasure = treasure;
 	}
@@ -338,6 +413,16 @@ public class Castle extends Sprite {
 	
 	public int getNextLevelRemainingTime() {
 		return timeUntilLevelUp;
+	}
+
+	
+	
+	public int getWallTimeCost() {
+		return wallTimeCost;
+	}
+
+	public void setWallTimeCost(int wallTimeCost) {
+		this.wallTimeCost = wallTimeCost;
 	}
 
 	public boolean canLevelUp() {

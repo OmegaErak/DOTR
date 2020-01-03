@@ -15,7 +15,7 @@ public class Business extends Troop{
 		this.speed 		= 6;
 		this.health 	= 1;
 		this.damage 	= 0;
-		texture = new Image("/sprites/troops/money.png");
+		texture = new Image("/sprites/troops/money_0.png");
 		setTexture(texture);
 	}
 	
