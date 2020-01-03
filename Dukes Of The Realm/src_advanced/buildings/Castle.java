@@ -298,11 +298,19 @@ public class Castle extends Sprite {
 			treasure += troop.getProdCost();
 		}
 	}
-	
-	
-	
-	
-	
+
+	public Knight getKnightByIndex(int index) {
+		return availableKnight.get(index);
+	}
+
+	public Onager getOnagerByIndex(int index) {
+		return availableOnager.get(index);
+	}
+
+	public Pikeman getPikemanByIndex(int index) {
+		return availablePikeman.get(index);
+	}
+
 	public boolean isGettingWall() {
 		return isGettingWall;
 	}

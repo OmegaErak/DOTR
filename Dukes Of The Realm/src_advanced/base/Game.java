@@ -250,8 +250,8 @@ public class Game {
 				
 			}
 			
-			moneyTargetButton.getTextureView().setOnMouseClicked(e ->{
-				int moneyTrasnfered=1000;
+			moneyTargetButton.getTextureView().setOnMouseClicked(e -> {
+				int moneyTrasnfered = 1000;
 				if(currentPlayerCastle.getTreasure() >= moneyTrasnfered) {
 					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure()-moneyTrasnfered);
 					Business business = new Business(renderLayer,currentPlayerCastle,moneyTrasnfered);
@@ -383,16 +383,51 @@ public class Game {
 								initialValue = 0;
 								firstFrame = false;
 							} else {
-								initialValue = moveSpinners.get(i).getValue();
+								initialValue = recruitSpinners.get(i).getValue();
 							}
 							final SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues.get(i), initialValue);
-							moveSpinners.get(i).setValueFactory(factory);
+							recruitSpinners.get(i).setValueFactory(factory);
 						}
 
 						recruitCommand.clear();
 						for (int i = 0; i < recruitSpinners.size(); ++i) {
 							recruitCommand.get(i).set(recruitSpinners.get(i).getValue());
 						}
+					}
+				} else if (getView() == StatusBarView.TroopsMoveView) {
+					if (getCurrentCastle().getOwner() == 0) {
+						final ArrayList<Integer> spinnerValues = new ArrayList<>();
+						spinnerValues.add(getCurrentCastle().getNbKnights());
+						for (int i = 0; i < Settings.nbTroopTypes; ++i) {
+							final int initialValue;
+							if (firstFrame) {
+								initialValue = 0;
+								firstFrame = false;
+							} else {
+								initialValue = moveSpinners.get(i).getValue();
+							}
+							final SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues.get(i), initialValue);
+							moveSpinners.get(i).setValueFactory(factory);
+						}
+
+						selectedTroops.clear();
+						ArrayList<Knight> selectedKnights = new ArrayList<>();
+						for (int i = 0; i < moveSpinners.get(0).getValue(); ++i) {
+							selectedKnights.add(getCurrentCastle().getKnightByIndex(i));
+						}
+						selectedTroops.addAll(selectedKnights);
+
+						ArrayList<Onager> selectedOnagers = new ArrayList<>();
+						for (int i = 0; i < moveSpinners.get(1).getValue(); ++i) {
+							selectedOnagers.add(getCurrentCastle().getOnagerByIndex(i));
+						}
+						selectedTroops.addAll(selectedOnagers);
+
+						ArrayList<Pikeman> selectedPikemen = new ArrayList<>();
+						for (int i = 0; i < moveSpinners.get(1).getValue(); ++i) {
+							selectedPikemen.add(getCurrentCastle().getPikemanByIndex(i));
+						}
+						selectedTroops.addAll(selectedPikemen);
 					}
 				}
 
