@@ -391,7 +391,6 @@ public class Game {
 							recruitSpinners.get(i).setValueFactory(factory);
 						}
 
-						recruitCommand.clear();
 						for (int i = 0; i < recruitSpinners.size(); ++i) {
 							recruitCommand.get(i).set(recruitSpinners.get(i).getValue());
 						}
@@ -599,7 +598,10 @@ public class Game {
 				});
 
 				// Spinners for recruitment
-				// TODO
+				for (int i = 0; i < Settings.nbTroopTypes; ++i) {
+					recruitCommand.add(new AtomicInteger(0));
+				}
+
 				recruitSpinners = new ArrayList<>();
 				final int yOffset = 30;
 				Point2D spinnerPosition = new Point2D(getPosition().getX(), getPosition().getY());
