@@ -377,6 +377,8 @@ public class Game {
 					if (getCurrentCastle().getOwner() == 0) {
 						final ArrayList<Integer> spinnerValues = new ArrayList<>();
 						spinnerValues.add(getCurrentCastle().getNbKnights());
+						spinnerValues.add(getCurrentCastle().getNbOnagers());
+						spinnerValues.add(getCurrentCastle().getNbPikemen());
 						for (int i = 0; i < Settings.nbTroopTypes; ++i) {
 							final int initialValue;
 							if (firstFrame) {
@@ -398,6 +400,8 @@ public class Game {
 					if (getCurrentCastle().getOwner() == 0) {
 						final ArrayList<Integer> spinnerValues = new ArrayList<>();
 						spinnerValues.add(getCurrentCastle().getNbKnights());
+						spinnerValues.add(getCurrentCastle().getNbOnagers());
+						spinnerValues.add(getCurrentCastle().getNbPikemen());
 						for (int i = 0; i < Settings.nbTroopTypes; ++i) {
 							final int initialValue;
 							if (firstFrame) {
