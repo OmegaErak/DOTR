@@ -250,6 +250,12 @@ public class Castle extends Sprite {
 		}
 	}
 	
+	
+	
+	public void setTreasure(int treasure) {
+		this.treasure = treasure;
+	}
+
 	public boolean isSurrounded() {
 		return  troopAround.size() >= Settings.surround;
 	}

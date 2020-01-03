@@ -6,6 +6,7 @@ import renderer.Button;
 import renderer.Background;
 import renderer.StatusBar;
 import renderer.StatusBarView;
+import troops.Business;
 import troops.Knight;
 import troops.Onager;
 import troops.Pikeman;
@@ -160,6 +161,7 @@ public class Game {
 
 	private ArrayList<Button> castleEnemyTargets = new ArrayList<>();
 	private ArrayList<Button> castleAllyTargets = new ArrayList<>();
+	private ArrayList<Button> castleMoneyTargets = new ArrayList<>();
 	
 
 	private void createCastles() {
@@ -187,6 +189,7 @@ public class Game {
 		
 		Image ennemyTarget = new Image("/sprites/castles/ennemyTarget.png");
 		Image allyTarget = new Image("/sprites/castles/allyTarget.png");
+		Image moneyTarget = new Image("/sprites/castles/moneyTarget.png");
 
 		final Castle playerCastle = castles.get(0);
 		castleOwned.add(playerCastle);
@@ -231,26 +234,46 @@ public class Game {
 				}
 				e.consume();
 			});
-				Button allyTargetButton = new Button(renderLayer, castle.getPosition(), allyTarget);
-				allyTargetButton.getTextureView().setFitWidth(Settings.castleSize);
-				allyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
-				allyTargetButton.getTextureView().setPickOnBounds(true);
-				allyTargetButton.getTextureView().setOnMouseClicked(e -> {
-					// We use targetButton.getPosition because it's the same as castle position
-					Pikeman pikeman = new Pikeman(renderLayer,currentPlayerCastle);
-					Knight knight = new Knight(renderLayer,currentPlayerCastle);
-					Onager onager = new Onager(renderLayer,currentPlayerCastle);
-					displacement(currentPlayerCastle.getPosition(),castle,pikeman,true);
-					displacement(currentPlayerCastle.getPosition(),castle,onager,true);
-					displacement(currentPlayerCastle.getPosition(),castle,knight,true);
-					e.consume();
-				});
-				castleAllyTargets.add(allyTargetButton);
-				
+			
+			Button allyTargetButton = new Button(renderLayer, castle.getPosition(), allyTarget);
 			Button enemyTargetButton = new Button(renderLayer, castle.getPosition(), ennemyTarget);
-			enemyTargetButton.getTextureView().setFitWidth(Settings.castleSize);
-			enemyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
-			enemyTargetButton.getTextureView().setPickOnBounds(true);
+			Button moneyTargetButton = new Button(renderLayer,castle.getPosition(),moneyTarget);
+			ArrayList<Button> targetList = new ArrayList<>();
+			targetList.add(allyTargetButton);
+			targetList.add(enemyTargetButton);
+			targetList.add(moneyTargetButton);
+			
+			for(int i=0;i<targetList.size();i++) {
+				targetList.get(i).getTextureView().setFitWidth(Settings.castleSize);
+				targetList.get(i).getTextureView().setFitHeight(Settings.castleSize);
+				targetList.get(i).getTextureView().setPickOnBounds(true);
+				
+			}
+			
+			moneyTargetButton.getTextureView().setOnMouseClicked(e ->{
+				int moneyTrasnfered=1000;
+				if(currentPlayerCastle.getTreasure() >= moneyTrasnfered) {
+					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure()-moneyTrasnfered);
+					Business business = new Business(renderLayer,currentPlayerCastle,moneyTrasnfered);
+					displacement(currentPlayerCastle.getPosition(),castle,business,true);
+				}
+				e.consume();
+			});
+			castleMoneyTargets.add(moneyTargetButton);
+			
+			allyTargetButton.getTextureView().setOnMouseClicked(e -> {
+				// We use targetButton.getPosition because it's the same as castle position
+				Pikeman pikeman = new Pikeman(renderLayer,currentPlayerCastle);
+				Knight knight = new Knight(renderLayer,currentPlayerCastle);
+				Onager onager = new Onager(renderLayer,currentPlayerCastle);
+				displacement(currentPlayerCastle.getPosition(),castle,pikeman,true);
+				displacement(currentPlayerCastle.getPosition(),castle,onager,true);
+				displacement(currentPlayerCastle.getPosition(),castle,knight,true);
+				e.consume();
+			});
+			castleAllyTargets.add(allyTargetButton);
+				
+			
 			enemyTargetButton.getTextureView().setOnMouseClicked(e -> {
 				// We use targetButton.getPosition because it's the same as castle position
 				Pikeman pikeman = new Pikeman(renderLayer,currentPlayerCastle);
@@ -390,6 +413,10 @@ public class Game {
 					for (Button target : castleAllyTargets) {
 						target.removeFromCanvas();
 					}
+					
+					for (Button target : castleMoneyTargets) {
+						target.removeFromCanvas();
+					}
 
 					if (getView() == StatusBarView.CastleView) {
 						if (getCurrentCastle().getOwner() == 0) {
@@ -430,7 +457,7 @@ public class Game {
 							}
 
 							if (castles.get(i).getOwner() == getCurrentCastle().getOwner()) {
-								castleAllyTargets.get(i).addToCanvas();
+								castleMoneyTargets.get(i).addToCanvas();
 							}
 						}
 					}
