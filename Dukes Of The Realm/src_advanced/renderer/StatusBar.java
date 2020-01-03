@@ -75,6 +75,11 @@ public abstract class StatusBar {
         view = StatusBarView.TroopsMoveView;
         shouldRefreshView = true;
     }
+    
+    public void setMoneyTransfertView() {
+    	view = StatusBarView.MoneyTransferView;
+    	shouldRefreshView = true;
+    }
 
     public StatusBarView getView() {
         return this.view;

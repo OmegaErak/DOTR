@@ -162,63 +162,66 @@ public class Castle extends Sprite {
 	 * @param selectedTroops The selected troops to move.
 	 */
 	public void moveTroops(Castle castle, ArrayList<Knight> selectedTroops) {
-		int dxy = Settings.castleSize / 2;
-		Node start = new Node(new Point2D(getPosition().getX() + dxy, getPosition().getY() + dxy), 0, 0);
-		Node end = new Node(new Point2D(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy), 0, 0);
-		Double[] usedPath = AStar.shortestPath(start, end, true);
+		if(!selectedTroops.isEmpty()) {
+			
+			int dxy = Settings.castleSize / 2;
+			Node start = new Node(new Point2D(getPosition().getX() + dxy, getPosition().getY() + dxy), 0, 0);
+			Node end = new Node(new Point2D(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy), 0, 0);
+			Double[] usedPath = AStar.shortestPath(start, end, true);
 
-		Polyline pathLine = new Polyline();
-		pathLine.getPoints().addAll(usedPath);
-		renderLayer.getChildren().add(pathLine);
+			Polyline pathLine = new Polyline();
+			pathLine.getPoints().addAll(usedPath);
+			renderLayer.getChildren().add(pathLine);
 
-		Polyline usedPathPolyLine = new Polyline();
-		double dx = usedPath[0];
-		double dy = usedPath[1];
-		for(int i = 0; i < usedPath.length; i++) {
-			if(i % 2 == 0) {
-				usedPath[i] -= dx;
-			} else {
-				usedPath[i] -= dy;
-			}
-		}
-		usedPathPolyLine.getPoints().addAll(usedPath);
-
-		for (Knight knight : selectedTroops) {
-			knight.addToCanvas();
-
-			final PathTransition moveAnimation = new PathTransition(Duration.seconds((double)usedPath.length / knight.getSpeed()), usedPathPolyLine);
-			moveAnimation.setNode(knight.getTextureView());
-			moveAnimation.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
-			moveAnimation.setNode(knight.getTextureView());
-			moveAnimation.play();
-			moveAnimation.setOnFinished(e -> {
-				renderLayer.getChildren().remove(pathLine);
-
-				if (castle.getOwner() != this.getOwner()) {
-					final int nbDiffSounds = 2;
-					Random rdGen = new Random();
-					int oofType = rdGen.nextInt(nbDiffSounds);
-					File oof = new File("resources/sound/oof" + oofType + ".wav");
-					try {
-						Clip clip = AudioSystem.getClip();
-						AudioInputStream inputStream = AudioSystem.getAudioInputStream(oof);
-						clip.open(inputStream);
-						clip.start();
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
+			Polyline usedPathPolyLine = new Polyline();
+			double dx = usedPath[0];
+			double dy = usedPath[1];
+			for(int i = 0; i < usedPath.length; i++) {
+				if(i % 2 == 0) {
+					usedPath[i] -= dx;
+				} else {
+					usedPath[i] -= dy;
 				}
+			}
+			usedPathPolyLine.getPoints().addAll(usedPath);
 
-				// TODO: Not the best way to do this. Is there a way to check if every animation is finished?
-				ArrayList<Knight> troopsList = new ArrayList<>();
-				troopsList.add(knight);
-				castle.receiveTroops(this, troopsList);
-			});
+			for (Knight knight : selectedTroops) {
+				knight.addToCanvas();
 
-			availableKnights.remove(knight);
+				final PathTransition moveAnimation = new PathTransition(Duration.seconds((double)usedPath.length / knight.getSpeed()), usedPathPolyLine);
+				moveAnimation.setNode(knight.getTextureView());
+				moveAnimation.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
+				moveAnimation.setNode(knight.getTextureView());
+				moveAnimation.play();
+				moveAnimation.setOnFinished(e -> {
+					renderLayer.getChildren().remove(pathLine);
+
+					if (castle.getOwner() != this.getOwner()) {
+						final int nbDiffSounds = 2;
+						Random rdGen = new Random();
+						int oofType = rdGen.nextInt(nbDiffSounds);
+						File oof = new File("resources/sound/oof" + oofType + ".wav");
+						try {
+							Clip clip = AudioSystem.getClip();
+							AudioInputStream inputStream = AudioSystem.getAudioInputStream(oof);
+							clip.open(inputStream);
+							clip.start();
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+					}
+
+					// TODO: Not the best way to do this. Is there a way to check if every animation is finished?
+					ArrayList<Knight> troopsList = new ArrayList<>();
+					troopsList.add(knight);
+					castle.receiveTroops(this, troopsList);
+				});
+
+				availableKnights.remove(knight);
+			}
+
+			selectedTroops.clear();
 		}
-
-		selectedTroops.clear();
 	}
 
 	/**

@@ -242,9 +242,11 @@ public class Castle extends Sprite {
 		}else if(troop.getClass() == Knight.class) {
 			availableKnight.add((Knight) troop);
 			++nbKnights;
-		}else {
+		}else if(troop.getClass() == Onager.class){
 			availableOnager.add((Onager) troop);
 			++nbOnagers;
+		}else {
+			treasure += troop.getProdCost();
 		}
 	}
 	

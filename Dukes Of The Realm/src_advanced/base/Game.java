@@ -155,8 +155,12 @@ public class Game {
 		});
 	}
 
-	private List<Castle> castles = new ArrayList<>();
-	private List<Button> castleTargets = new ArrayList<>();
+	private Castle currentPlayerCastle;
+	private ArrayList<Castle> castles = new ArrayList<>();
+
+	private ArrayList<Button> castleEnemyTargets = new ArrayList<>();
+	private ArrayList<Button> castleAllyTargets = new ArrayList<>();
+	
 
 	private void createCastles() {
 		final int widthUpperBound = Settings.gridCellsCountX - Settings.castleSize;
@@ -179,6 +183,8 @@ public class Game {
 			}
 		}
 
+		
+		
 		Image ennemyTarget = new Image("/sprites/castles/ennemyTarget.png");
 		Image allyTarget = new Image("/sprites/castles/allyTarget.png");
 
@@ -217,47 +223,46 @@ public class Game {
 			}
 			
 			castle.getTextureView().setOnMouseClicked(e -> {
+				if (castle.getOwner() == 0) {
+					currentPlayerCastle = castle;
+				}
 				for (StatusBar statusBar : statusBars) {
 					statusBar.setCastleView(castle);
-					castle.setCurrentCastle(true);
 				}
 				e.consume();
 			});
-			if (castleOwned.contains(castle) && !castle.isSurrounded() && !castle.getCurrentCastle()) {
-				Button targetButton = new Button(renderLayer, castle.getPosition(), allyTarget);
-				targetButton.getTextureView().setFitWidth(Settings.castleSize);
-				targetButton.getTextureView().setFitHeight(Settings.castleSize);
-				targetButton.getTextureView().setPickOnBounds(true);
-				targetButton.getTextureView().setOnMouseClicked(e -> {
+				Button allyTargetButton = new Button(renderLayer, castle.getPosition(), allyTarget);
+				allyTargetButton.getTextureView().setFitWidth(Settings.castleSize);
+				allyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
+				allyTargetButton.getTextureView().setPickOnBounds(true);
+				allyTargetButton.getTextureView().setOnMouseClicked(e -> {
 					// We use targetButton.getPosition because it's the same as castle position
-					Pikeman pikeman = new Pikeman(renderLayer,playerCastle);
-					Knight knight = new Knight(renderLayer,playerCastle);
-					Onager onager = new Onager(renderLayer,playerCastle);
-					displacement(playerCastle.getPosition(),castle,pikeman,true);
-					displacement(playerCastle.getPosition(),castle,onager,true);
-					displacement(playerCastle.getPosition(),castle,knight,true);
+					Pikeman pikeman = new Pikeman(renderLayer,currentPlayerCastle);
+					Knight knight = new Knight(renderLayer,currentPlayerCastle);
+					Onager onager = new Onager(renderLayer,currentPlayerCastle);
+					displacement(currentPlayerCastle.getPosition(),castle,pikeman,true);
+					displacement(currentPlayerCastle.getPosition(),castle,onager,true);
+					displacement(currentPlayerCastle.getPosition(),castle,knight,true);
 					e.consume();
 				});
-				castleTargets.add(targetButton);
-			}else{
+				castleAllyTargets.add(allyTargetButton);
 				
-			Button targetButton = new Button(renderLayer, castle.getPosition(), ennemyTarget);
-			targetButton.getTextureView().setFitWidth(Settings.castleSize);
-			targetButton.getTextureView().setFitHeight(Settings.castleSize);
-			targetButton.getTextureView().setPickOnBounds(true);
-			targetButton.getTextureView().setOnMouseClicked(e -> {
+			Button enemyTargetButton = new Button(renderLayer, castle.getPosition(), ennemyTarget);
+			enemyTargetButton.getTextureView().setFitWidth(Settings.castleSize);
+			enemyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
+			enemyTargetButton.getTextureView().setPickOnBounds(true);
+			enemyTargetButton.getTextureView().setOnMouseClicked(e -> {
 				// We use targetButton.getPosition because it's the same as castle position
-				Pikeman pikeman = new Pikeman(renderLayer,playerCastle);
-				Knight knight = new Knight(renderLayer,playerCastle);
-				Onager onager = new Onager(renderLayer,playerCastle);
-				displacement(playerCastle.getPosition(),castle,pikeman,false);
-				displacement(playerCastle.getPosition(),castle,onager,false);
-				displacement(playerCastle.getPosition(),castle,knight,false);
+				Pikeman pikeman = new Pikeman(renderLayer,currentPlayerCastle);
+				Knight knight = new Knight(renderLayer,currentPlayerCastle);
+				Onager onager = new Onager(renderLayer,currentPlayerCastle);
+				displacement(currentPlayerCastle.getPosition(),castle,pikeman,false);
+				displacement(currentPlayerCastle.getPosition(),castle,onager,false);
+				displacement(currentPlayerCastle.getPosition(),castle,knight,false);
 				
 				e.consume();
 			});
-			castleTargets.add(targetButton);
-			}
+			castleEnemyTargets.add(enemyTargetButton);
 		}
 		
 	}
@@ -277,7 +282,7 @@ public class Game {
 		}
 		Button unitButton = unit.spawnTroop(unitName, 0, playerCastlePosition, path,renderLayer);
 		unit.setUnitButton(unitButton);
-		unit.displace(path, renderLayer,unitButton,unit, gameMap,targetedCastle);
+		unit.displace(path, renderLayer,unitButton,unit, gameMap,targetedCastle ,castleOwned);
 	}
 
 	private boolean isPositionNearACastle(Point2D position) {
@@ -320,8 +325,6 @@ public class Game {
 					}
 
 					setText(text);
-				}else if(getView() == StatusBarView.TroopsMoveView) {
-					
 				}
 			}
 		};
@@ -331,10 +334,10 @@ public class Game {
 
 		statusBarPos = new Point2D(statusBarPos.getX() + Settings.windowWidth / 3.0, statusBarPos.getY());
 		StatusBar centerStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "centerStatusBar") {
-			private List<Button> decisionButtons;
+			private ArrayList<Button> decisionButtons;
 
-			private List<Spinner<Integer>> recruitSpinners;
-			private List<Spinner<Integer>> moveSpinners;
+			private ArrayList<Spinner<Integer>> recruitSpinners;
+			private ArrayList<Spinner<Integer>> moveSpinners;
 
 			private Boolean firstFrame = true;
 
@@ -380,7 +383,11 @@ public class Game {
 						spinner.setVisible(false);
 					}
 
-					for (Button target : castleTargets) {
+					for (Button target : castleEnemyTargets) {
+						target.removeFromCanvas();
+					}
+
+					for (Button target : castleAllyTargets) {
 						target.removeFromCanvas();
 					}
 
@@ -403,8 +410,28 @@ public class Game {
 							spinner.setVisible(true);
 						}
 
-						for (Button target : castleTargets) {
-							target.addToCanvas();
+						for (int i = 0; i < castles.size(); ++i) {
+							if (castles.get(i) == getCurrentCastle()) {
+								continue;
+							}
+
+							if (castles.get(i).getOwner() == getCurrentCastle().getOwner()) {
+								castleAllyTargets.get(i).addToCanvas();
+							} else {
+								castleEnemyTargets.get(i).addToCanvas();
+							}
+						}
+					}else if(getView() == StatusBarView.MoneyTransferView) {
+						setText("Money to transfert :");
+						//TODO : Put a spinner to select the money to transfert
+						for (int i = 0; i < castles.size(); ++i) {
+							if (castles.get(i) == getCurrentCastle()) {
+								continue;
+							}
+
+							if (castles.get(i).getOwner() == getCurrentCastle().getOwner()) {
+								castleAllyTargets.get(i).addToCanvas();
+							}
 						}
 					}
 					
@@ -419,10 +446,11 @@ public class Game {
 				Image texture = new Image("/sprites/buttons/recruit.png");
 				final double buttonWidth = texture.getWidth();
 
-				String[] buttonPaths1 = new String[3];
+				String[] buttonPaths1 = new String[4];
 				buttonPaths1[0] = "recruit.png";
 				buttonPaths1[1] = "select_troops.png";
 				buttonPaths1[2] = "level_up.png";
+				buttonPaths1[3] = "money.png";
 
 				Point2D buttonPos = new Point2D(getPosition().getX(), getPosition().getY());
 
@@ -465,6 +493,10 @@ public class Game {
 						alert.setContentText("Ce n'est pas votre château");
 						alert.show();
 					}
+					e.consume();
+				});
+				decisionButtons.get(3).getTextureView().setOnMouseClicked(e -> {
+					setMoneyTransfertView();
 					e.consume();
 				});
 

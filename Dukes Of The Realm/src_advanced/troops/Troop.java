@@ -48,13 +48,15 @@ abstract public class Troop  extends Sprite {
 		return unitButton;
 	}
 	
-	public void displace(Double[] path, Pane renderLayer,Button unitButton,Troop unit , int[][] gameMap, Castle castleTargeted) {
+	public void displace(Double[] path, Pane renderLayer,Button unitButton,Troop unit , int[][] gameMap, Castle castleTargeted,boolean castleOwned) {
 		if(path != null) {	
 		Double x = path[path.length-2];
 		Double y = path[path.length-1] - Settings.statusBarHeight;
 		xPosMap = (int) ((x-5)/Settings.cellSize);
 		yPosMap = (int) ((y-5)/Settings.cellSize);
-		gameMap[(int) (x-5)/Settings.cellSize][(int) (y-5)/Settings.cellSize] = 2;
+		if(!castleOwned) {
+			gameMap[(int) (x-5)/Settings.cellSize][(int) (y-5)/Settings.cellSize] = 2;
+		}
 		Polyline polyLine = new Polyline();
 		polyLine.getPoints().addAll(path);
 		renderLayer.getChildren().add(polyLine);
