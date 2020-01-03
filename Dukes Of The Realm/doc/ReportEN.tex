@@ -21,28 +21,108 @@
 
 \newpage
 \section*{The game}
+\addcontentsline{toc}{section}{The game}
+
 \subsection*{Used tools}
+\addcontentsline{toc}{subsection}{Used tools}
+
+Because the course that ordered this project is based on the Java language, we had to use it along with JavaFX for the graphics.
+
+As for the IDEs, we had a mix of Eclipse and IntelliJ users.
 
 \subsection*{The basic version}
+\addcontentsline{toc}{subsection}{The basic version}
+
+The client ordered a basic and an advanced version of the game.
+
+For the basic one, we had the following rules:
+
+\begin{itemize}
+    \item Only one type of troop. We chose to keep the knight.
+    \item Only one level for castles.
+    \item The troops don't evade castles or obstacles when moving.
+    \item The troops don't leave the castle by the door.
+    \item Per turn, castles produce troops instead of money.
+    \item The bots don't do anything.
+\end{itemize}
+
+This was in order to have a first functional prototype without all the features, but that could be played by someone.
 
 \subsection*{The advanced version}
+\addcontentsline{toc}{subsection}{The advanced version}
 
-\subsection*{The missing features}
+For the advanced version, we took out the rules we specified in the previous subsection, and we added the following ones:
+
+\begin{itemize}
+    \item Many types of troops. We chose 4: Knight, Onager, Pikeman and Camel.
+    \item Many levels for castles. We chose to have an infinity of levels by using mathematical formulas.
+    \item The troops evade castles and obstacles when moving.
+    \item The troops leave the castle by the door.
+    \item Per turn, castles produce money, and money can be used to create troops and level up the castle.
+    \item The bots do actions.
+\end{itemize}
+
+\noindent{
+As bonus features, not included in contract, we added:
+}
+
+\begin{itemize}
+    \item Walls around the castles.
+    \item A troop type that can move money from one castle to another.
+\end{itemize}
 
 \subsection*{Known bugs}
+\addcontentsline{toc}{subsection}{Known bugs}
+
+Basic version:
+
+\begin{itemize}
+    \item Random crashes when launching the application.
+    \item Sometimes, troops follow the path but are a bit off them when moving to another castle.
+\end{itemize}
+
+\noindent{
+    Advanced version:
+}
+
+\begin{itemize}
+    \item Random crashes when launching the application.
+\end{itemize}
 
 \section*{How we did the game}
+\addcontentsline{toc}{section}{How we did the game}
 
-\subsection*{The first steps}
+We were two on the project. In the first part, we just started coding on the same parts to find what we could do using JavaFX.
 
 \subsection*{The common work}
+\addcontentsline{toc}{subsection}{The common work}
+
+The common work was the design of the interfaces and classes we would use as well as the beginning of the code, as it was shared between both versions.
 
 \subsection*{The personal work}
+\addcontentsline{toc}{subsection}{The personal work}
+
+By the time we had separated our project into the basic and the advanced version, we also deletaged work.
+
+I took on the basic version along with the javadoc and the documentation for both versions while Enzo took on the advanced version.
 
 \section*{Personal Experience}
+\addcontentsline{toc}{section}{Personal Experience}
 
 \subsection*{Luis L. Marques}
+\addcontentsline{toc}{subsection}{Luis L. Marques}
+
+Personnally, I found this project a bit boring at the beginning, as it is not my type of game, and I wasn't familiar with Java. By using C++, I could have coded much faster as I already knew the language and its features, as well as some graphic libraries.
+
+Afterwards, I familiarised myself with JavaFX. Althought it doesn't resemble any other library I already used, it was quite easy to use.
+
+Contract side, I feel the contract had some unprecisions about the players and the attack system. I also felt we lacked a bit of time, one or two more weeks would have been perfect for our team.
+
+Code side, it was a great opportunity to discover and master a new language, and as for every other project, it was a great opportunity to develop team-play.
 
 \subsection*{Enzo Carré}
+\addcontentsline{toc}{subsection}{Enzo Carré}
+
+
 
 \end{document}
