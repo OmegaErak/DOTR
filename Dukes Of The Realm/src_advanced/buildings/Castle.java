@@ -330,13 +330,14 @@ public class Castle extends Sprite {
 	public void onProduction() {
 		if(this.isOnProd) {
 			int numberOfToopsInProd;
-			if(inProductionTroops.size()>=barrackLevel) {
+			if(inProductionTroops.size()>barrackLevel) {
 				numberOfToopsInProd = barrackLevel;
 			}else {
 				numberOfToopsInProd = inProductionTroops.size();
 			}
 			for(int i=0;i<numberOfToopsInProd;i++) {
 //				this.treasure -= inProductionTroops.get(0).getProdCost();
+				System.out.println(i);
 				if(inProductionTroops.get(i).getProdTime()>0) {					
 					inProductionTroops.get(i).setProdTime(inProductionTroops.get(i).getProdTime()-1);
 					System.out.println(inProductionTroops.get(i).getClass());
@@ -359,7 +360,53 @@ public class Castle extends Sprite {
 		}
 	}
 	
+	private boolean isGettingBarracks;
+	private int timeUntilBarracks = 20;
+	private int nextBarracksLevel = 30;
+	private int barracksBuildCost = 1500;
 	
+	public void addBarraks() {
+		this.isGettingBarracks = true;
+		this.timeUntilBarracks += this.nextBarracksLevel;
+		this.treasure -= this.barracksBuildCost;
+
+		removeFromCanvas();
+		setTexture(buildingTexture);
+		addToCanvas();
+	}
+	
+	public void buildingBarracks() {
+
+		if (this.isGettingBarracks) {
+			if (this.timeUntilBarracks > 0) {
+				--this.timeUntilBarracks;
+			} else if (this.timeUntilBarracks == 0) {
+				this.barrackLevel += 1;
+				this.barracksBuildCost *= 2;
+				this.isGettingBarracks = false;
+				--timeUntilBarracks;
+
+				removeFromCanvas();
+				if(this.hasWall) {
+					setTexture(armoredTexture);
+				}else {					
+					setTexture(texture);
+				}
+				addToCanvas();
+				updateData();
+			}
+		}
+	}
+	
+	
+
+	public int gettBarracksBuildCost() {
+		return barracksBuildCost;
+	}
+
+	public void setBarracksBuildCost(int barracksBuildCost) {
+		this.barracksBuildCost = barracksBuildCost;
+	}
 
 	public int getBarrackLevel() {
 		return barrackLevel;

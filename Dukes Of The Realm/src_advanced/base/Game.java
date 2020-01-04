@@ -92,6 +92,7 @@ public class Game {
 								castle.unitAroundAction();
 								castle.isAlive(gameMap);
 								castle.onProduction();
+								castle.buildingBarracks();
 							}
 						}
 					}
@@ -558,12 +559,13 @@ public class Game {
 				Image texture = new Image("/sprites/buttons/recruit.png");
 				final double buttonWidth = texture.getWidth();
 
-				String[] buttonPaths1 = new String[5];
+				String[] buttonPaths1 = new String[6];
 				buttonPaths1[0] = "recruit.png";
 				buttonPaths1[1] = "select_troops.png";
 				buttonPaths1[2] = "level_up.png";
 				buttonPaths1[3] = "money.png";
 				buttonPaths1[4] = "wall.png";
+				buttonPaths1[5] = "barracks.png";
 				
 				
 				final int xOfSet = -75;
@@ -632,7 +634,31 @@ public class Game {
 							}
 						} else {
 							alert.setAlertType(Alert.AlertType.WARNING);
-							alert.setContentText("Votre château possède déjà des murailles ou vous n'avez pas assez de florains");
+							alert.setContentText("Vous ne pouvez pas construire de muraille car soit votre château est déjà en travaux ou vous n'avez pas assez de florains");
+							alert.show();
+						}
+					} else {
+						alert.setAlertType(Alert.AlertType.WARNING);
+						alert.setTitle("Attention");
+						alert.setContentText("Ce n'est pas votre château");
+						alert.show();
+					}
+					e.consume();
+				});
+				decisionButtons.get(5).getTextureView().setOnMouseClicked(e -> {
+					Alert alert = new Alert(Alert.AlertType.NONE);
+					if (getCurrentCastle().getOwner() == 0) {
+						if (!getCurrentCastle().isLevelingUp() && !getCurrentCastle().isGettingWall() &&  getCurrentCastle().getTreasure() >= getCurrentCastle().gettBarracksBuildCost()) {
+							alert.setAlertType(Alert.AlertType.CONFIRMATION);
+							alert.setContentText("Vous êtes sur ? Cela vous coûteras " + getCurrentCastle().gettBarracksBuildCost() + " florains.");
+
+							Optional<ButtonType> result = alert.showAndWait();
+							if (result.get() == ButtonType.OK) {
+								getCurrentCastle().addBarraks();;
+							}
+						} else {
+							alert.setAlertType(Alert.AlertType.WARNING);
+							alert.setContentText("Vous ne pouvez pas construire de caserne car soit votre château est déjà en travaux ou vous n'avez pas assez de florains");
 							alert.show();
 						}
 					} else {

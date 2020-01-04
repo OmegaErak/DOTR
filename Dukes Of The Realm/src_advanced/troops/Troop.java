@@ -87,8 +87,8 @@ abstract public class Troop  extends Sprite {
 			}		
 			renderLayer.getChildren().remove(polyLine);
 			Random r = new Random();
-			int oofType = r.nextInt(2) + 1;
-			File oof = new File("resources/sound/rire" + oofType + ".wav");
+			int oofType = r.nextInt(6);
+			File oof = new File("resources/sound/con" + oofType + ".wav");
 			try {
 				Clip clip = AudioSystem.getClip();
 				AudioInputStream inputStream = AudioSystem.getAudioInputStream(oof);
