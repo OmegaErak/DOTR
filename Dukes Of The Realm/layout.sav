@@ -1,16 +1,18 @@
 Readme: This is the layout for a save file. Unit are loaded in the order that is stipulated by some java file.
 Tabs and white spaces are not in the save file, they are here just to make the file clearer.
 
+It doesn't save the recruit and move commands.
+
+day number
 number of castles
 for each castle:
     owner
     owner name
-    level
-    treasure
+    level (advanced)
+    treasure (advanced)
     position
 
-    for each troop type:
-        number of troops of that unit
-        for each troop:
-            life points
-            position
+    number of troops
+    for each troop:
+        type of troop (integer)(advanced)
+        life points

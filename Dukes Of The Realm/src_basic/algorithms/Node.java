@@ -3,7 +3,6 @@ package algorithms;
 import base.Settings;
 import javafx.geometry.Point2D;
 
-import javax.print.attribute.SetOfIntegerSyntax;
 import java.util.ArrayList;
 
 /**

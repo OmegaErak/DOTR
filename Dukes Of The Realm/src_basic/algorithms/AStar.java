@@ -44,7 +44,7 @@ public abstract class AStar {
 	 * @return The shortest path, in a format that JavaFX can understand.
 	 */
 	public static Double[] shortestPath(Node start, Node end, boolean allowDiagonals) {
-		Node currentNode = null;
+		Node currentNode;
 		boolean containsNeighbor;
 
 		int cellCount = Settings.gridCellsCountX / Settings.cellSize * Settings.gridCellsCountY / Settings.cellSize;
@@ -112,6 +112,7 @@ public abstract class AStar {
 				}
 			}
 		}
+
 		System.out.println("No path");
 		return null;
 	}

@@ -7,10 +7,9 @@ import javafx.stage.Stage;
 
 /**
  * Main class of the application.
- * Launches JavaFX and Game classes.
  */
 public class EntryPoint extends Application {
-	public void start(Stage primaryStage) throws Exception {
+	public void start(Stage primaryStage) {
 		Game game = new Game();
 
 		primaryStage.setTitle("Dukes of the realm");

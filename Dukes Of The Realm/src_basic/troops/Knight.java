@@ -4,7 +4,7 @@ import base.Settings;
 
 import buildings.Castle;
 
-import renderer.Sprite;
+import drawable.Sprite;
 
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
@@ -16,9 +16,9 @@ import javafx.scene.layout.Pane;
 public class Knight extends Sprite {
 	private Castle attachedCastle;
 
-	private int speed;
-	private int health;
-	private int damage;
+	private int health = 3;
+	private final int damage = 5;
+	private final int speed = 6;
 
 	/**
 	 * @param renderLayer The JavaFX canvas.
@@ -28,9 +28,6 @@ public class Knight extends Sprite {
 		super(renderLayer, castle.getPosition());
 
 		this.attachedCastle = castle;
-		this.speed 		= 6;
-		this.health 	= 3;
-		this.damage 	= 5;
 
 		final Image texture;
 		if (castle.getOwner() <= Settings.nbMaxActiveDukes) {
@@ -58,6 +55,20 @@ public class Knight extends Sprite {
 	 */
 	public int getSpeed() {
 		return speed;
+	}
+
+	/**
+	 * Sets the HP of the knight.
+	 */
+	public void setHP(int hp) {
+		health = hp;
+	}
+
+	/**
+	 * @return The HP of the knight.
+	 */
+	public int getHP() {
+		return health;
 	}
 
 	/**
