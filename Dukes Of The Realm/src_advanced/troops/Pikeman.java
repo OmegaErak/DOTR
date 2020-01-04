@@ -12,7 +12,7 @@ public class Pikeman extends Troop {
 
 		this.prodCost 	= 100;
 		this.prodTime 	= 5;
-		this.speed 		= 2;
+		this.speed 		= 4;
 		this.health 	= 3;
 		this.damage 	= 1;
 		

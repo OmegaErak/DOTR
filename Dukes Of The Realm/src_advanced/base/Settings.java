@@ -27,6 +27,8 @@ public class Settings {
 	
 	static public final int surround = 24;
 	
+	static public final int ostSize = 3;
+	
 	// Knight, onager and pikeman
 	static public final int nbTroopTypes = 3;
 	
