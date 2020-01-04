@@ -5,7 +5,7 @@ import algorithms.Node;
 
 import base.Settings;
 
-import renderer.Sprite;
+import drawable.Sprite;
 
 import troops.Knight;
 
@@ -16,55 +16,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.shape.Polyline;
 import javafx.util.Duration;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 /**
  * Castle class.
  */
 public class Castle extends Sprite {
-	/**
-	 * The different possible names for the dukes of the realm.
-	 */
-	final static private List<String> dukeNames = new ArrayList<>(Arrays.asList(
-			"Jean-Cloud Van Damme",
-
-			"Jean-Eudes",
-			"Jean-Michel",
-			"Jean-Marie",
-			"Jean-Loup",
-			"Jean-Côme",
-			"Jean-Alex",
-			"Jean-Kévin",
-			"Jean-René",
-			"Jean-Maurice",
-			"Jean-Francis",
-			"Jean-Jacques",
-			"Jean-Noël",
-			"Jean-George",
-			"Jean-Brice",
-			"Jean-Blaise",
-			"Jean-Aimée",
-			"Jean-Baptiste",
-			"Jean-Bernard",
-			"Jean-Briac",
-			"Jean-Charles",
-			"Jean-Jean",
-			"Jean-Paul",
-			"Jean-Ti",
-			"Jean-Rêve",
-			"Jean-Yves",
-
-			"Jean-Cérien"
-	));
-
 	private int owner;
 	private String ownerName;
 
@@ -72,15 +30,14 @@ public class Castle extends Sprite {
 
 	private ArrayList<Knight> attackingTroops = new ArrayList<>();
 
-	private Random rdGen = new Random();
+	private final Random rdGen = new Random();
 
 	/**
 	 * Default constructor
 	 * @param renderLayer The JavaFX canvas onto which we draw.
-	 * @param owner The ownerID of the owner.
 	 * @param position The position of the castle in the window.
 	 */
-	public Castle(Pane renderLayer, int owner, Point2D position) {
+	public Castle(Pane renderLayer, Point2D position) {
 		super(renderLayer, position);
 
 		final Image texture;
@@ -89,12 +46,6 @@ public class Castle extends Sprite {
 		} else {
 			texture = new Image("/sprites/castles/castle_neutral.png");
 		}
-
-		this.owner = owner;
-
-		final int index = rdGen.nextInt(dukeNames.size());
-		this.ownerName = dukeNames.get(index);
-		dukeNames.remove(index);
 
 		final int nbDirections = 4;
 		final int doorDirection = rdGen.nextInt(nbDirections);
@@ -129,6 +80,7 @@ public class Castle extends Sprite {
 			int damageTaken = 0;
 			for (final Knight attackingKnight : attackingTroops) {
 				damageTaken += attackingKnight.getDamage();
+				attackingKnight.setHP(0);
 				attackingKnight.removeFromCanvas();
 			}
 
@@ -159,11 +111,15 @@ public class Castle extends Sprite {
 	/**
 	 * Moves troops from the castle to another castle.
 	 * @param castle The target castle.
-	 * @param selectedTroops The selected troops to move.
+	 * @param moveCommand The number of troops to move.
 	 */
-	public void moveTroops(Castle castle, ArrayList<Knight> selectedTroops) {
+	public void orderMove(Castle castle, Integer moveCommand) {
+		ArrayList<Knight> selectedTroops = new ArrayList<>();
+		for (int i = 0; i < moveCommand; ++i) {
+			selectedTroops.add(availableKnights.get(i));
+		}
+
 		if(!selectedTroops.isEmpty()) {
-			
 			int dxy = Settings.castleSize / 2;
 			Node start = new Node(new Point2D(getPosition().getX() + dxy, getPosition().getY() + dxy), 0, 0);
 			Node end = new Node(new Point2D(castle.getPosition().getX() + dxy, castle.getPosition().getY() + dxy), 0, 0);
@@ -196,22 +152,7 @@ public class Castle extends Sprite {
 				moveAnimation.setOnFinished(e -> {
 					renderLayer.getChildren().remove(pathLine);
 
-					if (castle.getOwner() != this.getOwner()) {
-						final int nbDiffSounds = 2;
-						Random rdGen = new Random();
-						int oofType = rdGen.nextInt(nbDiffSounds);
-						File oof = new File("resources/sound/oof" + oofType + ".wav");
-						try {
-							Clip clip = AudioSystem.getClip();
-							AudioInputStream inputStream = AudioSystem.getAudioInputStream(oof);
-							clip.open(inputStream);
-							clip.start();
-						} catch (Exception e1) {
-							e1.printStackTrace();
-						}
-					}
-
-					// TODO: Not the best way to do this. Is there a way to check if every animation is finished?
+					// TODO: Not the best way to do this.
 					ArrayList<Knight> troopsList = new ArrayList<>();
 					troopsList.add(knight);
 					castle.receiveTroops(this, troopsList);
@@ -229,7 +170,7 @@ public class Castle extends Sprite {
 	 * @param sender The castle that sent the troops.
 	 * @param troops The troops.
 	 */
-	public void receiveTroops(Castle sender, ArrayList<Knight> troops) {
+	private void receiveTroops(Castle sender, ArrayList<Knight> troops) {
 		if (sender.getOwner() == this.owner) {
 			availableKnights.addAll(troops);
 			for (Knight knight : troops) {
@@ -243,10 +184,33 @@ public class Castle extends Sprite {
 	}
 
 	/**
+	 * Sets the owner ID.
+	 */
+	public void setOwner(int ID) {
+		owner = ID;
+
+		final Image texture;
+		if (owner <= Settings.nbMaxActiveDukes) {
+			texture = new Image("/sprites/castles/castle_" + owner + ".png");
+		} else {
+			texture = new Image("/sprites/castles/castle_neutral.png");
+		}
+
+		setTexture(texture);
+	}
+
+	/**
 	 * @return The ownerID of the owner.
 	 */
 	public int getOwner() {
 		return owner;
+	}
+
+	/**
+	 * Sets the owner name.
+	 */
+	public void setOwnerName(String name) {
+		ownerName = name;
 	}
 
 	/**
@@ -264,10 +228,17 @@ public class Castle extends Sprite {
 	}
 
 	/**
-	 * @param index The index of the knight from 0 to the number of knights.
-	 * @return The knight.
+	 * Sets the knights of the castle, overriding the previous.
+	 * @param knights The knights.
 	 */
-	public Knight getKnightByIndex(int index) {
-		return availableKnights.get(index);
+	public void setKnights(ArrayList<Knight> knights) {
+		availableKnights = knights;
+	}
+
+	/**
+	 * @return The castles knights.
+	 */
+	public ArrayList<Knight> getKnights() {
+		return availableKnights;
 	}
 }

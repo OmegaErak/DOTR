@@ -1,4 +1,4 @@
-package renderer;
+package drawable;
 
 /**
  * The differents view of the status bars.

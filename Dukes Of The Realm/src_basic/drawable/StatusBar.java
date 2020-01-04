@@ -1,4 +1,4 @@
-package renderer;
+package drawable;
 
 import base.DayHolder;
 import buildings.Castle;
@@ -11,9 +11,9 @@ import javafx.scene.text.Text;
  * Status bar class so we can display important info of the game.
  */
 public abstract class StatusBar {
-    private Pane renderLayer;
+    private final Pane renderLayer;
 
-    private HBox statusBar = new HBox();
+    private final HBox statusBar = new HBox();
 
     private Point2D position;
     private Point2D size;
@@ -150,7 +150,7 @@ public abstract class StatusBar {
         return this.size;
     }
 
-    private Text statusBarText = new Text();
+    private final Text statusBarText = new Text();
 
     /**
      * Changes the text displayed in the status bar.

@@ -1,4 +1,4 @@
-package renderer;
+package drawable;
 
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
@@ -9,9 +9,9 @@ import javafx.scene.layout.Pane;
  * Sprite class to be derived by drawable objects.
  */
 public abstract class Sprite {
-    protected Pane renderLayer;
+    protected final Pane renderLayer;
 
-    protected ImageView textureView;
+    protected final ImageView textureView;
 
     protected Point2D position;
 
