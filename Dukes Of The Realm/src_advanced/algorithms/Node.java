@@ -1,177 +1,217 @@
 package algorithms;
+
+import base.Settings;
+import javafx.geometry.Point2D;
+
 import java.util.ArrayList;
 
-import base.Game;
-import base.Settings;
-
-
 public class Node {
-	
-	private double x;
-	private double y;
-	private double cout;
-	private double heuristique;
-	private Node cameFrom;
-	private double f;
-	
-	
-	public Node(double x, double y, double cout, double heuristique) {
-		this.x = x;
-		this.y = y;
-		this.cout = cout;
-		this.heuristique = heuristique;
+	private Point2D position;
+
+	private double cost;
+	private double heuristicCost;
+	private double totalCost;
+
+	private Node fatherNode;
+
+	/**
+	 * @param position The position in the window.
+	 * @param cost Its cost.
+	 * @param heuristicCost Its heuristic cost.
+	 */
+	public Node(Point2D position, double cost, double heuristicCost) {
+		this.position = position;
+
+		this.cost = cost;
+		this.heuristicCost = heuristicCost;
 	}
-	
-	public ArrayList<Node> voisin(int[][] tab , boolean allowDiagonale){
-		ArrayList<Node> voisin = new ArrayList<Node>();
-		
-		double xm = x - Settings.cellSize;
-		double xp = x + Settings.cellSize;
-		double ym = y - Settings.cellSize;
-		double yp = y + Settings.cellSize;
-		
-		
-		
-		if(xp < Settings.windowWidth && isCrossable((int) xp,(int) y , tab)) {
-		Node v0 = new Node(xp,y,cout,heuristique);
-		voisin.add(v0);
+
+	/**
+	 * @param allowDiagonals True to allow diagonal paths, false to not.
+	 * @return The node neighbours of the node.
+	 */
+	public ArrayList<Node> getNeighbours(int[][] gameMap, boolean allowDiagonals){
+		ArrayList<Node> neighbours = new ArrayList<>();
+
+		int x = (int)position.getX();
+		int y = (int)position.getY();
+		int xm = (int)position.getX() - Settings.cellSize;
+		int xp = (int)position.getX() + Settings.cellSize;
+		int yp = (int)position.getY() + Settings.cellSize;
+		int ym = (int)position.getY() - Settings.cellSize;
+
+		Point2D upperPoint = new Point2D(x, ym);
+		if(ym >= 0 && isCrossable(upperPoint, gameMap)) {
+			Node upperPointNode = new Node(upperPoint, cost, heuristicCost);
+			neighbours.add(upperPointNode);
 		}
-		
-		if(xp < Settings.windowWidth && yp < Settings.windowHeight && isCrossable((int) xp ,(int) yp , tab) && allowDiagonale) {
-		Node vd0 = new Node(xp , yp,cout,heuristique);
-		voisin.add(vd0);
+
+		Point2D upperRightPoint = new Point2D(xp, ym);
+		if(xp < Settings.windowWidth && ym >= 0 && allowDiagonals && isCrossable(upperRightPoint, gameMap)) {
+			Node upperRightPointNode = new Node(upperRightPoint, cost, heuristicCost);
+			neighbours.add(upperRightPointNode);
 		}
-		
-		if(xm >= 0 && isCrossable((int) xm,(int) y, tab)) {
-		Node v1 = new Node(xm,y,cout,heuristique);
-		voisin.add(v1);
+
+		Point2D rightPoint =  new Point2D(xp, y);
+		if(xp < Settings.windowWidth && isCrossable(rightPoint, gameMap)) {
+			Node rightPointNode = new Node(rightPoint, cost, heuristicCost);
+			neighbours.add(rightPointNode);
 		}
-		
-		if(xm >= 0 && yp < Settings.windowHeight && isCrossable((int) xm ,(int) yp, tab) && allowDiagonale) {
-		Node vd1 = new Node(xm , yp,cout,heuristique);
-		voisin.add(vd1);
+
+		Point2D bottomRightPoint = new Point2D(xp, yp);
+		if(xp < Settings.windowWidth && yp < Settings.windowHeight && allowDiagonals && isCrossable(bottomRightPoint, gameMap)) {
+			Node bottomRightPointNode = new Node(bottomRightPoint, cost, heuristicCost);
+			neighbours.add(bottomRightPointNode);
 		}
-		
-		
-		if(yp < Settings.windowHeight && isCrossable((int) x,(int) yp, tab)) {
-		Node v2 = new Node(x , yp,cout,heuristique);
-		voisin.add(v2);
+
+		Point2D bottomPoint = new Point2D(x, yp);
+		if(yp < Settings.windowHeight && isCrossable(bottomPoint, gameMap)) {
+			Node bottomPointNode = new Node(bottomPoint, cost, heuristicCost);
+			neighbours.add(bottomPointNode);
 		}
-		
-		if(xm >= 0 && ym >= Settings.statusBarHeight && isCrossable((int) xm ,(int) ym, tab) && allowDiagonale) {
-		Node vd2 = new Node(xm , ym,cout,heuristique);
-		voisin.add(vd2);
+
+		Point2D bottomLeftPoint = new Point2D(xm, yp);
+		if(xm >= 0 && yp < Settings.windowHeight && allowDiagonals && isCrossable(bottomLeftPoint, gameMap)) {
+			Node bottomLeftPointNode = new Node(bottomLeftPoint, cost, heuristicCost);
+			neighbours.add(bottomLeftPointNode);
 		}
-		
-		
-		if(ym >= Settings.statusBarHeight && isCrossable((int) x,(int) ym, tab)) {
-		Node v3 = new Node(x , ym,cout,heuristique);
-		voisin.add(v3);
+
+		Point2D leftPoint = new Point2D(xm, y);
+		if(xm >= 0 && isCrossable(leftPoint, gameMap)) {
+			Node leftPointNode = new Node(leftPoint, cost, heuristicCost);
+			neighbours.add(leftPointNode);
 		}
-		
-		if(xp < Settings.windowWidth && ym >= Settings.statusBarHeight && isCrossable((int) xp ,(int) ym, tab) && allowDiagonale) {
-		Node vd3 = new Node(xp , ym,cout,heuristique);
-		voisin.add(vd3);
+
+		Point2D upperLeftPoint = new Point2D(xm, ym);
+		if(xm >= 0 && ym >= 0 && allowDiagonals && isCrossable(upperLeftPoint, gameMap)) {
+			Node upperLeftPointNode = new Node(upperLeftPoint, cost, heuristicCost);
+			neighbours.add(upperLeftPointNode);
 		}
-		
-		return voisin;
-	}
-	
-	public boolean isCrossable(int x, int y,int[][] tab) {
-		
-		if(tab[x / Settings.cellSize][(y - Settings.statusBarHeight) / Settings.cellSize] != 0) {
-			return false;
-		}else {
-			return true;
-		}
-		
-		
-	}
-	
-	public boolean isArround(Node node) {
-		double dx = Math.sqrt( (x - node.getX()) * (x - node.getX()) );
-		double dy = Math.sqrt( (y - node.getY()) * (y - node.getY()) );
-		final int distance = (Settings.castleSize + Settings.cellSize)/2;
-		
-		return(dx <=distance && dy <= distance);
 
-	}
-	
-
-	public double getF() {
-		return f;
+		return neighbours;
 	}
 
-	public void setF(double f) {
-		this.f = f;
+	/**
+	 * @param point The point to cross in the map.
+	 * @param gameMap The map of the game.
+	 * @return True if we can walk over the point, false otherwise.
+	 */
+	public boolean isCrossable(Point2D point, int[][] gameMap) {
+		int x = (int)(point.getX() / Settings.cellSize);
+		int y = (int)((point.getY() - Settings.statusBarHeight) / Settings.cellSize);
+
+		return gameMap[x][y] == 0;
 	}
 
-	public Node getCameFrom() {
-		return cameFrom;
+	/**
+	 * @param node The node to be checked.
+	 * @return True if the node passed as parameter is around the current node, false otherwise.
+	 */
+	public boolean isAroundNode(Node node) {
+		double dx = Math.sqrt((position.getX() - node.getPosition().getX()) * (position.getX() - node.getPosition().getX()));
+		double dy = Math.sqrt((position.getY() - node.getPosition().getY()) * (position.getY() - node.getPosition().getY()));
+
+		final int distance = (Settings.castleSize + Settings.knightSize) / 2;
+		return (dx <= distance && dy <= distance);
 	}
 
-	public void setCameFrom(Node cameFrom) {
-		this.cameFrom = cameFrom;
+	/**
+	 * @return The total cost of the node.
+	 */
+	public double getTotalCost() {
+		return totalCost;
 	}
 
-	public double getX() {
-		return x;
+	/**
+	 * @param totalCost The total cost of the node.
+	 */
+	public void setTotalCost(double totalCost) {
+		this.totalCost = totalCost;
 	}
 
-	public void setX(double x) {
-		this.x = x;
+	/**
+	 * @return The father of the Node.
+	 */
+	public Node getFatherNode() {
+		return fatherNode;
 	}
 
-	public double getY() {
-		return y;
+	/**
+	 * @param fatherNode The father of the node.
+	 */
+	public void setFatherNode(Node fatherNode) {
+		this.fatherNode = fatherNode;
 	}
 
-	public void setY(double y) {
-		this.y = y;
+	/**
+	 * @return The position in the window.
+	 */
+	public Point2D getPosition() {
+		return position;
 	}
 
-	public double getCout() {
-		return cout;
+	/**
+	 * @return The cost of the node.
+	 */
+	public double getCost() {
+		return cost;
 	}
 
-	public void setCout(double cout) {
-		this.cout = cout;
+	/**
+	 * @param cost The cost of the node.
+	 */
+	public void setCost(double cost) {
+		this.cost = cost;
 	}
 
+	/**
+	 * @return The heuristic cost of the node.
+	 */
+	public double getHeuristicCost() {
+		return heuristicCost;
+	}
+
+	/**
+	 * @param heuristicCost The heuristic cost of the node.
+	 */
+	public void setHeuristicCost(double heuristicCost) {
+		this.heuristicCost = heuristicCost;
+	}
+
+	/**
+	 * @return The string to be displayed when printing a node.
+	 */
 	@Override
 	public String toString() {
-		return "Node [x=" + x + ", y=" + y + ", cout=" + cout + ", heuristique=" + heuristique + "]";
+		return "Node [x=" + position.getX() + ", y=" + position.getY() + ", cost=" + cost + ", Heuristic cost=" + heuristicCost + "]";
 	}
 
-	public double getHeuristique() {
-		return heuristique;
-	}
-
-	public void setHeuristique(double heuristique) {
-		this.heuristique = heuristique;
-	}
-
-
+	/**
+	 * Compares two nodes.
+	 * @param obj The other node.
+	 * @return True if the two nodes are equal, false otherwise.
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
+
 		if (obj == null)
 			return false;
+
 		if (getClass() != obj.getClass())
 			return false;
-		Node other = (Node) obj;
-		if (cameFrom == null) {
-			if (other.cameFrom != null)
+
+		Node other = (Node)obj;
+		if (fatherNode == null) {
+			if (other.fatherNode != null)
 				return false;
-		} else if (!cameFrom.equals(other.cameFrom))
+		} else if (!(fatherNode == other.fatherNode))
 			return false;
-		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
+
+		if (Double.doubleToLongBits(position.getX()) != Double.doubleToLongBits(other.getPosition().getX()))
 			return false;
-		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
-			return false;
-		return true;
+
+		return Double.doubleToLongBits(position.getY()) == Double.doubleToLongBits(other.getPosition().getY());
 	}
-	
-	
 }

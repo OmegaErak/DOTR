@@ -456,6 +456,9 @@ public class Game {
 		createCastleTargets();
 	}
 
+	/**
+	 * Creates the targets to be clicked on.
+	 */
 	private void createCastleTargets() {
 		Image enemyTargetTexture = new Image("/sprites/castles/ennemyTarget.png");
 		Image allyTargetTexture = new Image("/sprites/castles/allyTarget.png");

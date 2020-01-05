@@ -1,6 +1,5 @@
 package base;
 
-
 /**
  *  Basic int wrapper so the status bars can update accordingly.
  */

@@ -1,6 +1,7 @@
 package algorithms;
 
 import base.Settings;
+
 import javafx.geometry.Point2D;
 
 import java.util.ArrayList;
@@ -13,10 +14,9 @@ public class Node {
 
 	private double cost;
 	private double heuristicCost;
+	private double totalCost;
 
 	private Node fatherNode;
-
-	private double totalCost;
 
 	/**
 	 * @param position The position in the window.
@@ -103,8 +103,8 @@ public class Node {
 		double dx = Math.sqrt((position.getX() - node.getPosition().getX()) * (position.getX() - node.getPosition().getX()));
 		double dy = Math.sqrt((position.getY() - node.getPosition().getY()) * (position.getY() - node.getPosition().getY()));
 
-		final int distance = Settings.castleSize / 2 + Settings.knightSize / 2;
-		return(dx <= distance && dy <= distance);
+		final int distance = (Settings.castleSize + Settings.knightSize) / 2;
+		return (dx <= distance && dy <= distance);
 	}
 
 	 /**
