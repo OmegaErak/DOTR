@@ -7,10 +7,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import drawable.Sprite;
-import troops.Knight;
-import troops.Onager;
-import troops.Pikeman;
-import troops.Troop;
+import troops.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,38 +15,6 @@ import java.util.List;
 import java.util.Random;
 
 public class Castle extends Sprite {
-	final static private List<String> dukeNames = new ArrayList<String>(Arrays.asList(
-			"Jean-Cloud Van Damme",
-
-			"Jean-Eudes",
-			"Jean-Michel",
-			"Jean-Marie",
-			"Jean-Loup",
-			"Jean-Côme",
-			"Jean-Alex",
-			"Jean-Kévin",
-			"Jean-René",
-			"Jean-Maurice",
-			"Jean-Francis",
-			"Jean-Jacques",
-			"Jean-Noël",
-			"Jean-George",
-			"Jean-Brice",
-			"Jean-Blaise",
-			"Jean-Aimée",
-			"Jean-Baptiste",
-			"Jean-Bernard",
-			"Jean-Briac",
-			"Jean-Charles",
-			"Jean-Jean",
-			"Jean-Paul",
-			"Jean-Ti",
-			"Jean-Rêve",
-			"Jean-Yves",
-
-			"Jean-Cérien"
-	));
-
 	private Image texture;
 	private Image buildingTexture;
 	private Image armoredTexture;
@@ -66,6 +31,7 @@ public class Castle extends Sprite {
 	private ArrayList<Pikeman> availablePikeman = new ArrayList<>();
 	private ArrayList<Knight> availableKnight = new ArrayList<>();
 	private ArrayList<Onager> availableOnager = new ArrayList<>();
+
 	private ArrayList<Troop> inProductionTroops = new ArrayList<>();
 	private ArrayList<Troop> troopAround = new ArrayList<>();
 
@@ -94,7 +60,35 @@ public class Castle extends Sprite {
 	
 	private Random rdGen = new Random();
 
-	public Castle(Pane renderLayer, int owner, Point2D position) {
+	public void setOwnerName(String name) {
+		ownerName = name;
+	}
+
+	public void setTroops(ArrayList<Troop> troops) {
+		ArrayList<Knight> knights = new ArrayList<>();
+		ArrayList<Onager> onagers = new ArrayList<>();
+		ArrayList<Pikeman> pikemen = new ArrayList<>();
+
+		for (Troop troop : troops) {
+			if (troop.getClass() == Knight.class) {
+				knights.add((Knight)troop);
+			} else if (troop.getClass() == Onager.class) {
+				onagers.add((Onager)troop);
+			} else if (troop.getClass() == Pikeman.class) {
+				pikemen.add((Pikeman)troop);
+			}
+		}
+
+		availableKnight = knights;
+		availableOnager = onagers;
+		availablePikeman = pikemen;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	public Castle(Pane renderLayer, Point2D position) {
 		super(renderLayer, position);
 
 		if (owner <= Settings.nbMaxActiveDukes) {
@@ -107,12 +101,6 @@ public class Castle extends Sprite {
 			armoredTexture = new Image("/sprites/castles/armored_castle_neutral.png");
 		}
 
-		this.owner = owner;
-
-		final int index = rdGen.nextInt(dukeNames.size());
-		this.ownerName = dukeNames.get(index);
-		dukeNames.remove(index);
-
 		this.level = 1;
 		this.treasure = Settings.initialTreasure;
 		this.doorDirection = rdGen.nextInt(Direction.nbDirections);
@@ -121,15 +109,15 @@ public class Castle extends Sprite {
 		
 		final int nbTroops = Settings.nbMinInitTroops + rdGen.nextInt(Settings.nbMaxInitTroops - Settings.nbMinInitTroops);
 		for (int i = 0; i < nbTroops; ++i) {
-			final int troop = rdGen.nextInt(Settings.nbTroopTypes);
+			final int troopType = rdGen.nextInt(Settings.nbTroopTypes);
 			
-			if (troop == 0) {
+			if (troopType == 0) {
 				availableKnight.add(new Knight(renderLayer, this));
 				++nbKnights;
-			} else if (troop == 1) {
+			} else if (troopType == 1) {
 				availableOnager.add(new Onager(renderLayer, this));
 				++nbOnagers;
-			} else if (troop == 2) {
+			} else if (troopType == 2) {
 				availablePikeman.add(new Pikeman(renderLayer, this));
 				++nbPikemen;
 			}
@@ -223,7 +211,7 @@ public class Castle extends Sprite {
 					--i;
 				}else {		
 					Knight knight = availableKnight.get(0);
-					knight.setHealth(knight.getHealth()-1);
+					knight.setHealth(knight.getHP()-1);
 					if(!knight.isAlive()) {
 						availableKnight.remove(0);
 						--nbKnights;
@@ -235,7 +223,7 @@ public class Castle extends Sprite {
 					--i;
 				}else {
 					Pikeman pikeman = availablePikeman.get(0);
-					pikeman.setHealth(pikeman.getHealth()-1);
+					pikeman.setHealth(pikeman.getHP()-1);
 					if(!pikeman.isAlive()) {
 						availablePikeman.remove(0);
 						--nbPikemen;
@@ -247,7 +235,7 @@ public class Castle extends Sprite {
 					--i;
 				}else {
 					Onager onager= availableOnager.get(0);
-					onager.setHealth(onager.getHealth()-1);
+					onager.setHealth(onager.getHP()-1);
 					if(!onager.isAlive()) {
 						availableOnager.remove(0);
 						--nbOnagers;
@@ -279,7 +267,7 @@ public class Castle extends Sprite {
 			removeFromCanvas();	
 			setTexture(texture);
 			addToCanvas();
-			Game.castleOwned.add(this);
+			Game.playerCastles.add(this);
 		}
 	}
 	
@@ -289,14 +277,14 @@ public class Castle extends Sprite {
 			availablePikeman.add((Pikeman) troop);
 			++nbPikemen;
 			troop.removeFromCanvas();
-		}else if(troop.getClass() == Knight.class) {
+		} else if(troop.getClass() == Knight.class) {
 			availableKnight.add((Knight) troop);
 			++nbKnights;
-		}else if(troop.getClass() == Onager.class){
+		} else if(troop.getClass() == Onager.class){
 			availableOnager.add((Onager) troop);
 			++nbOnagers;
-		}else {
-			treasure += troop.getProdCost();
+		} else {
+			treasure += ((Business)troop).getMoney();
 		}
 	}
 	
@@ -316,8 +304,7 @@ public class Castle extends Sprite {
 	}
 	
 	private boolean isOnProd;
-	
-	
+
 	public void addTroop(Troop troop) {
 		if(this.treasure >= troop.getProdCost()) {
 			this.isOnProd = true;
@@ -328,33 +315,30 @@ public class Castle extends Sprite {
 	}
 	
 	public void onProduction() {
-		if(this.isOnProd) {
+		if (this.isOnProd) {
 			int numberOfToopsInProd;
-			if(inProductionTroops.size()>barrackLevel) {
+			if (inProductionTroops.size()>barrackLevel) {
 				numberOfToopsInProd = barrackLevel;
-			}else {
+			} else {
 				numberOfToopsInProd = inProductionTroops.size();
 			}
 			for(int i=0;i<numberOfToopsInProd;i++) {
-//				this.treasure -= inProductionTroops.get(0).getProdCost();
-				System.out.println(i);
-				if(inProductionTroops.get(i).getProdTime()>0) {					
+				if(inProductionTroops.get(i).getProdTime()>0) {
 					inProductionTroops.get(i).setProdTime(inProductionTroops.get(i).getProdTime()-1);
 					System.out.println(inProductionTroops.get(i).getClass());
 					System.out.println(inProductionTroops.get(i).getProdTime());
-				}else {
-					if(inProductionTroops.get(i).getClass() == Pikeman.class) {
+				} else {
+					if (inProductionTroops.get(i).getClass() == Pikeman.class) {
 						availablePikeman.add((Pikeman) inProductionTroops.get(i));
 						++nbPikemen;
-					}else if(inProductionTroops.get(i).getClass() == Knight.class) {
+					} else if(inProductionTroops.get(i).getClass() == Knight.class) {
 						availableKnight.add((Knight) inProductionTroops.get(i));
 						++nbKnights;
-					}else {
+					} else {
 						availableOnager.add((Onager) inProductionTroops.get(i));
 						++nbOnagers;
 					}
 					inProductionTroops.remove(i);
-					
 				}
 			}
 		}
@@ -389,7 +373,7 @@ public class Castle extends Sprite {
 				removeFromCanvas();
 				if(this.hasWall) {
 					setTexture(armoredTexture);
-				}else {					
+				} else {
 					setTexture(texture);
 				}
 				addToCanvas();
@@ -397,8 +381,6 @@ public class Castle extends Sprite {
 			}
 		}
 	}
-	
-	
 
 	public int gettBarracksBuildCost() {
 		return barracksBuildCost;
@@ -508,6 +490,15 @@ public class Castle extends Sprite {
 
 	public void setOwner(int owner) {
 		this.owner = owner;
+
+		final Image texture;
+		if (owner <= Settings.nbMaxActiveDukes) {
+			texture = new Image("/sprites/castles/castle_" + owner + ".png");
+		} else {
+			texture = new Image("/sprites/castles/castle_neutral.png");
+		}
+
+		setTexture(texture);
 	}
 
 	public String getOwnerName() {
@@ -522,11 +513,15 @@ public class Castle extends Sprite {
 		return level;
 	}
 
-	public int getNbKnights() { return nbKnights; }
+	public int getNbTroops() {
+		return availableKnight.size() + availableOnager.size() + availablePikeman.size();
+	}
 
-	public int getNbOnagers() { return nbOnagers; }
+	public int getNbKnights() { return availableKnight.size(); }
 
-	public int getNbPikemen() { return nbPikemen; }
+	public int getNbOnagers() { return availableOnager.size(); }
+
+	public int getNbPikemen() { return availablePikeman.size(); }
 
 	public int getPassiveIncome() {
 		return passiveIncome;
@@ -539,8 +534,6 @@ public class Castle extends Sprite {
 	public int getNextLevelRemainingTime() {
 		return timeUntilLevelUp;
 	}
-
-	
 	
 	public int getWallTimeCost() {
 		return wallTimeCost;
@@ -579,7 +572,15 @@ public class Castle extends Sprite {
 	public ArrayList<Onager> getAvailableOnager(){
 		return availableOnager;
 	}
-	
+
+	public ArrayList<Troop> getTroops() {
+		ArrayList<Troop> troops = new ArrayList<>();
+		troops.addAll(availableKnight);
+		troops.addAll(availableOnager);
+		troops.addAll(availablePikeman);
+
+		return troops;
+	}
 
 	public Point2D getPosition() {
 		return position;

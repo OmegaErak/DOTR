@@ -10,7 +10,7 @@ public class Onager extends Troop {
 	public Onager(Pane renderLayer, Castle castle) {
 		super(renderLayer, castle);
 
-		this.prodCost 	= 1000;
+		prodCost 	= 1000;
 		this.prodTime 	= 10;
 		this.speed 		= 2;
 		this.health 	= 5;

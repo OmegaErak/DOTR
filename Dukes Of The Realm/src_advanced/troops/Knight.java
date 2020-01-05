@@ -9,8 +9,8 @@ public class Knight extends Troop {
 
 	public Knight(Pane renderLayer, Castle castle) {
 		super(renderLayer, castle);
-		
-		this.prodCost 	= 500;
+
+		prodCost 	= 500;
 		this.prodTime 	= 20;
 		this.speed 		= 10;
 		this.health 	= 3;
@@ -25,8 +25,4 @@ public class Knight extends Troop {
 		
 		setTexture(texture);
 	}
-	
-	
-
-
 }

@@ -34,4 +34,8 @@ public class Settings {
 	
 	static public final int nbMinInitTroops = 4;
 	static public final int nbMaxInitTroops = 8;
+
+	static public final int knightProdCost = 500;
+	static public final int onagerProdCost = 1000;
+	static public final int pikemanProdCost = 100;
 }

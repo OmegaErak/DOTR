@@ -5,9 +5,11 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
 public class Business extends Troop{
+
+	private int prodCost;
 	
 
-	public Business(Pane renderLayer, Castle castle,int prodCost) {
+	public Business(Pane renderLayer, Castle castle, int prodCost) {
 		super(renderLayer, castle);
 
 		this.prodCost 	= prodCost;
@@ -18,6 +20,9 @@ public class Business extends Troop{
 		texture = new Image("/sprites/troops/money_0.png");
 		setTexture(texture);
 	}
-	
+
+	public int getMoney() {
+		return prodCost;
+	}
 	
 }

@@ -3,6 +3,9 @@ package base;
 import buildings.Castle;
 
 import troops.Knight;
+import troops.Onager;
+import troops.Pikeman;
+import troops.Troop;
 
 import javafx.geometry.Point2D;
 import javafx.scene.layout.Pane;
@@ -19,7 +22,7 @@ public abstract class GameIO {
      * @param game The game to be changed
      * @param filepath The path to the save file
      */
-    public static void loadGame(Game game, String filepath, Pane rendererLayer) {
+    public static void loadGame(Game game, String filepath, Pane renderLayer) {
         try {
             File file = new File(filepath);
 
@@ -34,24 +37,49 @@ public abstract class GameIO {
                 int owner = Integer.parseInt(scanner.nextLine());
                 String ownerName = scanner.nextLine();
 
+                int castleLevel = Integer.parseInt(scanner.nextLine());
+                int castleTreasure = Integer.parseInt(scanner.nextLine());
+
                 String[] positionStr = scanner.nextLine().split(" ");
                 Point2D position = new Point2D(Integer.parseInt(positionStr[0]), Integer.parseInt(positionStr[1]));
 
-                Castle castle = new Castle(rendererLayer, position);
+                int hasWalls = Integer.parseInt(scanner.nextLine());
+                int barrackLevel = Integer.parseInt(scanner.nextLine());
+
+                Castle castle = new Castle(renderLayer, position);
                 castle.setOwner(owner);
                 castle.setOwnerName(ownerName);
-
-                int nbKnights = Integer.parseInt(scanner.nextLine());
-
-                ArrayList<Knight> castleKnights = new ArrayList<>();
-                for (int j = 0; j < nbKnights; ++j) {
-                    Knight knight = new Knight(rendererLayer, castle);
-                    knight.setHP(Integer.parseInt(scanner.nextLine()));
-
-                    castleKnights.add(knight);
+                castle.setLevel(castleLevel);
+                castle.setTreasure(castleTreasure);
+                if (hasWalls == 0) {
+                    castle.setHasWall(false);
+                } else {
+                    castle.setHasWall(true);
                 }
 
-                castle.setKnights(castleKnights);
+                castle.setBarrackLevel(barrackLevel);
+
+                int nbTroops = Integer.parseInt(scanner.nextLine());
+
+                ArrayList<Troop> castleTroops = new ArrayList<>();
+                for (int j = 0; j < nbTroops; ++j) {
+                    int troopType = Integer.parseInt(scanner.nextLine());
+                    Troop troop = null;
+                    if (troopType == 0) {
+                        troop = new Knight(renderLayer, castle);
+                    } else if (troopType == 1) {
+                        troop = new Onager(renderLayer, castle);
+                    } else if (troopType == 2) {
+                        troop = new Pikeman(renderLayer, castle);
+                    } else {
+                        throw new RuntimeException("Wrong troop type");
+                    }
+
+                    troop.setHP(Integer.parseInt(scanner.nextLine()));
+                    castleTroops.add(troop);
+                }
+
+                castle.setTroops(castleTroops);
                 gameCastles.add(castle);
             }
 
@@ -80,11 +108,30 @@ public abstract class GameIO {
             for (Castle castle : game.getCastles()) {
                 writer.write(castle.getOwner() + "\n");
                 writer.write(castle.getOwnerName() + "\n");
+                writer.write(castle.getLevel() + "\n");
+                writer.write(castle.getTreasure() + "\n");
                 writer.write((int)castle.getPosition().getX() + " " + (int)castle.getPosition().getY() + "\n");
 
-                writer.write(castle.getNbKnights() + "\n");
-                for (Knight knight : castle.getKnights()) {
-                    writer.write(knight.getHP() + "\n");
+                if (castle.hasWall()) {
+                    writer.write(0);
+                } else {
+                    writer.write(1);
+                }
+
+                writer.write(castle.getBarrackLevel());
+
+                writer.write(castle.getNbTroops() + "\n");
+                for (Troop troop : castle.getTroops()) {
+                    int troopType = -1;
+                    if (troop.getClass() == Knight.class) {
+                        troopType = 0;
+                    } else if (troop.getClass() == Onager.class) {
+                        troopType = 1;
+                    } else if (troop.getClass() == Pikeman.class) {
+                        troopType = 2;
+                    }
+                    writer.write(Integer.toString(troopType) + "\n");
+                    writer.write(troop.getHP() + "\n");
                 }
             }
             writer.close();

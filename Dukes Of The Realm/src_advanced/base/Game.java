@@ -13,6 +13,7 @@ import troops.Onager;
 import troops.Pikeman;
 import troops.Troop;
 
+import javafx.scene.input.KeyCode;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
@@ -20,34 +21,94 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import algorithms.AStar;
 import algorithms.Node;
 
 public class Game {
+	final static private List<String> dukeNames = new ArrayList<String>(Arrays.asList(
+			"Jean-Cloud Van Damme",
+
+			"Jean-Eudes",
+			"Jean-Michel",
+			"Jean-Marie",
+			"Jean-Loup",
+			"Jean-Côme",
+			"Jean-Alex",
+			"Jean-Kévin",
+			"Jean-René",
+			"Jean-Maurice",
+			"Jean-Francis",
+			"Jean-Jacques",
+			"Jean-Noël",
+			"Jean-George",
+			"Jean-Brice",
+			"Jean-Blaise",
+			"Jean-Aimée",
+			"Jean-Baptiste",
+			"Jean-Bernard",
+			"Jean-Briac",
+			"Jean-Charles",
+			"Jean-Jean",
+			"Jean-Paul",
+			"Jean-Ti",
+			"Jean-Rêve",
+			"Jean-Yves",
+
+			"Jean-Cérien"
+	));
+
+	// Render objects
 	private Group root;
 	private Pane renderLayer;
 
-	private int[][] gameMap = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
+	private List<StatusBar> statusBars = new ArrayList<>();
 
-	public static ArrayList<Castle> castleOwned = new ArrayList<>();
+	private Background menuBackground;
+	private Background gameBackground;
 
+	private List<Button> defaultMenuButtons = new ArrayList<>();
+
+	private Button saveButton;
+	private Boolean isSaveButtonDisplayed = false;
+
+	private ArrayList<Button> castleEnemyTargets = new ArrayList<>();
+	private ArrayList<Button> castleAllyTargets = new ArrayList<>();
+	private ArrayList<Button> castleMoneyTargets = new ArrayList<>();
+
+	private boolean isRunning = true;
+	private int frameCounter = 0;
+	private int framesPerDay = 120; // Two seconds
+
+	// Game objects
 	private Random rdGen = new Random();
 
 	private GameMode gameMode;
 
-	public Game() {
-		this.root = new Group();
-		this.root.getStylesheets().add("/css/application.css");
+	private DayHolder currentDayHolder = new DayHolder();
 
-		this.renderLayer = new Pane();
-		this.renderLayer.setPrefSize(Settings.windowWidth, Settings.windowHeight);
-		this.renderLayer.setOnMouseClicked(e -> {
+	private int[][] gameMap = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
+
+	// TODO
+	public static ArrayList<Castle> playerCastles = new ArrayList<>();
+
+	private Castle currentPlayerCastle;
+	private ArrayList<Castle> castles = new ArrayList<>();
+
+	private ArrayList<AtomicInteger> recruitCommand = new ArrayList<>();
+	private ArrayList<Troop> selectedTroops = new ArrayList<>();
+	private int moneyToTransfer;
+
+	public Game() {
+		root = new Group();
+		root.getStylesheets().add("/css/application.css");
+
+		renderLayer = new Pane();
+		renderLayer.setPrefSize(Settings.windowWidth, Settings.windowHeight);
+		renderLayer.setFocusTraversable(true);
+		renderLayer.setOnMouseClicked(e -> {
 			if (gameMode == GameMode.Menu) {
 				for (StatusBar statusBar : statusBars) {
 					statusBar.setDefaultMenuView();
@@ -60,18 +121,28 @@ public class Game {
 			e.consume();
 		});
 
-		root.getChildren().add(this.renderLayer);
+		renderLayer.setOnKeyPressed(key -> {
+			if (gameMode == GameMode.Game) {
+				if (key.getCode() == KeyCode.SPACE) {
+					isRunning = !isRunning;
+				} else if (key.getCode() == KeyCode.ESCAPE) {
+					isRunning = !isRunning;
+					if (isSaveButtonDisplayed) {
+						saveButton.removeFromCanvas();
+					} else {
+						saveButton.addToCanvas();
+					}
+					isSaveButtonDisplayed = !isSaveButtonDisplayed;
+				}
+			}
+		});
+
+		root.getChildren().add(renderLayer);
+
+		loadGame();
 	}
 
-	private boolean isRunning = true;
-	private int frameCounter = 0;
-	private int framesPerDay = 60; // One second.
-
-	private DayHolder currentDayHolder = new DayHolder();
-
 	public void run() {
-		loadGame();
-
 		AnimationTimer gameLoop = new AnimationTimer() {
 			@Override
 			public void handle(long now) {
@@ -101,22 +172,17 @@ public class Game {
 		gameLoop.start();
 	}
 
-	private Background menuBackground;
-	private Background gameBackground;
-
 	private void loadGame() {
 		menuBackground = new Background(renderLayer, new Image("/sprites/backgrounds/menu_background.png"));
 		gameBackground = new Background(renderLayer, new Image("/sprites/backgrounds/game_background.png"));
 
 		createStatusBar();
-
 		createMenuButtons();
+		createCastles();
 
 		// Set to Menu view by default
 		setMenuView();
 	}
-
-	private List<Button> defaultMenuButtons = new ArrayList<>();
 
 	private void createMenuButtons() {
 		Image texture = new Image("/sprites/buttons/new_game.png");
@@ -147,7 +213,8 @@ public class Game {
 		});
 
 		defaultMenuButtons.get(1).getTextureView().setOnMouseClicked(e -> {
-//			setLoadGameView();
+			GameIO.loadGame(this, "resources/dukes_advanced.sav", renderLayer);
+			setGameView();
 			e.consume();
 		});
 
@@ -155,15 +222,21 @@ public class Game {
 			setCreditsView();
 			e.consume();
 		});
+
+		Image saveButtonTexture = new Image("/sprites/buttons/save_game.png");
+		Point2D saveButtonPos = new Point2D((Settings.windowWidth - saveButtonTexture.getWidth()) / 2.0, (Settings.windowHeight - saveButtonTexture.getHeight()) / 2.0);
+		saveButton = new Button(renderLayer, saveButtonPos, saveButtonTexture);
+		saveButton.getTextureView().setOnMouseClicked(e -> {
+			GameIO.saveGame(this, "resources/dukes_advanced.sav");
+
+			saveButton.removeFromCanvas();
+			isSaveButtonDisplayed = false;
+
+			// Stop the pause
+			isRunning = !isRunning;
+			e.consume();
+		});
 	}
-
-	private Castle currentPlayerCastle;
-	private ArrayList<Castle> castles = new ArrayList<>();
-
-	private ArrayList<Button> castleEnemyTargets = new ArrayList<>();
-	private ArrayList<Button> castleAllyTargets = new ArrayList<>();
-	private ArrayList<Button> castleMoneyTargets = new ArrayList<>();
-	
 
 	private void createCastles() {
 		final int widthUpperBound = Settings.gridCellsCountX - Settings.castleSize;
@@ -181,19 +254,20 @@ public class Game {
 			int cellSize = Settings.cellSize;
 			Point2D position = new Point2D(rdGen.nextInt(widthUpperBound/cellSize -3)*cellSize +20, Settings.statusBarHeight + 30 + rdGen.nextInt(heightUpperBound/cellSize - 4)*cellSize);
 			if (!isPositionNearACastle(position)) {
-				castles.add(new Castle(renderLayer, castleOwner, position));
+				Castle castle = new Castle(renderLayer, position);
+				castle.setOwner(castleOwner);
+
+				final int index = rdGen.nextInt(dukeNames.size());
+				castle.setOwnerName(dukeNames.get(index));
+				dukeNames.remove(index);
+
+				castles.add(castle);
 				++castleOwner;
 			}
 		}
 
-		
-		
-		Image ennemyTarget = new Image("/sprites/castles/ennemyTarget.png");
-		Image allyTarget = new Image("/sprites/castles/allyTarget.png");
-		Image moneyTarget = new Image("/sprites/castles/moneyTarget.png");
-
 		final Castle playerCastle = castles.get(0);
-		castleOwned.add(playerCastle);
+		playerCastles.add(playerCastle);
 		for (Castle castle : castles) {
 			
 			for(int i = 0; i < Settings.castleSize/Settings.cellSize; i++) {
@@ -235,54 +309,81 @@ public class Game {
 				}
 				e.consume();
 			});
-			
-			Button allyTargetButton = new Button(renderLayer, castle.getPosition(), allyTarget);
-			Button enemyTargetButton = new Button(renderLayer, castle.getPosition(), ennemyTarget);
-			Button moneyTargetButton = new Button(renderLayer,castle.getPosition(),moneyTarget);
-			ArrayList<Button> targetList = new ArrayList<>();
-			targetList.add(allyTargetButton);
-			targetList.add(enemyTargetButton);
-			targetList.add(moneyTargetButton);
-			
-			
-			//Initialize evry target button
-			for(int i=0;i<targetList.size();i++) {
-				targetList.get(i).getTextureView().setFitWidth(Settings.castleSize);
-				targetList.get(i).getTextureView().setFitHeight(Settings.castleSize);
-				targetList.get(i).getTextureView().setPickOnBounds(true);
-				
-			}
-			//Fucntion for the money Traget button
+		}
+
+		createCastleTargets();
+	}
+
+	private void createCastleTargets() {
+		castleEnemyTargets.clear();
+		castleAllyTargets.clear();
+
+		Image enemyTargetTexture = new Image("/sprites/castles/ennemyTarget.png");
+		Image allyTargetTexture = new Image("/sprites/castles/allyTarget.png");
+		Image moneyTargetTexture = new Image("/sprites/castles/moneyTarget.png");
+
+		ArrayList<Button> targetList = new ArrayList<>();
+
+		currentPlayerCastle = castles.get(0);
+		for (Castle castle : castles) {
+			castle.getTextureView().setOnMouseClicked(e -> {
+				if (isPlayerCastle(castle)) {
+					currentPlayerCastle = castle;
+				}
+
+				for (StatusBar statusBar : statusBars) {
+					statusBar.setCastleView(castle);
+				}
+				e.consume();
+			});
+
+			Point2D pos = new Point2D(castle.getPosition().getX(), castle.getPosition().getY());
+			Button enemyTargetButton = new Button(renderLayer, pos, enemyTargetTexture);
+			enemyTargetButton.getTextureView().setFitWidth(Settings.castleSize);
+			enemyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
+			enemyTargetButton.getTextureView().setPickOnBounds(true);
+			enemyTargetButton.getTextureView().setOnMouseClicked(e -> {
+				moveTroop(selectedTroops,castle,true);
+				e.consume();
+			});
+			castleEnemyTargets.add(enemyTargetButton);
+
+			Button allyTargetButton = new Button(renderLayer, pos, allyTargetTexture);
+			allyTargetButton.getTextureView().setFitWidth(Settings.castleSize);
+			allyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
+			allyTargetButton.getTextureView().setPickOnBounds(true);
+			allyTargetButton.getTextureView().setOnMouseClicked(e -> {
+				moveTroop(selectedTroops,castle,false);
+				e.consume();
+			});
+			castleAllyTargets.add(allyTargetButton);
+
+			Button moneyTargetButton = new Button(renderLayer, castle.getPosition(), moneyTargetTexture);
 			moneyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				if(currentPlayerCastle.getTreasure() >= this.moneyToTransfert) {
-					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure()-moneyToTransfert);
-					Business business = new Business(renderLayer,currentPlayerCastle,moneyToTransfert);
+				if(currentPlayerCastle.getTreasure() >= moneyToTransfer) {
+					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure()- moneyToTransfer);
+					Business business = new Business(renderLayer,currentPlayerCastle, moneyToTransfer);
 					displacement(currentPlayerCastle.getPosition(),castle,business,true,business.getSpeed());
 				}
 				e.consume();
 			});
 			castleMoneyTargets.add(moneyTargetButton);
-			
-			//Fucntion for the Ally Traget button
-			allyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				// We use targetButton.getPosition because it's the same as castle position
-				moveTroop(selectedTroops,castle,true);
-				e.consume();
-			});
-			castleAllyTargets.add(allyTargetButton);
-				
-			//Fucntion for the Ennemy Traget button
-			enemyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				moveTroop(selectedTroops,castle,false);	
-				e.consume();
-			});
-			castleEnemyTargets.add(enemyTargetButton);
+
+			targetList.add(allyTargetButton);
+			targetList.add(enemyTargetButton);
+			targetList.add(moneyTargetButton);
 		}
-		
+
+		//Initialize evry target button
+		for (int i = 0; i < targetList.size(); ++i) {
+			targetList.get(i).getTextureView().setFitWidth(Settings.castleSize);
+			targetList.get(i).getTextureView().setFitHeight(Settings.castleSize);
+			targetList.get(i).getTextureView().setPickOnBounds(true);
+		}
 	}
 	
-	public void moveTroop(ArrayList<Troop> selectedTroops,Castle castle,boolean castleOwned) {
-		while(selectedTroops.size() >=Settings.ostSize) {		
+	public void moveTroop(ArrayList<Troop> selectedTroops, Castle castle, boolean castleOwned) {
+		while(selectedTroops.size() >= Settings.ostSize) {
 			int minSpeed = Math.min(selectedTroops.get(0).getSpeed(), selectedTroops.get(1).getSpeed());
 			minSpeed = Math.min(minSpeed, selectedTroops.get(2).getSpeed());
 			for(int i=0;i<Settings.ostSize;i++) {		
@@ -290,8 +391,8 @@ public class Game {
 				displacement(currentPlayerCastle.getPosition(),castle,selectedTroops.get(0),castleOwned,minSpeed);
 				selectedTroops.remove(0);
 			}
-			
 		}
+
 		for(int i=0;i<selectedTroops.size();i++) {
 			currentPlayerCastle.removeTroop(selectedTroops.get(0));
 			displacement(currentPlayerCastle.getPosition(),castle,selectedTroops.get(0),castleOwned,selectedTroops.get(0).getSpeed());
@@ -299,7 +400,7 @@ public class Game {
 		}
 	}
 	
-	private void displacement(Point2D playerCastlePosition, Castle targetedCastle,Troop unit, boolean castleOwned,int speed) {
+	private void displacement(Point2D playerCastlePosition, Castle targetedCastle, Troop unit, boolean castleOwned, int speed) {
 		int dxy = Settings.castleSize/2;
 		Node start = new Node(playerCastlePosition.getX() + dxy, playerCastlePosition.getY() + dxy, 0, 0);
 		Node end = new Node(targetedCastle.getPosition().getX() + dxy, targetedCastle.getPosition().getY() + dxy, 0, 0);
@@ -319,7 +420,7 @@ public class Game {
 		unit.displace(path, renderLayer,unitButton,unit, gameMap,targetedCastle ,castleOwned,speed);
 	}
 	
-	private void recruitTroops(ArrayList<AtomicInteger> recruitCommand,int barrackLevel) {
+	private void recruitTroops(ArrayList<AtomicInteger> recruitCommand, int barrackLevel) {
 		int nbKnights = recruitCommand.get(0).get();
 		int nbOnagers = recruitCommand.get(1).get();
 		int nbPikemen = recruitCommand.get(2).get();
@@ -354,12 +455,6 @@ public class Game {
 
 		return false;
 	}
-
-	private ArrayList<AtomicInteger> recruitCommand = new ArrayList<>();
-	private ArrayList<Troop> selectedTroops = new ArrayList<>();
-	private int moneyToTransfert;
-
-	private List<StatusBar> statusBars = new ArrayList<>();
 
 	private void createStatusBar() {
 		final Point2D statusBarSize = new Point2D(Settings.windowWidth / 3.0, Settings.statusBarHeight);
@@ -399,11 +494,11 @@ public class Game {
 		statusBarPos = new Point2D(statusBarPos.getX() + Settings.windowWidth / 3.0, statusBarPos.getY());
 		StatusBar centerStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "centerStatusBar") {
 			private ArrayList<Button> decisionButtons;
-			private Button confirm_choice;
+			private Button confirmChoice;
 
 			private ArrayList<Spinner<Integer>> recruitSpinners;
 			private ArrayList<Spinner<Integer>> moveSpinners;
-			private TextField textMoneyToTransfert;
+			private Spinner<Integer> moneySpinner;
 
 			private Boolean firstFrame = true;
 
@@ -412,19 +507,32 @@ public class Game {
 				// Should be done every frame
 				if (getView() == StatusBarView.TroopsRecruitView) {
 					if (getCurrentCastle().getOwner() == 0) {
-						confirm_choice.getTextureView().setOnMouseClicked(e -> recruitTroops( recruitCommand, this.getCurrentCastle().getBarrackLevel()));
-						final ArrayList<Integer> spinnerValues = new ArrayList<>();
-						spinnerValues.add(100);
-						spinnerValues.add(100);
-						spinnerValues.add(100);
+						confirmChoice.getTextureView().setOnMouseClicked(e -> recruitTroops( recruitCommand, this.getCurrentCastle().getBarrackLevel()));
+						ArrayList<Integer> spinnerValues = new ArrayList<>();
+						if (firstFrame) {
+							spinnerValues.add(100);
+							spinnerValues.add(100);
+							spinnerValues.add(100);
+						} else {
+							final int nbPossibleKnights = (getCurrentCastle().getTreasure() - recruitCommand.get(1).get() * Settings.onagerProdCost - recruitCommand.get(2).get() * Settings.pikemanProdCost) / Settings.knightProdCost;
+							final int nbPossibleOnagers = (getCurrentCastle().getTreasure() - recruitCommand.get(0).get() * Settings.knightProdCost - recruitCommand.get(2).get() * Settings.pikemanProdCost) / Settings.onagerProdCost;
+							final int nbPossiblePikemen = (getCurrentCastle().getTreasure() - recruitCommand.get(0).get() * Settings.knightProdCost - recruitCommand.get(1).get() * Settings.onagerProdCost) / Settings.pikemanProdCost;
+
+							spinnerValues.add(nbPossibleKnights);
+							spinnerValues.add(nbPossibleOnagers);
+							spinnerValues.add(nbPossiblePikemen);
+						}
+
 						for (int i = 0; i < Settings.nbTroopTypes; ++i) {
 							final int initialValue;
 							if (firstFrame) {
 								initialValue = 0;
+								// TODO: WTF
 								firstFrame = false;
 							} else {
 								initialValue = recruitSpinners.get(i).getValue();
 							}
+
 							final SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, spinnerValues.get(i), initialValue);
 							recruitSpinners.get(i).setValueFactory(factory);
 						}
@@ -432,7 +540,6 @@ public class Game {
 						for (int i = 0; i < recruitSpinners.size(); ++i) {
 							recruitCommand.get(i).set(recruitSpinners.get(i).getValue());
 						}
-						
 					}
 				} else if (getView() == StatusBarView.TroopsMoveView) {
 					if (getCurrentCastle().getOwner() == 0) {
@@ -466,15 +573,27 @@ public class Game {
 							selectedTroops.add(getCurrentCastle().getPikemanByIndex(i));
 						}
 					}
-				}else if (getView() == StatusBarView.MoneyTransferView) {
-					
+				} else if (getView() == StatusBarView.MoneyTransferView) {
+					final int initialValue;
+					if (firstFrame) {
+						initialValue = 0;
+						firstFrame = false;
+					} else {
+						initialValue = moneySpinner.getValue();
+					}
+					final SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, getCurrentCastle().getTreasure(), initialValue);
+					moneySpinner.setValueFactory(factory);
+
+					moneyToTransfer = moneySpinner.getValue();
 				}
 
 				// Should be done only when the view is changed
 				if (shouldRefreshView) {
 					setText("");
+
+					firstFrame = true;
 					
-					confirm_choice.removeFromCanvas();	
+					confirmChoice.removeFromCanvas();
 
 					for (Button button : decisionButtons) {
 						button.removeFromCanvas();
@@ -487,6 +606,8 @@ public class Game {
 					for (Spinner<Integer> spinner : moveSpinners) {
 						spinner.setVisible(false);
 					}
+
+					moneySpinner.setVisible(false);
 
 					for (Button target : castleEnemyTargets) {
 						target.removeFromCanvas();
@@ -509,7 +630,7 @@ public class Game {
 					} else if (getView() == StatusBarView.TroopsRecruitView) {
 						// TODO: White space in function of spinner size
 						setText("Chevaliers:                 Onagres:                    Piquiers:");
-						confirm_choice.addToCanvas();
+						confirmChoice.addToCanvas();
 						for (Spinner<Integer> spinner : recruitSpinners) {
 							spinner.setVisible(true);
 							
@@ -533,9 +654,11 @@ public class Game {
 								castleEnemyTargets.get(i).addToCanvas();
 							}
 						}
-					}else if(getView() == StatusBarView.MoneyTransferView) {
-						setText("Money to transfert :");
-						//TODO:Get the value of the TextField for money transfert
+					} else if(getView() == StatusBarView.MoneyTransferView) {
+						setText("Money to transfer:");
+
+						moneySpinner.setVisible(true);
+
 						for (int i = 0; i < castles.size(); ++i) {
 							if (castles.get(i) == getCurrentCastle()) {
 								continue;
@@ -572,7 +695,7 @@ public class Game {
 				Point2D buttonPos = new Point2D(getPosition().getX(), getPosition().getY());
 				Point2D confirm_choiceButtonPos = new Point2D(getPosition().getX()+xOfSet,getPosition().getY() + yOfSet);
 				Button confirm_button = new Button(renderLayer,confirm_choiceButtonPos,new Image("/sprites/buttons/confirm_choice.png"));	
-				confirm_choice = confirm_button;
+				confirmChoice = confirm_button;
 
 				for (String buttonPath : buttonPaths1) {
 					Button button = new Button(renderLayer, buttonPos, new Image("/sprites/buttons/" + buttonPath));
@@ -674,18 +797,10 @@ public class Game {
 					recruitCommand.add(new AtomicInteger(0));
 				}
 
+				// Spinners for troop selection
 				recruitSpinners = new ArrayList<>();
 				final int yOffset = 30;
 				Point2D spinnerPosition = new Point2D(getPosition().getX(), getPosition().getY());
-				
-				//TODO:TextField for money transfert		
-//				TextField textfield = new TextField("");
-//				textfield.setMinWidth(50);
-//				textfield.setLayoutX(550);
-//				textfield.setLayoutY(5);
-//				textfield.setVisible(false);
-//				renderLayer.getChildren().add(textfield);
-//				textfield = this.textMoneyToTransfert;
 
 				final double spinnerSize = getSize().getX() / Settings.nbTroopTypes;
 				for (int i = 0; i < Settings.nbTroopTypes; ++i) {
@@ -704,7 +819,6 @@ public class Game {
 					spinnerPosition = new Point2D(spinnerPosition.getX() + spinnerSize, spinnerPosition.getY());
 				}
 
-				// Spinners for troop selection
 				moveSpinners = new ArrayList<>();
 
 				spinnerPosition = new Point2D(getPosition().getX(), getPosition().getY());
@@ -723,7 +837,15 @@ public class Game {
 
 					spinnerPosition = new Point2D(spinnerPosition.getX() + spinnerSize, spinnerPosition.getY());
 				}
-				
+
+				// Spinner for money
+				moneySpinner = new Spinner<Integer>();
+				moneySpinner.setPrefWidth(Settings.windowWidth / 3.0);
+				moneySpinner.setTranslateX(getPosition().getX());
+				moneySpinner.setTranslateY(getPosition().getY() + yOffset);
+				moneySpinner.setEditable(true);
+
+				root.getChildren().add(moneySpinner);
 			}
 
 			@Override
@@ -799,8 +921,6 @@ public class Game {
     		statusBar.setDefaultGameView();
 		}
 
-		createCastles();
-
 		menuBackground.removeFromCanvas();
 		gameBackground.addToCanvas();
 
@@ -815,6 +935,59 @@ public class Game {
 		}
 	}
 
+	/**
+	 * @return Number of castles
+	 */
+	public int getNbCastles() {
+		return castles.size();
+	}
+
+	/**
+	 * Sets castles, without checking positions.
+	 */
+	public void setCastles(ArrayList<Castle> castles) {
+		// Clean first
+		for (Castle castle : this.castles) {
+			castle.removeFromCanvas();
+		}
+		this.castles = castles;
+
+		createCastleTargets();
+	}
+	/**
+	 * @return The castles of the game.
+	 */
+	public ArrayList<Castle> getCastles() {
+		return castles;
+	}
+
+	/**
+	 * @param castle The castle to be checked.
+	 * @return True if it belongs to the user, false otherwise.
+	 */
+	private Boolean isPlayerCastle(Castle castle) {
+		return castle.getOwner() == 0;
+	}
+
+	/**
+	 * Sets the current day of the game.
+	 * @param day The day.
+	 */
+	public void setCurrentDay(int day) {
+		currentDayHolder.day = day;
+	}
+
+	/**
+	 * @return The current day
+	 */
+	public int getCurrentDay() {
+		return currentDayHolder.day;
+	}
+
+	/**
+	 * Returns the JavaFX group used by the application to be used by JavaFX to display.
+	 * @return The JavaFX group used by the application.
+	 */
 	public Group getRoot() {
 		return root;
 	}

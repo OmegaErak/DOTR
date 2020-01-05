@@ -36,7 +36,11 @@ abstract public class Troop  extends Sprite {
 		super(renderLayer, castle.getPosition());
 		this.owner = castle.getOwner();
 	}
-	
+
+	public void setHP(int hp) {
+		health = hp;
+	}
+
 	public Button spawnTroop(String troop, int owner,Point2D castlePosition, Double[] path, Pane renderLayer) {	
 		Image unit = new Image("/sprites/troops/" + troop + "_"+owner+".png");
 		Point2D startPosition = new Point2D(castlePosition.getX() + 25,castlePosition.getY() + 25);
@@ -101,11 +105,6 @@ abstract public class Troop  extends Sprite {
 		}
 	}
 	
-
-	
-	
-	
-	
 	public int getTimeUntilProd() {
 		return timeUntilProd;
 	}
@@ -150,6 +149,7 @@ abstract public class Troop  extends Sprite {
 		return health > 0;
 	}
 
+	// TODO statics
 	public int getProdTime() {
 		return prodTime;
 	}
@@ -162,10 +162,6 @@ abstract public class Troop  extends Sprite {
 		return prodCost;
 	}
 
-	public void setProdCost(int prodCost) {
-		this.prodCost = prodCost;
-	}
-
 	public int getSpeed() {
 		return speed;
 	}
@@ -174,7 +170,7 @@ abstract public class Troop  extends Sprite {
 		this.speed = speed;
 	}
 
-	public int getHealth() {
+	public int getHP() {
 		return health;
 	}
 

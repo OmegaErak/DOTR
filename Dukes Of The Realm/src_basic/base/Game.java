@@ -418,6 +418,9 @@ public class Game {
 
 			saveButton.removeFromCanvas();
 			isSaveButtonDisplayed = false;
+
+			// Stop the pause
+			isRunning = !isRunning;
 			e.consume();
 		});
 	}
