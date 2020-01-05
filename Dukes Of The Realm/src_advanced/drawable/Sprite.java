@@ -5,6 +5,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 
+/**
+ * Sprite class to be derived by drawable objects.
+ */
 public abstract class Sprite {
     private Pane renderLayer;
 
@@ -12,9 +15,11 @@ public abstract class Sprite {
 
     protected Point2D position;
 
-    public int width;
-    public int height;
-
+    /**
+     * Default constructor.
+     * @param renderLayer The JavaFX canvas.
+     * @param position The position of the sprite in the window.
+     */
     public Sprite(Pane renderLayer, Point2D position) {
         this.renderLayer = renderLayer;
 
@@ -24,51 +29,48 @@ public abstract class Sprite {
         this.position = position;
     }
 
+    /**
+     * Changes the texture.
+     * @param texture The texture.
+     */
     protected void setTexture(Image texture) {
         textureView.setImage(texture);
     }
 
+    /**
+     * Displays the sprite.
+     */
     public void addToCanvas() {
-        this.renderLayer.getChildren().add(this.textureView);
+        renderLayer.getChildren().add(textureView);
     }
 
+    /**
+     * Hiddes the sprite.
+     */
     public void removeFromCanvas() {
-        this.renderLayer.getChildren().remove(this.textureView);
+        renderLayer.getChildren().remove(textureView);
     }
 
+    /**
+     * @return A texture view to the sprite's texture.
+     */
     public ImageView getTextureView() {
         return textureView;
     }
 
-    public void setTextureView(ImageView textureView) {
-        this.textureView = textureView;
-    }
-
+    /**
+     * @return The position in the window.
+     */
     public Point2D getPosition() {
         return position;
     }
 
+    /**
+     * Sets the sprite's position.
+     * @param position The position.
+     */
     public void setPosition(Point2D position) {
         this.position = position;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    public boolean collidesWith(Sprite sprite) {
-        return getTextureView().getBoundsInParent().intersects(sprite.getTextureView().getBoundsInParent());
+        textureView.relocate(this.position.getX(), this.position.getY());
     }
 }

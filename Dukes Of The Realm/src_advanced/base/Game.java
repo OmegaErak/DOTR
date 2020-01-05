@@ -10,7 +10,7 @@ import drawable.Background;
 import drawable.StatusBar;
 import drawable.StatusBarView;
 
-import troops.Business;
+import troops.Camel;
 import troops.Knight;
 import troops.Onager;
 import troops.Pikeman;
@@ -171,11 +171,7 @@ public class Game {
 							++currentDayHolder.day;
 
 							for (Castle castle : castles) {
-								castle.onUpdate();
-								castle.unitAroundAction();
-								castle.isAlive(gameMap);
-								castle.onProduction();
-								castle.buildingBarracks();
+								castle.onUpdate(gameMap);
 							}
 						}
 					}
@@ -226,7 +222,7 @@ public class Game {
 					if (getCurrentCastle().isLevelingUp()) {
 						text += "Jours jusqu'à évolution: " + getCurrentCastle().getNextLevelRemainingTime();
 					}
-					if (getCurrentCastle().isGettingWall()) {
+					if (getCurrentCastle().isBuildingWall()) {
 						text += "Jours jusqu'à construction des murailles: " + getCurrentCastle().getWallTimeCost();
 					}
 
@@ -464,7 +460,7 @@ public class Game {
 				decisionButtons.get(2).getTextureView().setOnMouseClicked(e -> {
 					Alert alert = new Alert(Alert.AlertType.NONE);
 					if (getCurrentCastle().getOwner() == 0) {
-						if (getCurrentCastle().canLevelUp() && !getCurrentCastle().isGettingWall()) {
+						if (getCurrentCastle().canLevelUp() && !getCurrentCastle().isBuildingWall()) {
 							alert.setAlertType(Alert.AlertType.CONFIRMATION);
 							alert.setContentText("Vous êtes sur? Ça vous coûtera " + getCurrentCastle().getNextLevelBuildCost() + " florains.");
 
@@ -517,13 +513,13 @@ public class Game {
 				decisionButtons.get(5).getTextureView().setOnMouseClicked(e -> {
 					Alert alert = new Alert(Alert.AlertType.NONE);
 					if (getCurrentCastle().getOwner() == 0) {
-						if (!getCurrentCastle().isLevelingUp() && !getCurrentCastle().isGettingWall() &&  getCurrentCastle().getTreasure() >= getCurrentCastle().gettBarracksBuildCost()) {
+						if (!getCurrentCastle().isLevelingUp() && !getCurrentCastle().isBuildingWall() &&  getCurrentCastle().getTreasure() >= getCurrentCastle().getBarrackBuildCost()) {
 							alert.setAlertType(Alert.AlertType.CONFIRMATION);
-							alert.setContentText("Vous �tes sur ? Cela vous co�teras " + getCurrentCastle().gettBarracksBuildCost() + " florains.");
+							alert.setContentText("Vous �tes sur ? Cela vous co�teras " + getCurrentCastle().getBarrackBuildCost() + " florains.");
 
 							Optional<ButtonType> result = alert.showAndWait();
 							if (result.get() == ButtonType.OK) {
-								getCurrentCastle().addBarraks();;
+								getCurrentCastle().levelUpBarrack();;
 							}
 						} else {
 							alert.setAlertType(Alert.AlertType.WARNING);
@@ -816,7 +812,7 @@ public class Game {
 			enemyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
 			enemyTargetButton.getTextureView().setPickOnBounds(true);
 			enemyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				moveTroop(selectedTroops, castle,true);
+				moveTroop(selectedTroops, castle,false);
 				e.consume();
 			});
 			castleEnemyTargets.add(enemyTargetButton);
@@ -826,7 +822,7 @@ public class Game {
 			allyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
 			allyTargetButton.getTextureView().setPickOnBounds(true);
 			allyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				moveTroop(selectedTroops,castle,false);
+				moveTroop(selectedTroops, castle,true);
 				e.consume();
 			});
 			castleAllyTargets.add(allyTargetButton);
@@ -835,8 +831,8 @@ public class Game {
 			moneyTargetButton.getTextureView().setOnMouseClicked(e -> {
 				if(currentPlayerCastle.getTreasure() >= moneyToTransfer) {
 					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure() - moneyToTransfer);
-					Business business = new Business(renderLayer, currentPlayerCastle, moneyToTransfer);
-					displacement(currentPlayerCastle.getPosition(), castle, business,true, business.getSpeed());
+					Camel camel = new Camel(renderLayer, currentPlayerCastle, moneyToTransfer);
+					displacement(currentPlayerCastle.getPosition(), castle, camel,true, camel.getSpeed());
 				}
 				e.consume();
 			});
@@ -922,17 +918,17 @@ public class Game {
 					--nbKnights;
 					Knight knight = new Knight(renderLayer, currentPlayerCastle);
 					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure() - knight.getProdCost());
-					currentPlayerCastle.addTroop(knight);
+					currentPlayerCastle.produceTroop(knight);
 				} else if (nbOnagers>0) {
 					--nbOnagers;
 					Onager onager= new Onager(renderLayer, currentPlayerCastle);
 					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure() - onager.getProdCost());
-					currentPlayerCastle.addTroop(onager);
+					currentPlayerCastle.produceTroop(onager);
 				} else {
 					--nbPikemen;
 					Pikeman pikeman = new Pikeman(renderLayer, currentPlayerCastle);
 					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure() - pikeman.getProdCost());
-					currentPlayerCastle.addTroop(pikeman);
+					currentPlayerCastle.produceTroop(pikeman);
 				}
 		}
 	}
