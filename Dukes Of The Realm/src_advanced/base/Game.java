@@ -331,7 +331,7 @@ public class Game {
 					final SpinnerValueFactory<Integer> factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, getCurrentCastle().getTreasure(), initialValue);
 					moneySpinner.setValueFactory(factory);
 
-					moneyToTransfer = moneySpinner.getValue();
+					moneyToTransfer = Integer.valueOf(moneySpinner.getValue());
 				}
 
 				// Should be done only when the view is changed
@@ -742,28 +742,33 @@ public class Game {
 			
 			for(int i = 0; i < Settings.castleSize/Settings.cellSize; i++) {
 				for(int j = 0; j < Settings.castleSize/Settings.cellSize; j++) {
-					int x = (int)castle.getPosition().getX() / Settings.cellSize;
-					int y = (int)(castle.getPosition().getY() - Settings.statusBarHeight)/Settings.cellSize;
-					gameMap[x + i][y + j] = 1;
+					int dxyToCenterOfCastle = Settings.castleSize/(2*Settings.cellSize);
+					int x = (int)castle.getPosition().getX() / Settings.cellSize + dxyToCenterOfCastle;
+					int y = (int)(castle.getPosition().getY() - Settings.statusBarHeight)/Settings.cellSize + dxyToCenterOfCastle;
+					gameMap[x-dxyToCenterOfCastle + i][y-dxyToCenterOfCastle + j] = 1;
 					switch(castle.getDoorDirection()) {
+					//South way path to the center of castle
 					case(0):
-						for(int k = 0; k < 3; k++) {
-							gameMap[x+2][y+2+k] = 0;
+						for(int k = 0; k <= dxyToCenterOfCastle; k++) {
+							gameMap[x][y+k] = 0;
 						}
 					break;
+					//West way path to the center of castle
 					case(1):
-						for(int k = 0; k < 3; k++) {
-							gameMap[x+2-k][y+2] = 0;
+						for(int k = 0; k <= dxyToCenterOfCastle; k++) {
+							gameMap[x-k][y] = 0;
 						}
 					break;
+					//North way path to the center of castle
 					case(2):
-						for(int k = 0; k < 3; k++) {
-							gameMap[x+2][y+2-k] = 0;
+						for(int k = 0; k <= dxyToCenterOfCastle; k++) {
+							gameMap[x][y-k] = 0;
 						}
 					break;
+					//East way path to the center of castle
 					case(3):
-						for(int k = 0; k < 3; k++) {
-							gameMap[x+2+k][y+2] = 0;
+						for(int k = 0; k <= dxyToCenterOfCastle; k++) {
+							gameMap[x+k][y] = 0;
 						}
 					break;
 					}
@@ -816,7 +821,7 @@ public class Game {
 			enemyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
 			enemyTargetButton.getTextureView().setPickOnBounds(true);
 			enemyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				moveTroop(selectedTroops, castle,true);
+				moveTroop(selectedTroops, castle,false);
 				e.consume();
 			});
 			castleEnemyTargets.add(enemyTargetButton);
@@ -826,13 +831,14 @@ public class Game {
 			allyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
 			allyTargetButton.getTextureView().setPickOnBounds(true);
 			allyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				moveTroop(selectedTroops,castle,false);
+				moveTroop(selectedTroops,castle,true);
 				e.consume();
 			});
 			castleAllyTargets.add(allyTargetButton);
 
 			Button moneyTargetButton = new Button(renderLayer, castle.getPosition(), moneyTargetTexture);
 			moneyTargetButton.getTextureView().setOnMouseClicked(e -> {
+				System.out.println(moneyToTransfer);
 				if(currentPlayerCastle.getTreasure() >= moneyToTransfer) {
 					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure() - moneyToTransfer);
 					Business business = new Business(renderLayer, currentPlayerCastle, moneyToTransfer);
