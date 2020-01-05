@@ -1,4 +1,4 @@
-package renderer;
+package drawable;
 
 import base.DayHolder;
 import buildings.Castle;

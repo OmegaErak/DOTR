@@ -15,8 +15,8 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Polyline;
 import javafx.util.Duration;
-import renderer.Button;
-import renderer.Sprite;
+import drawable.Button;
+import drawable.Sprite;
 
 abstract public class Troop  extends Sprite {
 	protected int prodTime;

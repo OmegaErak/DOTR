@@ -2,24 +2,23 @@ package base;
 
 import buildings.Castle;
 
-import renderer.Button;
-import renderer.Background;
-import renderer.StatusBar;
-import renderer.StatusBarView;
+import drawable.Button;
+import drawable.Background;
+import drawable.StatusBar;
+import drawable.StatusBarView;
+
 import troops.Business;
 import troops.Knight;
 import troops.Onager;
 import troops.Pikeman;
 import troops.Troop;
+
 import javafx.animation.AnimationTimer;
-import javafx.animation.TranslateTransition;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
-import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
