@@ -28,6 +28,7 @@ abstract public class Troop  extends Sprite {
 	protected Button unitButton;
 	protected int xPosMap;
 	protected int yPosMap;
+	protected int timeUntilProd;
 
 	protected Image texture;
 	
@@ -48,7 +49,7 @@ abstract public class Troop  extends Sprite {
 		return unitButton;
 	}
 	
-	public void displace(Double[] path, Pane renderLayer,Button unitButton,Troop unit , int[][] gameMap, Castle castleTargeted,boolean castleOwned) {
+	public void displace(Double[] path, Pane renderLayer,Button unitButton,Troop unit , int[][] gameMap, Castle castleTargeted,boolean castleOwned, int speed) {
 		if(path != null) {	
 		Double x = path[path.length-2];
 		Double y = path[path.length-1] - Settings.statusBarHeight;
@@ -73,7 +74,7 @@ abstract public class Troop  extends Sprite {
 		}
 		poly.getPoints().addAll(path);
 
-		final PathTransition moveAnimation = new PathTransition(Duration.seconds(path.length/6), poly);
+		final PathTransition moveAnimation = new PathTransition(Duration.seconds(path.length/speed), poly);
 		moveAnimation.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
 		moveAnimation.setNode(unitButton.getTextureView());
 		
@@ -86,8 +87,8 @@ abstract public class Troop  extends Sprite {
 			}		
 			renderLayer.getChildren().remove(polyLine);
 			Random r = new Random();
-			int oofType = r.nextInt(2) + 1;
-			File oof = new File("resources/sound/rire" + oofType + ".wav");
+			int oofType = r.nextInt(6);
+			File oof = new File("resources/sound/con" + oofType + ".wav");
 			try {
 				Clip clip = AudioSystem.getClip();
 				AudioInputStream inputStream = AudioSystem.getAudioInputStream(oof);
@@ -100,7 +101,19 @@ abstract public class Troop  extends Sprite {
 		}
 	}
 	
+
 	
+	
+	
+	
+	public int getTimeUntilProd() {
+		return timeUntilProd;
+	}
+
+	public void setTimeUntilProd(int timeUntilProd) {
+		this.timeUntilProd = timeUntilProd;
+	}
+
 	public int getxPosMap() {
 		return xPosMap;
 	}

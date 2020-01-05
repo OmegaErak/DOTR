@@ -90,6 +90,8 @@ public class Game {
 								castle.onUpdate();
 								castle.unitAroundAction();
 								castle.isAlive(gameMap);
+								castle.onProduction();
+								castle.buildingBarracks();
 							}
 						}
 					}
@@ -242,46 +244,36 @@ public class Game {
 			targetList.add(enemyTargetButton);
 			targetList.add(moneyTargetButton);
 			
+			
+			//Initialize evry target button
 			for(int i=0;i<targetList.size();i++) {
 				targetList.get(i).getTextureView().setFitWidth(Settings.castleSize);
 				targetList.get(i).getTextureView().setFitHeight(Settings.castleSize);
 				targetList.get(i).getTextureView().setPickOnBounds(true);
 				
 			}
-			
+			//Fucntion for the money Traget button
 			moneyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				int moneyTrasnfered = 1000;
-				if(currentPlayerCastle.getTreasure() >= moneyTrasnfered) {
-					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure()-moneyTrasnfered);
-					Business business = new Business(renderLayer,currentPlayerCastle,moneyTrasnfered);
-					displacement(currentPlayerCastle.getPosition(),castle,business,true);
+				if(currentPlayerCastle.getTreasure() >= this.moneyToTransfert) {
+					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure()-moneyToTransfert);
+					Business business = new Business(renderLayer,currentPlayerCastle,moneyToTransfert);
+					displacement(currentPlayerCastle.getPosition(),castle,business,true,business.getSpeed());
 				}
 				e.consume();
 			});
 			castleMoneyTargets.add(moneyTargetButton);
 			
+			//Fucntion for the Ally Traget button
 			allyTargetButton.getTextureView().setOnMouseClicked(e -> {
 				// We use targetButton.getPosition because it's the same as castle position
-				Pikeman pikeman = new Pikeman(renderLayer,currentPlayerCastle);
-				Knight knight = new Knight(renderLayer,currentPlayerCastle);
-				Onager onager = new Onager(renderLayer,currentPlayerCastle);
-				displacement(currentPlayerCastle.getPosition(),castle,pikeman,true);
-				displacement(currentPlayerCastle.getPosition(),castle,onager,true);
-				displacement(currentPlayerCastle.getPosition(),castle,knight,true);
+				moveTroop(selectedTroops,castle,true);
 				e.consume();
 			});
 			castleAllyTargets.add(allyTargetButton);
 				
-			
+			//Fucntion for the Ennemy Traget button
 			enemyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				// We use targetButton.getPosition because it's the same as castle position
-				Pikeman pikeman = new Pikeman(renderLayer,currentPlayerCastle);
-				Knight knight = new Knight(renderLayer,currentPlayerCastle);
-				Onager onager = new Onager(renderLayer,currentPlayerCastle);
-				displacement(currentPlayerCastle.getPosition(),castle,pikeman,false);
-				displacement(currentPlayerCastle.getPosition(),castle,onager,false);
-				displacement(currentPlayerCastle.getPosition(),castle,knight,false);
-				
+				moveTroop(selectedTroops,castle,false);	
 				e.consume();
 			});
 			castleEnemyTargets.add(enemyTargetButton);
@@ -289,7 +281,25 @@ public class Game {
 		
 	}
 	
-	private void displacement(Point2D playerCastlePosition, Castle targetedCastle,Troop unit, boolean castleOwned) {
+	public void moveTroop(ArrayList<Troop> selectedTroops,Castle castle,boolean castleOwned) {
+		while(selectedTroops.size() >=Settings.ostSize) {		
+			int minSpeed = Math.min(selectedTroops.get(0).getSpeed(), selectedTroops.get(1).getSpeed());
+			minSpeed = Math.min(minSpeed, selectedTroops.get(2).getSpeed());
+			for(int i=0;i<Settings.ostSize;i++) {		
+				currentPlayerCastle.removeTroop(selectedTroops.get(0));
+				displacement(currentPlayerCastle.getPosition(),castle,selectedTroops.get(0),castleOwned,minSpeed);
+				selectedTroops.remove(0);
+			}
+			
+		}
+		for(int i=0;i<selectedTroops.size();i++) {
+			currentPlayerCastle.removeTroop(selectedTroops.get(0));
+			displacement(currentPlayerCastle.getPosition(),castle,selectedTroops.get(0),castleOwned,selectedTroops.get(0).getSpeed());
+			selectedTroops.remove(0);
+		}
+	}
+	
+	private void displacement(Point2D playerCastlePosition, Castle targetedCastle,Troop unit, boolean castleOwned,int speed) {
 		int dxy = Settings.castleSize/2;
 		Node start = new Node(playerCastlePosition.getX() + dxy, playerCastlePosition.getY() + dxy, 0, 0);
 		Node end = new Node(targetedCastle.getPosition().getX() + dxy, targetedCastle.getPosition().getY() + dxy, 0, 0);
@@ -306,7 +316,32 @@ public class Game {
 		}
 		Button unitButton = unit.spawnTroop(unitPathName, 0, playerCastlePosition, path,renderLayer);
 		unit.setUnitButton(unitButton);
-		unit.displace(path, renderLayer,unitButton,unit, gameMap,targetedCastle ,castleOwned);
+		unit.displace(path, renderLayer,unitButton,unit, gameMap,targetedCastle ,castleOwned,speed);
+	}
+	
+	private void recruitTroops(ArrayList<AtomicInteger> recruitCommand,int barrackLevel) {
+		int nbKnights = recruitCommand.get(0).get();
+		int nbOnagers = recruitCommand.get(1).get();
+		int nbPikemen = recruitCommand.get(2).get();
+		
+		while((nbKnights + nbOnagers + nbPikemen) > 0 ) {
+				if(nbKnights >0) {
+					--nbKnights;
+					Knight knight = new Knight(renderLayer,this.currentPlayerCastle);
+					this.currentPlayerCastle.setTreasure(this.currentPlayerCastle.getTreasure() - knight.getProdCost());
+					this.currentPlayerCastle.addTroop(knight);
+				}else if(nbOnagers>0) {
+					--nbOnagers;
+					Onager onager= new Onager(renderLayer,this.currentPlayerCastle);
+					this.currentPlayerCastle.setTreasure(this.currentPlayerCastle.getTreasure() - onager.getProdCost());
+					this.currentPlayerCastle.addTroop(onager);
+				}else {
+					--nbPikemen;
+					Pikeman pikeman = new Pikeman(renderLayer,this.currentPlayerCastle);
+					this.currentPlayerCastle.setTreasure(this.currentPlayerCastle.getTreasure() - pikeman.getProdCost());
+					this.currentPlayerCastle.addTroop(pikeman);
+				}
+		}
 	}
 
 	private boolean isPositionNearACastle(Point2D position) {
@@ -322,6 +357,7 @@ public class Game {
 
 	private ArrayList<AtomicInteger> recruitCommand = new ArrayList<>();
 	private ArrayList<Troop> selectedTroops = new ArrayList<>();
+	private int moneyToTransfert;
 
 	private List<StatusBar> statusBars = new ArrayList<>();
 
@@ -363,9 +399,11 @@ public class Game {
 		statusBarPos = new Point2D(statusBarPos.getX() + Settings.windowWidth / 3.0, statusBarPos.getY());
 		StatusBar centerStatusBar = new StatusBar(renderLayer, statusBarPos, statusBarSize, "centerStatusBar") {
 			private ArrayList<Button> decisionButtons;
+			private Button confirm_choice;
 
 			private ArrayList<Spinner<Integer>> recruitSpinners;
 			private ArrayList<Spinner<Integer>> moveSpinners;
+			private TextField textMoneyToTransfert;
 
 			private Boolean firstFrame = true;
 
@@ -374,10 +412,11 @@ public class Game {
 				// Should be done every frame
 				if (getView() == StatusBarView.TroopsRecruitView) {
 					if (getCurrentCastle().getOwner() == 0) {
+						confirm_choice.getTextureView().setOnMouseClicked(e -> recruitTroops( recruitCommand, this.getCurrentCastle().getBarrackLevel()));
 						final ArrayList<Integer> spinnerValues = new ArrayList<>();
-						spinnerValues.add(getCurrentCastle().getNbKnights());
-						spinnerValues.add(getCurrentCastle().getNbOnagers());
-						spinnerValues.add(getCurrentCastle().getNbPikemen());
+						spinnerValues.add(100);
+						spinnerValues.add(100);
+						spinnerValues.add(100);
 						for (int i = 0; i < Settings.nbTroopTypes; ++i) {
 							final int initialValue;
 							if (firstFrame) {
@@ -393,6 +432,7 @@ public class Game {
 						for (int i = 0; i < recruitSpinners.size(); ++i) {
 							recruitCommand.get(i).set(recruitSpinners.get(i).getValue());
 						}
+						
 					}
 				} else if (getView() == StatusBarView.TroopsMoveView) {
 					if (getCurrentCastle().getOwner() == 0) {
@@ -413,29 +453,28 @@ public class Game {
 						}
 
 						selectedTroops.clear();
-						ArrayList<Knight> selectedKnights = new ArrayList<>();
+						
+						for (int i = 0; i < moveSpinners.get(1).getValue(); ++i) {
+							selectedTroops.add(getCurrentCastle().getOnagerByIndex(i));
+						}
+						
 						for (int i = 0; i < moveSpinners.get(0).getValue(); ++i) {
-							selectedKnights.add(getCurrentCastle().getKnightByIndex(i));
+							selectedTroops.add(getCurrentCastle().getKnightByIndex(i));
 						}
-						selectedTroops.addAll(selectedKnights);
 
-						ArrayList<Onager> selectedOnagers = new ArrayList<>();
-						for (int i = 0; i < moveSpinners.get(1).getValue(); ++i) {
-							selectedOnagers.add(getCurrentCastle().getOnagerByIndex(i));
+						for (int i = 0; i < moveSpinners.get(2).getValue(); ++i) {
+							selectedTroops.add(getCurrentCastle().getPikemanByIndex(i));
 						}
-						selectedTroops.addAll(selectedOnagers);
-
-						ArrayList<Pikeman> selectedPikemen = new ArrayList<>();
-						for (int i = 0; i < moveSpinners.get(1).getValue(); ++i) {
-							selectedPikemen.add(getCurrentCastle().getPikemanByIndex(i));
-						}
-						selectedTroops.addAll(selectedPikemen);
 					}
+				}else if (getView() == StatusBarView.MoneyTransferView) {
+					
 				}
 
 				// Should be done only when the view is changed
 				if (shouldRefreshView) {
 					setText("");
+					
+					confirm_choice.removeFromCanvas();	
 
 					for (Button button : decisionButtons) {
 						button.removeFromCanvas();
@@ -470,8 +509,11 @@ public class Game {
 					} else if (getView() == StatusBarView.TroopsRecruitView) {
 						// TODO: White space in function of spinner size
 						setText("Chevaliers:                 Onagres:                    Piquiers:");
+						confirm_choice.addToCanvas();
 						for (Spinner<Integer> spinner : recruitSpinners) {
 							spinner.setVisible(true);
+							
+							
 						}
 					} else if (getView() == StatusBarView.TroopsMoveView) {
 						// TODO: White space in function of spinner size
@@ -493,7 +535,7 @@ public class Game {
 						}
 					}else if(getView() == StatusBarView.MoneyTransferView) {
 						setText("Money to transfert :");
-						//TODO : Put a spinner to select the money to transfert
+						//TODO:Get the value of the TextField for money transfert
 						for (int i = 0; i < castles.size(); ++i) {
 							if (castles.get(i) == getCurrentCastle()) {
 								continue;
@@ -516,14 +558,21 @@ public class Game {
 				Image texture = new Image("/sprites/buttons/recruit.png");
 				final double buttonWidth = texture.getWidth();
 
-				String[] buttonPaths1 = new String[5];
+				String[] buttonPaths1 = new String[6];
 				buttonPaths1[0] = "recruit.png";
 				buttonPaths1[1] = "select_troops.png";
 				buttonPaths1[2] = "level_up.png";
 				buttonPaths1[3] = "money.png";
 				buttonPaths1[4] = "wall.png";
-
+				buttonPaths1[5] = "barracks.png";
+				
+				
+				final int xOfSet = -75;
+				final int yOfSet = 25;
 				Point2D buttonPos = new Point2D(getPosition().getX(), getPosition().getY());
+				Point2D confirm_choiceButtonPos = new Point2D(getPosition().getX()+xOfSet,getPosition().getY() + yOfSet);
+				Button confirm_button = new Button(renderLayer,confirm_choiceButtonPos,new Image("/sprites/buttons/confirm_choice.png"));	
+				confirm_choice = confirm_button;
 
 				for (String buttonPath : buttonPaths1) {
 					Button button = new Button(renderLayer, buttonPos, new Image("/sprites/buttons/" + buttonPath));
@@ -584,7 +633,31 @@ public class Game {
 							}
 						} else {
 							alert.setAlertType(Alert.AlertType.WARNING);
-							alert.setContentText("Votre château possède déjà des murailles ou vous n'avez pas assez de florains");
+							alert.setContentText("Vous ne pouvez pas construire de muraille car soit votre château est déjà en travaux ou vous n'avez pas assez de florains");
+							alert.show();
+						}
+					} else {
+						alert.setAlertType(Alert.AlertType.WARNING);
+						alert.setTitle("Attention");
+						alert.setContentText("Ce n'est pas votre château");
+						alert.show();
+					}
+					e.consume();
+				});
+				decisionButtons.get(5).getTextureView().setOnMouseClicked(e -> {
+					Alert alert = new Alert(Alert.AlertType.NONE);
+					if (getCurrentCastle().getOwner() == 0) {
+						if (!getCurrentCastle().isLevelingUp() && !getCurrentCastle().isGettingWall() &&  getCurrentCastle().getTreasure() >= getCurrentCastle().gettBarracksBuildCost()) {
+							alert.setAlertType(Alert.AlertType.CONFIRMATION);
+							alert.setContentText("Vous êtes sur ? Cela vous coûteras " + getCurrentCastle().gettBarracksBuildCost() + " florains.");
+
+							Optional<ButtonType> result = alert.showAndWait();
+							if (result.get() == ButtonType.OK) {
+								getCurrentCastle().addBarraks();;
+							}
+						} else {
+							alert.setAlertType(Alert.AlertType.WARNING);
+							alert.setContentText("Vous ne pouvez pas construire de caserne car soit votre château est déjà en travaux ou vous n'avez pas assez de florains");
 							alert.show();
 						}
 					} else {
@@ -604,6 +677,15 @@ public class Game {
 				recruitSpinners = new ArrayList<>();
 				final int yOffset = 30;
 				Point2D spinnerPosition = new Point2D(getPosition().getX(), getPosition().getY());
+				
+				//TODO:TextField for money transfert		
+//				TextField textfield = new TextField("");
+//				textfield.setMinWidth(50);
+//				textfield.setLayoutX(550);
+//				textfield.setLayoutY(5);
+//				textfield.setVisible(false);
+//				renderLayer.getChildren().add(textfield);
+//				textfield = this.textMoneyToTransfert;
 
 				final double spinnerSize = getSize().getX() / Settings.nbTroopTypes;
 				for (int i = 0; i < Settings.nbTroopTypes; ++i) {
@@ -641,6 +723,7 @@ public class Game {
 
 					spinnerPosition = new Point2D(spinnerPosition.getX() + spinnerSize, spinnerPosition.getY());
 				}
+				
 			}
 
 			@Override

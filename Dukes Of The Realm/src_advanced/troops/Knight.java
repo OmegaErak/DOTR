@@ -12,7 +12,7 @@ public class Knight extends Troop {
 		
 		this.prodCost 	= 500;
 		this.prodTime 	= 20;
-		this.speed 		= 6;
+		this.speed 		= 10;
 		this.health 	= 3;
 		this.damage 	= 5;
 		

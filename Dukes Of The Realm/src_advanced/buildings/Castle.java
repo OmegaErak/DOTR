@@ -66,13 +66,14 @@ public class Castle extends Sprite {
 	private ArrayList<Pikeman> availablePikeman = new ArrayList<>();
 	private ArrayList<Knight> availableKnight = new ArrayList<>();
 	private ArrayList<Onager> availableOnager = new ArrayList<>();
-	private ArrayList<Troop> availableTroop = new ArrayList<>();
 	private ArrayList<Troop> inProductionTroops = new ArrayList<>();
 	private ArrayList<Troop> troopAround = new ArrayList<>();
 
 	private int nbKnights = 0;
 	private int nbOnagers = 0;
 	private int nbPikemen = 0;
+	
+	int barrackLevel = 1;
 	
 	private int surrounded;
 	
@@ -260,7 +261,7 @@ public class Castle extends Sprite {
 	}
 	
 	public void isAlive(int[][] gameMap) {
-		if(availableKnight.isEmpty() && availablePikeman.isEmpty() && availableOnager.isEmpty()) {
+		if(availableKnight.isEmpty() && availablePikeman.isEmpty() && availableOnager.isEmpty() && !troopAround.isEmpty()) {
 			Image newTexture = new Image("/sprites/castles/castle_" + troopAround.get(0).getOwner() + ".png");
 			Image newBuildTexture = new Image("/sprites/castles/castle_" + troopAround.get(0).getOwner() + "_build.png");
 			Image newArmoredTexture = new Image("/sprites/castles/armored_castle_" + troopAround.get(0).getOwner() + ".png");
@@ -297,6 +298,122 @@ public class Castle extends Sprite {
 		}else {
 			treasure += troop.getProdCost();
 		}
+	}
+	
+	public void removeTroop(Troop troop) {
+		if(troop.getClass() == Pikeman.class) {
+			availablePikeman.remove(0);
+			--nbPikemen;
+		}else if(troop.getClass() == Knight.class){
+			availableKnight.remove(0);
+			--nbKnights;
+		}else if(troop.getClass() == Onager.class){
+			availableOnager.remove(0);
+			--nbOnagers;
+		}else {
+
+		}
+	}
+	
+	private boolean isOnProd;
+	
+	
+	public void addTroop(Troop troop) {
+		if(this.treasure >= troop.getProdCost()) {
+			this.isOnProd = true;
+			this.treasure -= troop.getProdCost();
+			inProductionTroops.add(troop);
+			
+		}
+	}
+	
+	public void onProduction() {
+		if(this.isOnProd) {
+			int numberOfToopsInProd;
+			if(inProductionTroops.size()>barrackLevel) {
+				numberOfToopsInProd = barrackLevel;
+			}else {
+				numberOfToopsInProd = inProductionTroops.size();
+			}
+			for(int i=0;i<numberOfToopsInProd;i++) {
+//				this.treasure -= inProductionTroops.get(0).getProdCost();
+				System.out.println(i);
+				if(inProductionTroops.get(i).getProdTime()>0) {					
+					inProductionTroops.get(i).setProdTime(inProductionTroops.get(i).getProdTime()-1);
+					System.out.println(inProductionTroops.get(i).getClass());
+					System.out.println(inProductionTroops.get(i).getProdTime());
+				}else {
+					if(inProductionTroops.get(i).getClass() == Pikeman.class) {
+						availablePikeman.add((Pikeman) inProductionTroops.get(i));
+						++nbPikemen;
+					}else if(inProductionTroops.get(i).getClass() == Knight.class) {
+						availableKnight.add((Knight) inProductionTroops.get(i));
+						++nbKnights;
+					}else {
+						availableOnager.add((Onager) inProductionTroops.get(i));
+						++nbOnagers;
+					}
+					inProductionTroops.remove(i);
+					
+				}
+			}
+		}
+	}
+	
+	private boolean isGettingBarracks;
+	private int timeUntilBarracks = 20;
+	private int nextBarracksLevel = 30;
+	private int barracksBuildCost = 1500;
+	
+	public void addBarraks() {
+		this.isGettingBarracks = true;
+		this.timeUntilBarracks += this.nextBarracksLevel;
+		this.treasure -= this.barracksBuildCost;
+
+		removeFromCanvas();
+		setTexture(buildingTexture);
+		addToCanvas();
+	}
+	
+	public void buildingBarracks() {
+
+		if (this.isGettingBarracks) {
+			if (this.timeUntilBarracks > 0) {
+				--this.timeUntilBarracks;
+			} else if (this.timeUntilBarracks == 0) {
+				this.barrackLevel += 1;
+				this.barracksBuildCost *= 2;
+				this.isGettingBarracks = false;
+				--timeUntilBarracks;
+
+				removeFromCanvas();
+				if(this.hasWall) {
+					setTexture(armoredTexture);
+				}else {					
+					setTexture(texture);
+				}
+				addToCanvas();
+				updateData();
+			}
+		}
+	}
+	
+	
+
+	public int gettBarracksBuildCost() {
+		return barracksBuildCost;
+	}
+
+	public void setBarracksBuildCost(int barracksBuildCost) {
+		this.barracksBuildCost = barracksBuildCost;
+	}
+
+	public int getBarrackLevel() {
+		return barrackLevel;
+	}
+
+	public void setBarrackLevel(int barrackLevel) {
+		this.barrackLevel = barrackLevel;
 	}
 
 	public Knight getKnightByIndex(int index) {

@@ -11,8 +11,8 @@ public class Onager extends Troop {
 		super(renderLayer, castle);
 
 		this.prodCost 	= 1000;
-		this.prodTime 	= 50;
-		this.speed 		= 1;
+		this.prodTime 	= 10;
+		this.speed 		= 2;
 		this.health 	= 5;
 		this.damage 	= 10;
 		
