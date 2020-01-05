@@ -111,7 +111,7 @@ public class Node {
 		double dx = Math.sqrt((position.getX() - node.getPosition().getX()) * (position.getX() - node.getPosition().getX()));
 		double dy = Math.sqrt((position.getY() - node.getPosition().getY()) * (position.getY() - node.getPosition().getY()));
 
-		final int distance = (Settings.castleSize + Settings.knightSize) / 2;
+		final int distance = (Settings.castleSize + Settings.cellSize) / 2;
 		return (dx <= distance && dy <= distance);
 	}
 
