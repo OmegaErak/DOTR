@@ -41,18 +41,18 @@ public class Game {
 			"Jean-Michel",
 			"Jean-Marie",
 			"Jean-Loup",
-			"Jean-Côme",
+			"Jean-Cï¿½me",
 			"Jean-Alex",
-			"Jean-Kévin",
-			"Jean-René",
+			"Jean-Kï¿½vin",
+			"Jean-Renï¿½",
 			"Jean-Maurice",
 			"Jean-Francis",
 			"Jean-Jacques",
-			"Jean-Noël",
+			"Jean-Noï¿½l",
 			"Jean-George",
 			"Jean-Brice",
 			"Jean-Blaise",
-			"Jean-Aimée",
+			"Jean-Aimï¿½e",
 			"Jean-Baptiste",
 			"Jean-Bernard",
 			"Jean-Briac",
@@ -60,10 +60,10 @@ public class Game {
 			"Jean-Jean",
 			"Jean-Paul",
 			"Jean-Ti",
-			"Jean-Rêve",
+			"Jean-Rï¿½ve",
 			"Jean-Yves",
 
-			"Jean-Cérien"
+			"Jean-Cï¿½rien"
 	));
 
 	// Render objects
@@ -495,7 +495,7 @@ public class Game {
 					if (getCurrentCastle().getOwner() == 0) {
 						if (!getCurrentCastle().hasWall() && !getCurrentCastle().isLevelingUp() && getCurrentCastle().getTreasure() >= getCurrentCastle().getWallCost()) {
 							alert.setAlertType(Alert.AlertType.CONFIRMATION);
-							alert.setContentText("Vous êtes sur ? Cela vous coûteras " + getCurrentCastle().getWallCost() + " florains.");
+							alert.setContentText("Vous ï¿½tes sur ? Cela vous coï¿½teras " + getCurrentCastle().getWallCost() + " florains.");
 
 							Optional<ButtonType> result = alert.showAndWait();
 							if (result.get() == ButtonType.OK) {
@@ -503,13 +503,13 @@ public class Game {
 							}
 						} else {
 							alert.setAlertType(Alert.AlertType.WARNING);
-							alert.setContentText("Vous ne pouvez pas construire de muraille car soit votre château est déjà en travaux ou vous n'avez pas assez de florains");
+							alert.setContentText("Vous ne pouvez pas construire de muraille car soit votre chï¿½teau est dï¿½jï¿½ en travaux ou vous n'avez pas assez de florains");
 							alert.show();
 						}
 					} else {
 						alert.setAlertType(Alert.AlertType.WARNING);
 						alert.setTitle("Attention");
-						alert.setContentText("Ce n'est pas votre château");
+						alert.setContentText("Ce n'est pas votre chï¿½teau");
 						alert.show();
 					}
 					e.consume();
@@ -519,7 +519,7 @@ public class Game {
 					if (getCurrentCastle().getOwner() == 0) {
 						if (!getCurrentCastle().isLevelingUp() && !getCurrentCastle().isGettingWall() &&  getCurrentCastle().getTreasure() >= getCurrentCastle().gettBarracksBuildCost()) {
 							alert.setAlertType(Alert.AlertType.CONFIRMATION);
-							alert.setContentText("Vous êtes sur ? Cela vous coûteras " + getCurrentCastle().gettBarracksBuildCost() + " florains.");
+							alert.setContentText("Vous ï¿½tes sur ? Cela vous coï¿½teras " + getCurrentCastle().gettBarracksBuildCost() + " florains.");
 
 							Optional<ButtonType> result = alert.showAndWait();
 							if (result.get() == ButtonType.OK) {
@@ -527,13 +527,13 @@ public class Game {
 							}
 						} else {
 							alert.setAlertType(Alert.AlertType.WARNING);
-							alert.setContentText("Vous ne pouvez pas construire de caserne car soit votre château est déjà en travaux ou vous n'avez pas assez de florains");
+							alert.setContentText("Vous ne pouvez pas construire de caserne car soit votre chï¿½teau est dï¿½jï¿½ en travaux ou vous n'avez pas assez de florains");
 							alert.show();
 						}
 					} else {
 						alert.setAlertType(Alert.AlertType.WARNING);
 						alert.setTitle("Attention");
-						alert.setContentText("Ce n'est pas votre château");
+						alert.setContentText("Ce n'est pas votre chï¿½teau");
 						alert.show();
 					}
 					e.consume();

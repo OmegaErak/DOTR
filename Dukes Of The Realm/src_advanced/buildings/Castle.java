@@ -41,7 +41,11 @@ public class Castle extends Sprite {
 	
 	int barrackLevel = 1;
 	
-	private int surrounded;
+	
+	private boolean isGettingBarracks;
+	private int timeUntilBarracks = 20;
+	private int nextBarracksLevel = 30;
+	private int barracksBuildCost = 1500;
 	
 	private boolean currentCastle;
 
@@ -323,7 +327,7 @@ public class Castle extends Sprite {
 				numberOfToopsInProd = inProductionTroops.size();
 			}
 			for(int i=0;i<numberOfToopsInProd;i++) {
-				if(inProductionTroops.get(i).getProdTime()>0) {
+				if(inProductionTroops.get(i).getProdTime() > 0) {
 					inProductionTroops.get(i).setProdTime(inProductionTroops.get(i).getProdTime()-1);
 					System.out.println(inProductionTroops.get(i).getClass());
 					System.out.println(inProductionTroops.get(i).getProdTime());
@@ -340,14 +344,14 @@ public class Castle extends Sprite {
 					}
 					inProductionTroops.remove(i);
 				}
+				if(inProductionTroops.size() <= barrackLevel) {
+					--numberOfToopsInProd;
+					--i;
+				}
 			}
 		}
 	}
 	
-	private boolean isGettingBarracks;
-	private int timeUntilBarracks = 20;
-	private int nextBarracksLevel = 30;
-	private int barracksBuildCost = 1500;
 	
 	public void addBarraks() {
 		this.isGettingBarracks = true;
@@ -454,14 +458,6 @@ public class Castle extends Sprite {
 
 	public void setCurrentCastle(boolean currentCastle) {
 		this.currentCastle = currentCastle;
-	}
-
-	public int getSurrounded() {
-		return surrounded;
-	}
-
-	public void setSurrounded(int surrounded) {
-		this.surrounded = surrounded;
 	}
 
 	public void setAvailablePikeman(ArrayList<Pikeman> availablePikeman) {
