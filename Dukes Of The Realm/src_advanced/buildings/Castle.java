@@ -6,7 +6,7 @@ import base.Settings;
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
-import renderer.Sprite;
+import drawable.Sprite;
 import troops.Knight;
 import troops.Onager;
 import troops.Pikeman;
