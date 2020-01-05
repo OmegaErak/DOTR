@@ -12,6 +12,9 @@ for each castle:
     treasure (advanced)
     position
 
+    has walls (0 for false, 1 or any int for true)
+    barrack level
+
     number of troops
     for each troop:
         type of troop (integer)(advanced)
