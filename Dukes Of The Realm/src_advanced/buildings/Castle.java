@@ -25,18 +25,18 @@ public class Castle extends Sprite {
 			"Jean-Michel",
 			"Jean-Marie",
 			"Jean-Loup",
-			"Jean-Côme",
+			"Jean-CÃ´me",
 			"Jean-Alex",
-			"Jean-Kévin",
-			"Jean-René",
+			"Jean-KÃ©vin",
+			"Jean-RenÃ©",
 			"Jean-Maurice",
 			"Jean-Francis",
 			"Jean-Jacques",
-			"Jean-Noël",
+			"Jean-NoÃ«l",
 			"Jean-George",
 			"Jean-Brice",
 			"Jean-Blaise",
-			"Jean-Aimée",
+			"Jean-AimÃ©e",
 			"Jean-Baptiste",
 			"Jean-Bernard",
 			"Jean-Briac",
@@ -44,10 +44,10 @@ public class Castle extends Sprite {
 			"Jean-Jean",
 			"Jean-Paul",
 			"Jean-Ti",
-			"Jean-Rêve",
+			"Jean-RÃªve",
 			"Jean-Yves",
 
-			"Jean-Cérien"
+			"Jean-CÃ©rien"
 	));
 
 	private Image texture;
@@ -75,7 +75,11 @@ public class Castle extends Sprite {
 	
 	int barrackLevel = 1;
 	
-	private int surrounded;
+	
+	private boolean isGettingBarracks;
+	private int timeUntilBarracks = 20;
+	private int nextBarracksLevel = 30;
+	private int barracksBuildCost = 1500;
 	
 	private boolean currentCastle;
 
@@ -330,13 +334,12 @@ public class Castle extends Sprite {
 	public void onProduction() {
 		if(this.isOnProd) {
 			int numberOfToopsInProd;
-			if(inProductionTroops.size()>barrackLevel) {
+			if(inProductionTroops.size() > barrackLevel) {
 				numberOfToopsInProd = barrackLevel;
 			}else {
 				numberOfToopsInProd = inProductionTroops.size();
 			}
 			for(int i=0;i<numberOfToopsInProd;i++) {
-//				this.treasure -= inProductionTroops.get(0).getProdCost();
 				System.out.println(i);
 				if(inProductionTroops.get(i).getProdTime()>0) {					
 					inProductionTroops.get(i).setProdTime(inProductionTroops.get(i).getProdTime()-1);
@@ -354,16 +357,17 @@ public class Castle extends Sprite {
 						++nbOnagers;
 					}
 					inProductionTroops.remove(i);
+					if(inProductionTroops.size() <= barrackLevel) {
+						--numberOfToopsInProd;
+						--i;
+					}
+					
 					
 				}
 			}
 		}
 	}
 	
-	private boolean isGettingBarracks;
-	private int timeUntilBarracks = 20;
-	private int nextBarracksLevel = 30;
-	private int barracksBuildCost = 1500;
 	
 	public void addBarraks() {
 		this.isGettingBarracks = true;
@@ -472,14 +476,6 @@ public class Castle extends Sprite {
 
 	public void setCurrentCastle(boolean currentCastle) {
 		this.currentCastle = currentCastle;
-	}
-
-	public int getSurrounded() {
-		return surrounded;
-	}
-
-	public void setSurrounded(int surrounded) {
-		this.surrounded = surrounded;
 	}
 
 	public void setAvailablePikeman(ArrayList<Pikeman> availablePikeman) {

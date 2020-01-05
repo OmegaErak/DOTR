@@ -199,28 +199,30 @@ public class Game {
 			
 			for(int i = 0; i < Settings.castleSize/Settings.cellSize; i++) {
 				for(int j = 0; j < Settings.castleSize/Settings.cellSize; j++) {
-					int x = (int) castle.getPosition().getX()/Settings.cellSize;
-					int y = (int) (castle.getPosition().getY() - Settings.statusBarHeight)/Settings.cellSize;
-					gameMap[(int) x + i][(int) y + j] = 1;
+					int castleCenterCell = Settings.castleSize/(2*Settings.cellSize);
+					int x = (int) castle.getPosition().getX()/Settings.cellSize + castleCenterCell;
+					int y = (int) (castle.getPosition().getY() - Settings.statusBarHeight)/Settings.cellSize + castleCenterCell;
+					
+					gameMap[x - castleCenterCell + i][y - castleCenterCell + j] = 1;
 					switch(castle.getDoorDirection()) {
 					case(0):
-						for(int k = 0; k < 3; k++) {
-							gameMap[x+2][y+2+k] = 0;
+						for(int k = 0; k <= castleCenterCell; k++) {
+							gameMap[x][y+k] = 0;
 						}
 					break;
 					case(1):
-						for(int k = 0; k < 3; k++) {
-							gameMap[x+2-k][y+2] = 0;
+						for(int k = 0; k <= castleCenterCell; k++) {
+							gameMap[x-k][y] = 0;
 						}
 					break;
 					case(2):
-						for(int k = 0; k < 3; k++) {
-							gameMap[x+2][y+2-k] = 0;
+						for(int k = 0; k <= castleCenterCell; k++) {
+							gameMap[x][y-k] = 0;
 						}
 					break;
 					case(3):
-						for(int k = 0; k < 3; k++) {
-							gameMap[x+2+k][y+2] = 0;
+						for(int k = 0; k <= castleCenterCell; k++) {
+							gameMap[x+k][y] = 0;
 						}
 					break;
 					}
@@ -626,7 +628,7 @@ public class Game {
 					if (getCurrentCastle().getOwner() == 0) {
 						if (!getCurrentCastle().hasWall() && !getCurrentCastle().isLevelingUp() && getCurrentCastle().getTreasure() >= getCurrentCastle().getWallCost()) {
 							alert.setAlertType(Alert.AlertType.CONFIRMATION);
-							alert.setContentText("Vous êtes sur ? Cela vous coûteras " + getCurrentCastle().getWallCost() + " florains.");
+							alert.setContentText("Vous ï¿½tes sur ? Cela vous coï¿½teras " + getCurrentCastle().getWallCost() + " florains.");
 
 							Optional<ButtonType> result = alert.showAndWait();
 							if (result.get() == ButtonType.OK) {
@@ -634,13 +636,13 @@ public class Game {
 							}
 						} else {
 							alert.setAlertType(Alert.AlertType.WARNING);
-							alert.setContentText("Vous ne pouvez pas construire de muraille car soit votre château est déjà en travaux ou vous n'avez pas assez de florains");
+							alert.setContentText("Vous ne pouvez pas construire de muraille car soit votre chï¿½teau est dï¿½jï¿½ en travaux ou vous n'avez pas assez de florains");
 							alert.show();
 						}
 					} else {
 						alert.setAlertType(Alert.AlertType.WARNING);
 						alert.setTitle("Attention");
-						alert.setContentText("Ce n'est pas votre château");
+						alert.setContentText("Ce n'est pas votre chï¿½teau");
 						alert.show();
 					}
 					e.consume();
@@ -650,7 +652,7 @@ public class Game {
 					if (getCurrentCastle().getOwner() == 0) {
 						if (!getCurrentCastle().isLevelingUp() && !getCurrentCastle().isGettingWall() &&  getCurrentCastle().getTreasure() >= getCurrentCastle().gettBarracksBuildCost()) {
 							alert.setAlertType(Alert.AlertType.CONFIRMATION);
-							alert.setContentText("Vous êtes sur ? Cela vous coûteras " + getCurrentCastle().gettBarracksBuildCost() + " florains.");
+							alert.setContentText("Vous ï¿½tes sur ? Cela vous coï¿½teras " + getCurrentCastle().gettBarracksBuildCost() + " florains.");
 
 							Optional<ButtonType> result = alert.showAndWait();
 							if (result.get() == ButtonType.OK) {
@@ -658,13 +660,13 @@ public class Game {
 							}
 						} else {
 							alert.setAlertType(Alert.AlertType.WARNING);
-							alert.setContentText("Vous ne pouvez pas construire de caserne car soit votre château est déjà en travaux ou vous n'avez pas assez de florains");
+							alert.setContentText("Vous ne pouvez pas construire de caserne car soit votre chï¿½teau est dï¿½jï¿½ en travaux ou vous n'avez pas assez de florains");
 							alert.show();
 						}
 					} else {
 						alert.setAlertType(Alert.AlertType.WARNING);
 						alert.setTitle("Attention");
-						alert.setContentText("Ce n'est pas votre château");
+						alert.setContentText("Ce n'est pas votre chï¿½teau");
 						alert.show();
 					}
 					e.consume();
