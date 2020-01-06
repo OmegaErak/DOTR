@@ -96,11 +96,14 @@ public class Game {
 
 	private Castle currentPlayerCastle;
 	private ArrayList<Castle> castles = new ArrayList<>();
+	private ArrayList<Castle> dukeCastles = new ArrayList<>();
 
 	private ArrayList<AtomicInteger> recruitCommand = new ArrayList<>(Settings.nbTroopTypes);
 	private ArrayList<AtomicInteger> moveCommand = new ArrayList<>(Settings.nbTroopTypes);
 	private int moneyTransferCommand;
 
+	
+	IA ia;
 	/**
 	 * Default constructor. Initialises JavaFX variables and configures them to adapt to our application.
 	 */
@@ -165,8 +168,14 @@ public class Game {
 							frameCounter -= framesPerDay;
 							++currentDayHolder.day;
 
+							if(ia.iaActionTime()) {
+								Castle iaBaseCasle = ia.selectCastleForAction();
+								moveTroop(ia.iaSelectTroop(),iaBaseCasle,ia.selectCastleForAttack(iaBaseCasle),false);
+							}
 							for (Castle castle : castles) {
 								castle.onUpdate(gameMap);
+								castle.onTroopProduction();
+								
 							}
 						}
 					}
@@ -682,6 +691,8 @@ public class Game {
 			e.consume();
 		});
 	}
+	
+	
 
 	/**
 	 * Loads the castles textures and creates them.
@@ -702,21 +713,25 @@ public class Game {
 			int cellSize = Settings.cellSize;
 			Point2D position = new Point2D(rdGen.nextInt(widthUpperBound/cellSize -3)*cellSize +20, Settings.statusBarHeight + 30 + rdGen.nextInt(heightUpperBound/cellSize - 4)*cellSize);
 			if (!isPositionNearACastle(position)) {
-				Castle castle = new Castle(renderLayer, position);
-				castle.setOwner(castleOwner);
+				Castle castle = new Castle(renderLayer, position,castleOwner);
 
 				final int index = rdGen.nextInt(dukeNames.size());
 				castle.setOwnerName(dukeNames.get(index));
 				dukeNames.remove(index);
+				if(castleOwner <= Settings.nbMaxActiveDukes) {
+					dukeCastles.add(castle);
+				}
 
 				castles.add(castle);
 				++castleOwner;
 			}
 		}
 
+		ia = new IA(dukeCastles);
 		final Castle playerCastle = castles.get(0);
 		playerCastles.add(playerCastle);
 		for (Castle castle : castles) {
+			
 			
 			for(int i = 0; i < Settings.castleSize/Settings.cellSize; i++) {
 				for(int j = 0; j < Settings.castleSize/Settings.cellSize; j++) {
