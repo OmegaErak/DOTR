@@ -227,7 +227,7 @@ public class Castle extends Sprite {
 					--i;
 				}else {		
 					Knight knight = availableKnights.get(0);
-					knight.setHealth(knight.getHP()-1);
+					knight.setHP(knight.getHP()-1);
 					if(!knight.isAlive()) {
 						availableKnights.remove(0);
 					}
@@ -238,7 +238,7 @@ public class Castle extends Sprite {
 					--i;
 				}else {
 					Pikeman pikeman = availablePikemen.get(0);
-					pikeman.setHealth(pikeman.getHP()-1);
+					pikeman.setHP(pikeman.getHP()-1);
 					if(!pikeman.isAlive()) {
 						availablePikemen.remove(0);
 					}
@@ -249,7 +249,7 @@ public class Castle extends Sprite {
 					--i;
 				}else {
 					Onager onager= availableOnagers.get(0);
-					onager.setHealth(onager.getHP()-1);
+					onager.setHP(onager.getHP()-1);
 					if(!onager.isAlive()) {
 						availableOnagers.remove(0);
 					}
@@ -270,9 +270,9 @@ public class Castle extends Sprite {
 			armoredTexture = newArmoredTexture;
 
 			for (Troop troop : troopAround) {
-				receiveTroop(troopAround.get(i));
-				troopAround.get(i).getUnitButton().removeFromCanvas();
-				gameMap[troopAround.get(i).getxPosMap()][troopAround.get(i).getyPosMap()] = 0;
+				receiveTroop(troop);
+				troop.getUnitButton().removeFromCanvas();
+				gameMap[troop.getxPosMap()][troop.getyPosMap()] = 0;
 			}
 			troopAround.clear();
 			setOwner(0);
@@ -422,6 +422,14 @@ public class Castle extends Sprite {
 	 */
 	public boolean isBuildingWall() {
 		return isBuildingWall;
+	}
+	
+	
+	/**
+	 * @param hasWAll sets if the castle has wall or not.
+	 */
+	public void setHasWall(boolean hasWall) {
+		this.hasWall = hasWall;
 	}
 
 	/**

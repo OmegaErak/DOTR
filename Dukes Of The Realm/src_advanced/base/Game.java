@@ -904,9 +904,9 @@ public class Game {
 		} else {
 			unitPathName = "money";
 		}
-		Button unitButton = unit.spawnTroop(unitPathName, 0, playerCastlePosition, path, renderLayer);
+		Button unitButton = unit.spawnTroop(renderLayer,unitPathName, 0, playerCastlePosition, path);
 		unit.setUnitButton(unitButton);
-		unit.displace(path, renderLayer, unitButton, unit, gameMap, targetedCastle, castleOwned, speed);
+		unit.displace(renderLayer,path, unitButton, unit, gameMap, targetedCastle, castleOwned, speed);
 	}
 
 	/**
