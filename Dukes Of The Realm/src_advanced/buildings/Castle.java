@@ -53,8 +53,8 @@ public class Castle extends Sprite {
 	private int barrackLevel = 1;
 
 	private boolean isBarrackLevelingUp;
-	private int timeUntilBarrackLevelUp = 20;
-	private int barracksBuildCost = 1500;
+	private int timeUntilBarrackLevelUp = 5;
+	private int barracksBuildCost = 100;
 
 	private ArrayList<Troop> inProductionTroops = new ArrayList<>();
 	private ArrayList<Troop> troopAround = new ArrayList<>();
@@ -65,7 +65,7 @@ public class Castle extends Sprite {
 	 * @param renderLayer The JavaFX canvas onto which we draw.
 	 * @param position The position of the castle in the window.
 	 */
-	public Castle(Pane renderLayer, Point2D position) {
+	public Castle(Pane renderLayer, Point2D position, int owner) {
 		super(renderLayer, position);
 
 		if (owner <= Settings.nbMaxActiveDukes) {
@@ -80,6 +80,7 @@ public class Castle extends Sprite {
 
 		Random rdGen = new Random();
 
+		this.owner = owner;
 		this.level = 1;
 		this.treasure = Settings.initialTreasure;
 		this.doorDirection = rdGen.nextInt(Direction.nbDirections);
@@ -91,11 +92,17 @@ public class Castle extends Sprite {
 			final int troopType = rdGen.nextInt(Settings.nbTroopTypes);
 			
 			if (troopType == 0) {
-				availableKnights.add(new Knight(renderLayer, this));
+				Knight knight = new Knight(renderLayer, this);
+				knight.setOwner(this.owner);
+				availableKnights.add(knight);	
 			} else if (troopType == 1) {
-				availableOnagers.add(new Onager(renderLayer, this));
+				Onager onager = new Onager(renderLayer, this);
+				onager.setOwner(this.owner);
+				availableOnagers.add(onager);
 			} else if (troopType == 2) {
-				availablePikemen.add(new Pikeman(renderLayer, this));
+				Pikeman pikeman = new Pikeman(renderLayer, this);
+				pikeman.setOwner(this.owner);
+				availablePikemen.add(pikeman);
 			}
 		}
 
@@ -168,7 +175,6 @@ public class Castle extends Sprite {
 		}
 
 		onEnemyAttack(gameMap);
-		onTroopProduction();
 	}
 
 	/**
@@ -215,49 +221,51 @@ public class Castle extends Sprite {
 				setTexture(texture);
 				addToCanvas();
 			}
-		}
+		}else {
+			
 
-		int i = 0;
-		while (i < amountOfDamage && (availableKnights.size() != 0 || availableOnagers.size() != 0 || availablePikemen.size() != 0)) {
-			Random r = new Random();
-			int whoIsTakingDamage = r.nextInt(Settings.nbTroopTypes);
-			if (whoIsTakingDamage == 0) {
-				//Knight takes damage
-				if(availableKnights.isEmpty()) {
-					--i;
-				}else {		
-					Knight knight = availableKnights.get(0);
-					knight.setHP(knight.getHP()-1);
-					if(!knight.isAlive()) {
-						availableKnights.remove(0);
+			int i = 0;
+			while (i < amountOfDamage && (availableKnights.size() != 0 || availableOnagers.size() != 0 || availablePikemen.size() != 0)) {
+				Random r = new Random();
+				int whoIsTakingDamage = r.nextInt(Settings.nbTroopTypes);
+				if (whoIsTakingDamage == 0) {
+					//Knight takes damage
+					if(availableKnights.isEmpty()) {
+						--i;
+					}else {		
+						Knight knight = availableKnights.get(0);
+						knight.setHP(knight.getHP()-1);
+						if(!knight.isAlive()) {
+							availableKnights.remove(0);
+						}
 					}
-				}
-			} else if(whoIsTakingDamage == 1) {
-				//Pikeman takes damage
-				if(availablePikemen.isEmpty()) {
-					--i;
-				}else {
-					Pikeman pikeman = availablePikemen.get(0);
-					pikeman.setHP(pikeman.getHP()-1);
-					if(!pikeman.isAlive()) {
-						availablePikemen.remove(0);
+				} else if(whoIsTakingDamage == 1) {
+					//Pikeman takes damage
+					if(availablePikemen.isEmpty()) {
+						--i;
+					}else {
+						Pikeman pikeman = availablePikemen.get(0);
+						pikeman.setHP(pikeman.getHP()-1);
+						if(!pikeman.isAlive()) {
+							availablePikemen.remove(0);
+						}
 					}
-				}
-			} else if(whoIsTakingDamage == 2) {
-				//Onager takes damage
-				if(availableOnagers.isEmpty()) {
-					--i;
-				}else {
-					Onager onager= availableOnagers.get(0);
-					onager.setHP(onager.getHP()-1);
-					if(!onager.isAlive()) {
-						availableOnagers.remove(0);
+				} else if(whoIsTakingDamage == 2) {
+					//Onager takes damage
+					if(availableOnagers.isEmpty()) {
+						--i;
+					}else {
+						Onager onager= availableOnagers.get(0);
+						onager.setHP(onager.getHP()-1);
+						if(!onager.isAlive()) {
+							availableOnagers.remove(0);
+						}
 					}
+				} else {
+					break;
 				}
-			} else {
-				break;
+				++i;
 			}
-			++i;
 		}
 
 		// If it has been conquered.
@@ -331,7 +339,7 @@ public class Castle extends Sprite {
 	 */
 	public void onTroopProduction() {
 		if (this.isProducingTroops) {
-			int numberOfToopsInProd = Math.min(barrackLevel, inProductionTroops.size());
+			int numberOfToopsInProd = Math.min(barrackLevel, inProductionTroops.size()-1);
 
 			for(int i = 0; i < numberOfToopsInProd; i++) {
 				if(inProductionTroops.get(i).getProdTime() > 0) {
@@ -355,12 +363,16 @@ public class Castle extends Sprite {
 			}
 		}
 	}
+	
+	public boolean isPlayerCastle() {
+		return this.owner == 0;
+	}
 
 	/**
 	 * Levels up the barrack of the castle.
 	 */
 	public void levelUpBarrack() {
-		final int timeIncrementation = 20;
+		final int timeIncrementation = 1;
 
 		this.isBarrackLevelingUp = true;
 		this.timeUntilBarrackLevelUp += timeIncrementation;

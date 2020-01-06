@@ -26,6 +26,8 @@ public class Settings {
 	
 	static public final int ostSize = 3;
 	
+	static public final int iaTimeAction = 5;
+	
 	// Knight, onager and pikeman
 	static public final int nbTroopTypes = 3;
 	
@@ -53,5 +55,5 @@ public class Settings {
 	static public final int camelProdTime = 0;
 	static public final int camelHP = 1;
 	static public final int camelDamage = 0;
-	static public final int camelSpeed = 1;
+	static public final int camelSpeed = 5;
 }

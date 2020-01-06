@@ -1,6 +1,7 @@
 package base;
 
 import algorithms.AStar;
+import algorithms.IA;
 import algorithms.Node;
 
 import buildings.Castle;
@@ -101,11 +102,14 @@ public class Game {
 
 	private Castle currentPlayerCastle;
 	private ArrayList<Castle> castles = new ArrayList<>();
+	private ArrayList<Castle> dukeCastles = new ArrayList<>();
 
 	private ArrayList<AtomicInteger> recruitCommand = new ArrayList<>();
 	private ArrayList<Troop> selectedTroops = new ArrayList<>();
 	private int moneyToTransfer;
 
+	
+	IA ia;
 	/**
 	 * Default constructor. Initialises JavaFX variables and configures them to adapt to our application.
 	 */
@@ -170,8 +174,14 @@ public class Game {
 							frameCounter -= framesPerDay;
 							++currentDayHolder.day;
 
+							if(ia.iaActionTime()) {
+								Castle iaBaseCasle = ia.selectCastleForAction();
+								moveTroop(ia.iaSelectTroop(),iaBaseCasle,ia.selectCastleForAttack(iaBaseCasle),false);
+							}
 							for (Castle castle : castles) {
 								castle.onUpdate(gameMap);
+								castle.onTroopProduction();
+								
 							}
 						}
 					}
@@ -700,6 +710,8 @@ public class Game {
 			e.consume();
 		});
 	}
+	
+	
 
 	/**
 	 * Loads the castles textures and creates them.
@@ -720,21 +732,25 @@ public class Game {
 			int cellSize = Settings.cellSize;
 			Point2D position = new Point2D(rdGen.nextInt(widthUpperBound/cellSize -3)*cellSize +20, Settings.statusBarHeight + 30 + rdGen.nextInt(heightUpperBound/cellSize - 4)*cellSize);
 			if (!isPositionNearACastle(position)) {
-				Castle castle = new Castle(renderLayer, position);
-				castle.setOwner(castleOwner);
+				Castle castle = new Castle(renderLayer, position,castleOwner);
 
 				final int index = rdGen.nextInt(dukeNames.size());
 				castle.setOwnerName(dukeNames.get(index));
 				dukeNames.remove(index);
+				if(castleOwner <= Settings.nbMaxActiveDukes) {
+					dukeCastles.add(castle);
+				}
 
 				castles.add(castle);
 				++castleOwner;
 			}
 		}
 
+		ia = new IA(dukeCastles);
 		final Castle playerCastle = castles.get(0);
 		playerCastles.add(playerCastle);
 		for (Castle castle : castles) {
+			
 			
 			for(int i = 0; i < Settings.castleSize/Settings.cellSize; i++) {
 				for(int j = 0; j < Settings.castleSize/Settings.cellSize; j++) {
@@ -817,7 +833,7 @@ public class Game {
 			enemyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
 			enemyTargetButton.getTextureView().setPickOnBounds(true);
 			enemyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				moveTroop(selectedTroops, castle, false);
+				moveTroop(selectedTroops,this.currentPlayerCastle,castle, false);
 				e.consume();
 			});
 			castleEnemyTargets.add(enemyTargetButton);
@@ -827,7 +843,7 @@ public class Game {
 			allyTargetButton.getTextureView().setFitHeight(Settings.castleSize);
 			allyTargetButton.getTextureView().setPickOnBounds(true);
 			allyTargetButton.getTextureView().setOnMouseClicked(e -> {
-				moveTroop(selectedTroops, castle, true);
+				moveTroop(selectedTroops,this.currentPlayerCastle, castle, true);
 				e.consume();
 			});
 			castleAllyTargets.add(allyTargetButton);
@@ -860,38 +876,38 @@ public class Game {
 	/**
 	 * Moves selected troops to a castle
 	 * @param selectedTroops The troops to move.
-	 * @param castle The castle that will receive the troops
+	 * @param targetedCastle The castle that will receive the troops
 	 * @param castleOwned True if the castle belongs to the player, false otherwise.
 	 */
-	public void moveTroop(ArrayList<Troop> selectedTroops, Castle castle, boolean castleOwned) {
+	public void moveTroop(ArrayList<Troop> selectedTroops,Castle originCastle, Castle targetedCastle, boolean castleOwned) {
 		while(selectedTroops.size() >= Settings.ostSize) {
 			int minSpeed = Math.min(selectedTroops.get(0).getSpeed(), selectedTroops.get(1).getSpeed());
 			minSpeed = Math.min(minSpeed, selectedTroops.get(2).getSpeed());
 			for(int i = 0; i < Settings.ostSize; i++) {
-				currentPlayerCastle.removeTroop(selectedTroops.get(0));
-				displacement(currentPlayerCastle.getPosition(), castle, selectedTroops.get(0), castleOwned, minSpeed);
+				originCastle.removeTroop(selectedTroops.get(0));
+				displacement(originCastle.getPosition(), targetedCastle, selectedTroops.get(0), castleOwned, minSpeed);
 				selectedTroops.remove(0);
 			}
 		}
 
 		for(int i = 0; i < selectedTroops.size(); i++) {
-			currentPlayerCastle.removeTroop(selectedTroops.get(0));
-			displacement(currentPlayerCastle.getPosition(), castle, selectedTroops.get(0), castleOwned, selectedTroops.get(0).getSpeed());
+			originCastle.removeTroop(selectedTroops.get(0));
+			displacement(originCastle.getPosition(), targetedCastle, selectedTroops.get(0), castleOwned, selectedTroops.get(0).getSpeed());
 			selectedTroops.remove(0);
 		}
 	}
 
 	/**
 	 * Launches the move animation.
-	 * @param playerCastlePosition The starting position.
+	 * @param origincastlePosition The starting position.
 	 * @param targetedCastle The castle that will receive the troop.
 	 * @param unit The troop to move.
 	 * @param castleOwned True if the castle belongs to the player, false otherwise.
 	 * @param speed The speed of the movement.
 	 */
-	private void displacement(Point2D playerCastlePosition, Castle targetedCastle, Troop unit, boolean castleOwned, int speed) {
+	private void displacement(Point2D originCastlePosition, Castle targetedCastle, Troop unit, boolean castleOwned, int speed) {
 		int dxy = Settings.castleSize / 2;
-		Node start = new Node(new Point2D(playerCastlePosition.getX() + dxy, playerCastlePosition.getY() + dxy), 0, 0);
+		Node start = new Node(new Point2D(originCastlePosition.getX() + dxy, originCastlePosition.getY() + dxy), 0, 0);
 		Node end = new Node(new Point2D(targetedCastle.getPosition().getX() + dxy, targetedCastle.getPosition().getY() + dxy), 0, 0);
 		Double[] path = AStar.shortestPath(start, end, gameMap, true, castleOwned);
 		String unitPathName;
@@ -904,7 +920,7 @@ public class Game {
 		} else {
 			unitPathName = "money";
 		}
-		Button unitButton = unit.spawnTroop(renderLayer,unitPathName, 0, playerCastlePosition, path);
+		Button unitButton = unit.spawnTroop(renderLayer,unitPathName, unit.getOwner(), originCastlePosition, path);
 		unit.setUnitButton(unitButton);
 		unit.displace(renderLayer,path, unitButton, unit, gameMap, targetedCastle, castleOwned, speed);
 	}
@@ -923,17 +939,14 @@ public class Game {
 				if (nbKnights >0) {
 					--nbKnights;
 					Knight knight = new Knight(renderLayer, currentPlayerCastle);
-					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure() - knight.getProdCost());
 					currentPlayerCastle.produceTroop(knight);
 				} else if (nbOnagers>0) {
 					--nbOnagers;
 					Onager onager= new Onager(renderLayer, currentPlayerCastle);
-					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure() - onager.getProdCost());
 					currentPlayerCastle.produceTroop(onager);
 				} else {
 					--nbPikemen;
 					Pikeman pikeman = new Pikeman(renderLayer, currentPlayerCastle);
-					currentPlayerCastle.setTreasure(currentPlayerCastle.getTreasure() - pikeman.getProdCost());
 					currentPlayerCastle.produceTroop(pikeman);
 				}
 		}
