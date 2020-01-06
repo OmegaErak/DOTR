@@ -22,6 +22,7 @@ public class Pikeman extends Troop {
 		this.damage 	= Settings.pikemanDamage;
 		this.speed 		= Settings.pikemanSpeed;
 
+		Image texture;
 		if (castle.getOwner() <= Settings.nbMaxActiveDukes) {
 			texture = new Image("/sprites/troops/pikeman_" + castle.getOwner() + ".png");
 		} else {

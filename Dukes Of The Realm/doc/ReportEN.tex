@@ -27,7 +27,22 @@ The realm is in chaos after the king passed away. You are a duke and have to fig
 
 Your castle is the one with the red flag, while aspiring dukes's castles are the colored ones. The neutral dukes all have grey castles.
 
-When clicking a castle, you have information displayed about it, even if it's an enemy castle.
+When clicking a castle, you have information displayed about it, even if it's an enemy castle. Then you will have many buttons in the top center of your screen.
+
+The list in order is:
+
+\begin{itemize}
+    \item Recruit.
+    \item Move (Move if ally target, Attack if enemy target).
+    \item Level up castle.
+    \item Transfer money between castles.
+    \item Build wall around castle.
+    \item Level up the castle's barrack.
+\end{itemize}
+
+With these commands, you should be able to play instinctively and have fun. The game is over once you have no more castles (lose) or when you conquered all the other active dukes (win).
+
+\textbf{Note:} When transfering money, you can write the amount in the spinner. However, to transfer that amount, you first have to press Enter so the application gets the value you typed.
 
 \section*{Making the game}
 \addcontentsline{toc}{section}{The game}
@@ -63,8 +78,8 @@ This was in order to have a first functional prototype without all the features,
 For the advanced version, we took out the rules we specified in the previous subsection, and we added the following ones:
 
 \begin{itemize}
-    \item Many types of troops. We chose 4: Knight, Onager, Pikeman and Camel.
-    \item Many levels for castles. We chose to have an infinity of levels by using mathematical formulas.
+    \item Many types of troops. We chose 3: Knight, Onager, Pikeman.
+    \item Many levels for castles. We chose to have a max of 10.
     \item The troops evade castles and obstacles when moving.
     \item The troops leave the castle by the door.
     \item Per turn, castles produce money, and money can be used to create troops and level up the castle.
@@ -99,6 +114,7 @@ Basic version:
 \begin{itemize}
     \item Randomly, the application won't start up.
     \item White bar on the right side of the window.
+    \item Multiple recruitement has some bugs.
 \end{itemize}
 
 \section*{How we did the game}

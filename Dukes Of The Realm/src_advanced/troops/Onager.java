@@ -24,6 +24,7 @@ public class Onager extends Troop {
 		this.damage 	= Settings.onagerDamage;
 		this.speed 		= Settings.onagerSpeed;
 
+		Image texture;
 		if (castle.getOwner() <= Settings.nbMaxActiveDukes) {
 			texture = new Image("/sprites/troops/onager_" + castle.getOwner() + ".png");
 		} else {

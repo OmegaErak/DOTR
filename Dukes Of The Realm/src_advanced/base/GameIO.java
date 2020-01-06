@@ -114,12 +114,13 @@ public abstract class GameIO {
                 writer.write((int)castle.getPosition().getX() + " " + (int)castle.getPosition().getY() + "\n");
 
                 if (castle.hasWall()) {
-                    writer.write(0);
+                    writer.write(Integer.toString(1));
                 } else {
-                    writer.write(1);
+                    writer.write(Integer.toString(0));
                 }
+                writer.write("\n");
 
-                writer.write(castle.getBarrackLevel());
+                writer.write(castle.getBarrackLevel() + "\n");
 
                 writer.write(castle.getNbTroops() + "\n");
                 for (Troop troop : castle.getTroops()) {

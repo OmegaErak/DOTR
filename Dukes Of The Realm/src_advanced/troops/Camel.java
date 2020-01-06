@@ -10,7 +10,7 @@ import javafx.scene.layout.Pane;
  */
 public class Camel extends Troop {
 	// It's also the money being transferred.
-	private int prodCost;
+	private final int prodCost;
 
 	public Camel(Pane renderLayer, Castle castle, int prodCost) {
 		super(renderLayer, castle);
@@ -22,7 +22,7 @@ public class Camel extends Troop {
 		this.speed 		= Settings.camelSpeed;
 
 		// TODO: Camel texture
-		texture = new Image("/sprites/troops/money_0.png");
+		Image texture = new Image("/sprites/troops/money_0.png");
 		setTexture(texture);
 	}
 

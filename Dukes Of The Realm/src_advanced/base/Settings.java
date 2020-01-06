@@ -18,7 +18,7 @@ public class Settings {
 	static final public int cellSize = 10;
 
 	static final public int castleSize = 50; // In pixels
-	static final public int troopsSize = 15; // In pixels
+	static final public int troopsSize = 20; // In pixels
 
 	static final public int minimumCastleDistance = 200;
 

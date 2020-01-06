@@ -6,7 +6,7 @@ import javafx.geometry.Point2D;
 import java.util.ArrayList;
 
 public class Node {
-	private Point2D position;
+	private final Point2D position;
 
 	private double cost;
 	private double heuristicCost;

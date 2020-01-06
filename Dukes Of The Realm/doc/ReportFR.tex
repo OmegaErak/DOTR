@@ -1,0 +1,157 @@
+% Propriété de Luis L. Marques et Enzo Carré
+\documentclass[12pt, a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[top = 2 cm, bottom = 2 cm, left = 2 cm, right = 2 cm]{geometry} % Page margins
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{algorithm,algorithmic}
+
+\title{Programmation orientée objet}
+\author{Luis L. marques\\Enzo Carré}
+\date{2019/2020}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\newpage
+\section*{Comment jouer}
+\addcontentsline{toc}{section}{Comment jouer}
+
+Le royaume est dans le chaos après que le roi se soit éteint. Vous êtes un duc et devez battre les autres ducs afin d'arriver jusqu'au trône. De plus, il y a également des ducs qui ne convoitent pas le trône et sont donc neutres.
+
+Votre château est celui avec le drapeau, tandis que ceux des autres ducs sont les autres châteaux colorés. Les châteaux neutres sont gris.
+
+
+Quand vous cliquez sur un château, ses informations sont affichées, qu'il soit allié ou ennemi. Ensuite vous avez des boutons en haut au centre de la fenêtre.
+
+Dans l'ordre, il s'agit des boutons de:
+
+\begin{itemize}
+    \item Recrutement.
+    \item Mouvement (Mouvement si vous cliquez sur un château allié, Attaque sinon).
+    \item Augmenter le niveau du château.
+    \item Transférer de l'argent.
+    \item Construire la muraille du château.
+    \item Améliorer la caserne du château.
+\end{itemize}
+
+Avec ces commandes, vous devriez être capable de jouer et de vous amuser sans plus d'aide nécessaire. Le jeu se termine lorsque vous n'avez plus de châteaux (défaite) ou lorsque vous avez battu tous les ducs qui convoitent le trône (victoire).
+
+\textbf{Remarque:} Lorsque vous transférez de l'argent, vous pouvez écrire le montant dans la case prévue à cet effet, mais il faut également appuyer sur Entrée pour valider la saisie, sinon le transfer s'effectuera avec une autre valeur.
+
+\section*{Création du jeu}
+\addcontentsline{toc}{section}{Création du jeu}
+
+\subsection*{Outils utilisés}
+\addcontentsline{toc}{subsection}{Outils utilisés}
+
+Le cours relatif à ce projet était enseigné en Java, et pour cette raison on a fait le projet en Java, avec JavaFX pour la partie graphique.
+
+Pour les IDE, nous avons utilisé Eclipse et IntelliJ.
+
+\subsection*{La version basique}
+\addcontentsline{toc}{subsection}{La version basique}
+
+Le client nous a d'abord commandé une version basique, avec moins de fonctions à implémenter.
+
+Pour cette version, nous avions les règles suivantes:
+
+\begin{itemize}
+    \item Seulement un type de troupe. Nous avons choisi le chevalier.
+    \item Seulement un niveau pour les châteaux.
+    \item Les troupes n'esquivent pas les obstacles lors de leurs déplacements.
+    \item Les troupes ne sortent pas par la porte.
+    \item Par tour, les châteaux génèrent des troupes plutôt que de l'argent.
+    \item Les autres ducs ne font rien.
+\end{itemize}
+
+Ceci était dans l'objectif d'avoir une version fonctionnelle qui pouvait déjà être joué, même s'il n'y avait pas de compétitivité.
+
+\subsection*{La version avancée}
+\addcontentsline{toc}{subsection}{La version avancée}
+
+Pour la version avancée, nous avions d'autres règles que celles spécifiées au dessus:
+
+\begin{itemize}
+    \item Plusieurs types the troupes. Nous en avons 3: Chevalier, Onagre, Piquier.
+    \item Plusieurs niveaux pour les châteaux. Nous avons choisi un maximum de 10 niveaux.
+    \item Les troupes évitent les obstacles lorsqu'elles se déplacent.
+    \item Les troupes quittent le château par la porte.
+    \item Par tour, un château produit de l'argent qui peut être utilisé pour faire d'autres troupes ou améliorer le château.
+    \item Les autres ducs font des actions basiques.
+\end{itemize}
+
+\noindent{
+Comme bonus, nous avons ajouté ce qui suit:
+}
+
+\begin{itemize}
+    \item Les murailles autour des châteaux.
+    \item Les transfer d'argent.
+\end{itemize}
+
+\subsection*{Les bugs connus}
+\addcontentsline{toc}{subsection}{Les bugs connus}
+
+Version basique:
+
+\begin{itemize}
+    \item De manière aléatoire, l'application se lance pas.
+    \item Parfois, les troupes suivent la route de déplacement mais sont légèrement écartées de ce dernier.
+    \item Après la conquête d'un château, renvoyer des troupes les fera apparaître en double, mais elles seront considérées par le jeu une seule fois, comme prévu.
+    \item Barre blanche sur la droite de la fenêtre.
+\end{itemize}
+
+\noindent{
+Version avancée:
+}
+
+\begin{itemize}
+    \item De manière aléatoire, l'application se lance pas.
+    \item Barre blanche sur la droite de la fenêtre.
+    \item Le recrutement multiple est imprévisible.
+\end{itemize}
+
+\section*{Comment on l'a fait}
+\addcontentsline{toc}{section}{Comment on l'a fait}
+
+On était deux sur le projet. Dans la première partie, nous nous sommes lancés directement dans le code pour savoir ce qu'on pouvait faire et ce que nos outils nous proposaient.
+
+\subsection*{Le travail en commun}
+\addcontentsline{toc}{subsection}{Le travail en commun}
+
+En commun, nous avons fait le design de l'interface et des classes qu'on utiliserait par la suite. Au début du codage, nous avons également travaillé en simultané le code qui était partagé par les deux versions.
+
+\subsection*{Le travail individuel}
+\addcontentsline{toc}{subsection}{Le travail individuel}
+
+A un moment, nous avons divisé le projet pour partir sur les deux version différentes.
+
+J'ai donc fait la version basique, la javadoc et la documentation tandis qu'Enzo s'est grandement occupé de la version avancée. Vers la fin du projet, nous étions tous les deux sur la version avancée.
+
+\section*{Ressenti du projet}
+\addcontentsline{toc}{section}{Ressenti du projet}
+
+\subsection*{Luis L. Marques}
+\addcontentsline{toc}{subsection}{Luis L. Marques}
+
+Personnellement, au début, j'ai trouvé le projet un peu ennuyant, car ce n'est pas mon type de jeux et je n'étais pas familier avec le langage utilisé.
+
+Après m'être familiaré avec le langage et la bibliothèque JavaFX, c'était plûtot sympa comme expérience.
+
+Au niveau du contrat, j'ai trouvé qu'il manquait parfois de précision sur les joueurs et sur le système d'attaque. De plus, j'ai aussi senti qu'il nous manquait un peu de temps. Une ou deux semaines en plus aurait été parfait pour nous.
+
+Au niveau du code, c'était une grande opportunité d'apprendre un nouveau langage et comme pour tout projet, une bonne opportunité d'améliorer son travail d'équipe.
+
+\subsection*{Enzo Carré}
+\addcontentsline{toc}{subsection}{Enzo Carré}
+
+
+
+\end{document}

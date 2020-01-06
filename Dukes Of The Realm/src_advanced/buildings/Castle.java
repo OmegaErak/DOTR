@@ -12,10 +12,12 @@ import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
+// TODO Add delay when making troops leave the castle.
 /**
  * Castle class.
  */
@@ -33,7 +35,7 @@ public class Castle extends Sprite {
 	private int treasure;
 	
 	private Point2D position;
-	private int doorDirection;
+	private final int doorDirection;
 	
 	private ArrayList<Pikeman> availablePikemen = new ArrayList<>();
 	private ArrayList<Knight> availableKnights = new ArrayList<>();
@@ -61,10 +63,9 @@ public class Castle extends Sprite {
 	private int timeUntilBarrackLevelUp = -1;
 
 	private boolean isProducingTroops;
-	private ArrayList<Troop> inProductionTroops = new ArrayList<>();
+	private final ArrayList<Troop> inProductionTroops = new ArrayList<>();
 
-	private ArrayList<Troop> leavingTroops = new ArrayList<>();
-	private ArrayList<Troop> attackingTroops = new ArrayList<>();
+	private final ArrayList<Troop> attackingTroops = new ArrayList<>();
 
 	/**
 	 * Default constructor
@@ -125,6 +126,9 @@ public class Castle extends Sprite {
 		onEnemySiege(gameMap);
 	}
 
+	/**
+	 * Called when something is buing built.
+	 */
 	private void onConstruction() {
 		if (isInConstruction) {
 			if (isLevelingUp) {
@@ -249,7 +253,7 @@ public class Castle extends Sprite {
 					--appliedDamage;
 				} else {
 					Knight knight = availableKnights.get(0);
-					knight.setHP(knight.getHP() - 1);
+					knight.decrementHP();
 					if (!knight.isAlive()) {
 						availableKnights.remove(knight);
 					}
@@ -260,7 +264,7 @@ public class Castle extends Sprite {
 					--appliedDamage;
 				} else {
 					Onager onager= availableOnagers.get(0);
-					onager.setHP(onager.getHP() - 1);
+					onager.decrementHP();
 					if(!onager.isAlive()) {
 						availableOnagers.remove(onager);
 					}
@@ -270,7 +274,7 @@ public class Castle extends Sprite {
 					--appliedDamage;
 				} else {
 					Pikeman pikeman = availablePikemen.get(0);
-					pikeman.setHP(pikeman.getHP() - 1);
+					pikeman.decrementHP();
 					if (!pikeman.isAlive()) {
 						availablePikemen.remove(pikeman);
 					}
@@ -295,8 +299,7 @@ public class Castle extends Sprite {
 
 			for (Troop troop : attackingTroops) {
 				receiveTroop(troop);
-				System.out.println(gameMap[troop.getxPosMap()][troop.getyPosMap()]);
-				gameMap[troop.getxPosMap()][troop.getyPosMap()] = 0;
+				gameMap[troop.getGameMapPosX()][troop.getGameMapPosY()] = 0;
 			}
 			attackingTroops.clear();
 
@@ -367,12 +370,12 @@ public class Castle extends Sprite {
 	 * @param troop The troop to remove.
 	 */
 	public void removeTroop(Troop troop) {
-		if(troop.getClass() == Pikeman.class) {
-			availablePikemen.remove(0);
-		}else if(troop.getClass() == Knight.class){
-			availableKnights.remove(0);
-		}else if(troop.getClass() == Onager.class){
-			availableOnagers.remove(0);
+		if(troop.getClass() == Knight.class){
+			availableKnights.remove((Knight)troop);
+		} else if(troop.getClass() == Onager.class){
+			availableOnagers.remove((Onager)troop);
+		} else if (troop.getClass() == Pikeman.class) {
+			availablePikemen.remove((Pikeman)troop);
 		}
 	}
 
@@ -602,13 +605,6 @@ public class Castle extends Sprite {
 	}
 
 	/**
-	 * @return True if the castle is leveling up, false otherwise.
-	 */
-	public boolean isLevelingUp() {
-		return isLevelingUp;
-	}
-
-	/**
  	 * @return The troops of the castle.
 	 */
 	public ArrayList<Troop> getTroops() {
@@ -679,7 +675,7 @@ public class Castle extends Sprite {
 	 * @return True if it belongs to the user, false otherwise.
 	 */
 	public boolean isPlayerCastle() {
-		return owner == 0;
+		return owner == Game.playerID;
 	}
 
 	/**
@@ -708,11 +704,18 @@ public class Castle extends Sprite {
 		}
 	}
 
+	/**
+	 * Moves money to a castle.
+	 * @param receiver The receiver.
+	 * @param money The money.
+	 * @param gameMap The game map.
+	 */
 	public void orderMoneyTransfer(Castle receiver, int money, int[][] gameMap) {
 		treasure -= money;
 		Camel camel = new Camel(renderLayer, this, money);
-		camel.launchMovingAnimation(getPosition(), receiver, camel, receiver.isPlayerCastle(), camel.getSpeed(), gameMap);
+		camel.launchMovingAnimation(receiver, gameMap, camel.getSpeed());
 	}
+
 	/**
 	 * Moves selected troops to a castle
 	 * @param receiver The castle that will receive the troops.
@@ -732,13 +735,13 @@ public class Castle extends Sprite {
 			selectedTroops.add(availablePikemen.get(i));
 		}
 
-		while(selectedTroops.size() >= Settings.ostSize) {
+		while (selectedTroops.size() >= Settings.ostSize) {
 			int minSpeed = Math.min(selectedTroops.get(0).getSpeed(), selectedTroops.get(1).getSpeed());
 			minSpeed = Math.min(minSpeed, selectedTroops.get(2).getSpeed());
 			for(int i = 0; i < Settings.ostSize; i++) {
 				Troop troop = selectedTroops.get(0);
 				removeTroop(troop);
-				troop.launchMovingAnimation(getPosition(), receiver, selectedTroops.get(0), receiver.isPlayerCastle(), minSpeed, gameMap);
+				troop.launchMovingAnimation(receiver, gameMap, minSpeed);
 				selectedTroops.remove(0);
 			}
 		}
@@ -746,7 +749,7 @@ public class Castle extends Sprite {
 		for(int i = 0; i < selectedTroops.size(); i++) {
 			Troop troop = selectedTroops.get(0);
 			removeTroop(troop);
-			troop.launchMovingAnimation(getPosition(), receiver, selectedTroops.get(0), receiver.isPlayerCastle(), selectedTroops.get(0).getSpeed(), gameMap);
+			troop.launchMovingAnimation(receiver, gameMap, troop.getSpeed());
 			selectedTroops.remove(0);
 		}
 	}

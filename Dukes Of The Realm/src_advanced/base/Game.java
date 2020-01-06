@@ -63,44 +63,50 @@ public class Game {
 	public static final int playerID = 0;
 
 	// Render objects
-	private Group root;
-	private Pane renderLayer;
+	private final Group root;
+	private final Pane renderLayer;
 
-	private List<StatusBar> statusBars = new ArrayList<>();
+	private final ArrayList<StatusBar> statusBars = new ArrayList<>();
 
 	private Background menuBackground;
 	private Background gameBackground;
 
-	private List<Button> defaultMenuButtons = new ArrayList<>();
+	private final ArrayList<Button> defaultMenuButtons = new ArrayList<>();
 
 	private Button saveButton;
 	private Boolean isSaveButtonDisplayed = false;
 
-	private ArrayList<Button> castleEnemyTargets = new ArrayList<>();
-	private ArrayList<Button> castleAllyTargets = new ArrayList<>();
-	private ArrayList<Button> castleMoneyTargets = new ArrayList<>();
+	private final ArrayList<Button> castleEnemyTargets = new ArrayList<>();
+	private final ArrayList<Button> castleAllyTargets = new ArrayList<>();
+	private final ArrayList<Button> castleMoneyTargets = new ArrayList<>();
 
 	private boolean isRunning = true;
 	private int frameCounter = 0;
-	private int framesPerDay = 120; // Two seconds
+	private final int framesPerDay = 120; // Two seconds
 
 	// Game objects
-	private Random rdGen = new Random();
+	private final Random rdGen = new Random();
 
 	private GameMode gameMode;
 
-	private DayHolder currentDayHolder = new DayHolder();
+	private final DayHolder currentDayHolder = new DayHolder();
 
-	private int[][] gameMap = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
+	// TODO: Use enum values
+	/*
+	 Values:
+	 0 means there is nothing at that position.
+	 1 means there is a castle.
+	 2 means there is a troop.
+	 */
+	private final int[][] gameMap = new int[Settings.gridCellsCountX / Settings.cellSize][Settings.gridCellsCountY / Settings.cellSize];
 
-	public static ArrayList<Castle> playerCastles = new ArrayList<>();
+	public static final ArrayList<Castle> playerCastles = new ArrayList<>();
 
 	private Castle currentPlayerCastle;
 	private ArrayList<Castle> castles = new ArrayList<>();
-	private ArrayList<Castle> dukeCastles = new ArrayList<>();
 
-	private ArrayList<AtomicInteger> recruitCommand = new ArrayList<>(Settings.nbTroopTypes);
-	private ArrayList<AtomicInteger> moveCommand = new ArrayList<>(Settings.nbTroopTypes);
+	private final ArrayList<AtomicInteger> recruitCommand = new ArrayList<>(Settings.nbTroopTypes);
+	private final ArrayList<AtomicInteger> moveCommand = new ArrayList<>(Settings.nbTroopTypes);
 	private int moneyTransferCommand;
 
 	private AI AI;
@@ -688,8 +694,8 @@ public class Game {
 			e.consume();
 		});
 	}
-	
-	
+
+
 
 	/**
 	 * Loads the castles textures and creates them.
@@ -716,9 +722,6 @@ public class Game {
 				final int index = rdGen.nextInt(dukeNames.size());
 				castle.setOwnerName(dukeNames.get(index));
 				dukeNames.remove(index);
-				if(castleOwner <= Settings.nbMaxActiveDukes) {
-					dukeCastles.add(castle);
-				}
 
 				castles.add(castle);
 				++castleOwner;
@@ -763,7 +766,7 @@ public class Game {
 					}
 				}
 			}
-			
+
 			castle.getTextureView().setOnMouseClicked(e -> {
 				if (castle.isPlayerCastle()) {
 					currentPlayerCastle = castle;
