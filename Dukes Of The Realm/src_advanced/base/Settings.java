@@ -28,7 +28,7 @@ public class Settings {
 	// Packets of troops.
 	static public final int ostSize = 3;
 	
-	static public final int iaTimeAction = 5;
+	static public final double AIInitialProbOfAction = 0;
 	
 	// Knight, onager and pikeman
 	static public final int nbTroopTypes = 3;

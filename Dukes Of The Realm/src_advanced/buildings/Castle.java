@@ -71,7 +71,7 @@ public class Castle extends Sprite {
 	 * @param renderLayer The JavaFX canvas onto which we draw.
 	 * @param position The position of the castle in the window.
 	 */
-	public Castle(Pane renderLayer, Point2D position, int owner) {
+	public Castle(Pane renderLayer, Point2D position) {
 		super(renderLayer, position);
 
 		if (owner <= Settings.nbMaxActiveDukes) {
@@ -91,23 +91,17 @@ public class Castle extends Sprite {
 		doorDirection = rdGen.nextInt(Direction.nbDirections);
 
 		this.position = position;
-		
+
 		final int nbTroops = Settings.nbMinInitTroops + rdGen.nextInt(Settings.nbMaxInitTroops - Settings.nbMinInitTroops);
 		for (int i = 0; i < nbTroops; ++i) {
 			final int troopType = rdGen.nextInt(Settings.nbTroopTypes);
-			
+
 			if (troopType == 0) {
-				Knight knight = new Knight(renderLayer, this);
-				knight.setOwner(this.owner);
-				availableKnights.add(knight);	
+				availableKnights.add(new Knight(renderLayer, this));
 			} else if (troopType == 1) {
-				Onager onager = new Onager(renderLayer, this);
-				onager.setOwner(this.owner);
-				availableOnagers.add(onager);
+				availableOnagers.add(new Onager(renderLayer, this));
 			} else if (troopType == 2) {
-				Pikeman pikeman = new Pikeman(renderLayer, this);
-				pikeman.setOwner(this.owner);
-				availablePikemen.add(pikeman);
+				availablePikemen.add(new Pikeman(renderLayer, this));
 			}
 		}
 
@@ -244,8 +238,7 @@ public class Castle extends Sprite {
 				hasWall = false;
 				setTexture(texture);
 			}
-		}else {
-			
+		}
 
 		int appliedDamage = 0;
 		while (appliedDamage < amountOfDamage && getNbTroops() != 0) {
@@ -271,7 +264,7 @@ public class Castle extends Sprite {
 					if(!onager.isAlive()) {
 						availableOnagers.remove(onager);
 					}
-				}
+			}
 			} else if (whoIsTakingDamage == 2) {
 				if (availablePikemen.isEmpty()) {
 					--appliedDamage;
@@ -281,12 +274,10 @@ public class Castle extends Sprite {
 					if (!pikeman.isAlive()) {
 						availablePikemen.remove(pikeman);
 					}
-				} else {
-					break;
 				}
-				++i;
+			} else {
+				break;
 			}
-
 			++appliedDamage;
 		}
 
@@ -402,10 +393,6 @@ public class Castle extends Sprite {
 
 		return nb;
 	}
-	
-	public boolean isPlayerCastle() {
-		return this.owner == 0;
-	}
 
 	/**
 	 * @return The number of onagers being produced.
@@ -461,14 +448,6 @@ public class Castle extends Sprite {
 	 */
 	public boolean isLevelingUpWall() {
 		return isLevelingUpWall;
-	}
-	
-	
-	/**
-	 * @param hasWAll sets if the castle has wall or not.
-	 */
-	public void setHasWall(boolean hasWall) {
-		this.hasWall = hasWall;
 	}
 
 	/**

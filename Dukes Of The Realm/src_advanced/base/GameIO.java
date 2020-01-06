@@ -46,10 +46,12 @@ public abstract class GameIO {
                 int hasWalls = Integer.parseInt(scanner.nextLine());
                 int barrackLevel = Integer.parseInt(scanner.nextLine());
 
-                Castle castle = new Castle(renderLayer, position,owner);
+                Castle castle = new Castle(renderLayer, position);
+                castle.setOwner(owner);
                 castle.setOwnerName(ownerName);
                 castle.setLevel(castleLevel);
                 castle.setTreasure(castleTreasure);
+
                 if (hasWalls == 0) {
                     castle.setHasWall(false);
                 } else {
