@@ -192,7 +192,7 @@ public class Castle extends Sprite {
 
 			for(int i = 0; i < nbToopsInProd; i++) {
 				if (inProductionTroops.get(i).getProdTime() > 0) {
-					inProductionTroops.get(i).setProdTime(inProductionTroops.get(i).getProdTime() - 1);
+					inProductionTroops.get(i).decrementProdTime();
 					// TODO: Debug purposes
 					System.out.println(inProductionTroops.get(i).getClass());
 					System.out.println(inProductionTroops.get(i).getProdTime());
@@ -223,12 +223,12 @@ public class Castle extends Sprite {
 	private void onEnemySiege(int[][] gameMap) {
 		int amountOfDamage = 0;
 		for(int i = 0; i < attackingTroops.size(); i++) {
-			Troop unit = attackingTroops.get(i);
-			if (unit.getOwner() == owner) {
-				receiveTroop(unit);
-				attackingTroops.remove(unit);
+			Troop troop = attackingTroops.get(i);
+			if (troop.getAttachedCastle().getOwner() == owner) {
+				receiveTroop(troop);
+				attackingTroops.remove(troop);
 			} else {
-				amountOfDamage += unit.getDamage();
+				amountOfDamage += troop.getDamage();
 			}
 		}
 
@@ -283,23 +283,31 @@ public class Castle extends Sprite {
 
 		// If it has been conquered.
 		if(getNbTroops() == 0 && !attackingTroops.isEmpty()) {
-			Image newTexture = new Image("/sprites/castles/castle_" + attackingTroops.get(0).getOwner() + ".png");
-			Image newBuildTexture = new Image("/sprites/castles/castle_" + attackingTroops.get(0).getOwner() + "_build.png");
-			Image newArmoredTexture = new Image("/sprites/castles/armored_castle_" + attackingTroops.get(0).getOwner() + ".png");
+			int newOwner = attackingTroops.get(0).getAttachedCastle().getOwner();
+			String newOwnerName = attackingTroops.get(0).getAttachedCastle().getOwnerName();
+
+			Image newTexture = new Image("/sprites/castles/castle_" + newOwner + ".png");
+			Image newBuildTexture = new Image("/sprites/castles/castle_" + newOwner + "_build.png");
+			Image newArmoredTexture = new Image("/sprites/castles/armored_castle_" + newOwner + ".png");
 			texture = newTexture;
 			buildingTexture = newBuildTexture;
 			armoredTexture = newArmoredTexture;
 
 			for (Troop troop : attackingTroops) {
 				receiveTroop(troop);
+				System.out.println(gameMap[troop.getxPosMap()][troop.getyPosMap()]);
 				gameMap[troop.getxPosMap()][troop.getyPosMap()] = 0;
 			}
 			attackingTroops.clear();
 
-			setOwner(Game.playerID);
+			setOwner(newOwner);
+			setOwnerName(newOwnerName);
+
+			if (this.isPlayerCastle()) {
+				Game.playerCastles.add(this);
+			}
 
 			setTexture(texture);
-			Game.playerCastles.add(this);
 		} else {
 			attackingTroops.clear();
 		}

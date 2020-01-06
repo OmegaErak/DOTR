@@ -22,18 +22,19 @@ import javafx.util.Duration;
  * To be derived for any other troop.
  */
 abstract public class Troop  extends Sprite {
-	protected int prodTime;
-	protected int prodCost;
-	protected int speed;
+	protected Castle attachedCastle;
+
 	protected int health;
 	protected int damage;
-	protected int owner;
+	protected int speed;
+
+	protected int prodTime;
+	protected int prodCost;
 
 	protected Button unitButton;
 
 	protected int xPosMap;
 	protected int yPosMap;
-	protected int timeUntilProd;
 
 	protected Image texture;
 
@@ -45,9 +46,9 @@ abstract public class Troop  extends Sprite {
 	public Troop(Pane renderLayer, Castle castle) {
 		super(renderLayer, castle.getPosition());
 
-		owner = castle.getOwner();
-		textureView.setFitWidth(Settings.knightSize);
-		textureView.setFitHeight(Settings.knightSize);
+		attachedCastle = castle;
+		textureView.setFitWidth(Settings.troopsSize);
+		textureView.setFitHeight(Settings.troopsSize);
 	}
 
 	/**
@@ -64,8 +65,8 @@ abstract public class Troop  extends Sprite {
 		Point2D startPosition = new Point2D(castlePosition.getX() + 25,castlePosition.getY() + 25);
 		Button unitButton = new Button(renderLayer,startPosition,unit);
 		unitButton.setPosition(startPosition);
-		unitButton.getTextureView().setFitHeight(20);
-		unitButton.getTextureView().setFitWidth(20);
+		unitButton.getTextureView().setFitHeight(Settings.troopsSize);
+		unitButton.getTextureView().setFitWidth(Settings.troopsSize);
 		unitButton.addToCanvas();
 		
 		return unitButton;
@@ -99,6 +100,7 @@ abstract public class Troop  extends Sprite {
 		unit.displace(renderLayer, path, unitButton, unit, gameMap, targetedCastle, castleOwned, speed);
 	}
 
+	// TODO Clean
 	/**
 	 * Launches the animation of moving the troop.
 	 * @param path The path it will follow.
@@ -142,7 +144,7 @@ abstract public class Troop  extends Sprite {
 		moveAnimation.play();
 		moveAnimation.setOnFinished(e -> {
 			castleTargeted.addAttackingTroop(unit);
-			if(unit.getOwner() == castleTargeted.getOwner()) {
+			if(unit.getAttachedCastle().getOwner() == castleTargeted.getOwner()) {
 				unitButton.removeFromCanvas();
 				gameMap[(int) (x-5)/Settings.cellSize][(int) (y-5)/Settings.cellSize] = 0;
 			}		
@@ -154,21 +156,6 @@ abstract public class Troop  extends Sprite {
 	}
 
 	/**
-	 * @return Time until the troop production is over.
-	 */
-	public int getTimeUntilProd() {
-		return timeUntilProd;
-	}
-
-	/**
-	 * Sets the time until the troop production is over.
-	 * @param timeUntilProd
-	 */
-	public void setTimeUntilProd(int timeUntilProd) {
-		this.timeUntilProd = timeUntilProd;
-	}
-
-	/**
 	 * @return The x coordinate on the map.
 	 */
 	public int getxPosMap() {
@@ -176,26 +163,10 @@ abstract public class Troop  extends Sprite {
 	}
 
 	/**
-	 * Sets the x coordinate on the map.
-	 * @param xPosMap The coordinate.
-	 */
-	public void setxPosMap(int xPosMap) {
-		this.xPosMap = xPosMap;
-	}
-
-	/**
 	 * @return The y coordinate on the map.
 	 */
 	public int getyPosMap() {
 		return yPosMap;
-	}
-
-	/**
-	 * Sets the y coordinate on the map.
-	 * @param yPosMap The coordinate.
-	 */
-	public void setyPosMap(int yPosMap) {
-		this.yPosMap = yPosMap;
 	}
 
 	/**
@@ -214,21 +185,6 @@ abstract public class Troop  extends Sprite {
 	}
 
 	/**
-	 * @return The owner of the troop.
-	 */
-	public int getOwner() {
-		return owner;
-	}
-
-	/**
-	 * Sets the owner of the troop.
-	 * @param owner The owner.
-	 */
-	public void setOwner(int owner) {
-		this.owner = owner;
-	}
-
-	/**
 	 * @return True if the troop is alive, false otherwise.
 	 */
 	public boolean isAlive() {
@@ -243,18 +199,10 @@ abstract public class Troop  extends Sprite {
 	}
 
 	/**
-	 * Sets the production time of the troop.
-	 * @param prodTime The time.
+	 * Decrements the production time of the troop.
 	 */
-	public void setProdTime(int prodTime) {
-		this.prodTime = prodTime;
-	}
-
-	/**
-	 * @return The production cost of the troop.
-	 */
-	public int getProdCost() {
-		return prodCost;
+	public void decrementProdTime() {
+		--prodTime;
 	}
 
 	/**
@@ -262,14 +210,6 @@ abstract public class Troop  extends Sprite {
 	 */
 	public int getSpeed() {
 		return speed;
-	}
-
-	/**
-	 * Sets the speed of the troop.
-	 * @param speed The speed.
-	 */
-	public void setSpeed(int speed) {
-		this.speed = speed;
 	}
 
 	/**
@@ -288,17 +228,25 @@ abstract public class Troop  extends Sprite {
 	}
 
 	/**
+	 * Add HP to the HP of the troop.
+	 * @param hp The HP to add.
+	 */
+	public void addHP(int hp) {
+		health += hp;
+	}
+
+	/**
 	 * @return The damage of the troop.
 	 */
 	public int getDamage() {
 		return damage;
 	}
 
-	/**
-	 * Sets the damage of the troop.
-	 * @param damage The damage.
-	 */
-	public void setDamage(int damage) {
-		this.damage = damage;
+	public Castle getAttachedCastle() {
+		return attachedCastle;
+	}
+
+	public int getProdCost() {
+		return prodCost;
 	}
 }
