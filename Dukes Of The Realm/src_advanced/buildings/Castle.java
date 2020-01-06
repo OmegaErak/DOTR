@@ -14,6 +14,7 @@ import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Castle class.
@@ -41,24 +42,29 @@ public class Castle extends Sprite {
 	private int passiveIncome;
 	private int nextLevelBuildCost;
 	private int nextLevelBuildTime;
-	private int wallHealth = 50;
-	private int wallCost = 3000;
-	private int wallTimeCost = 10;
-	
+
+	private boolean isInConstruction = false;
+	private int timeUntilConstructionFinished;
+
 	private boolean hasWall;
-	private boolean isBuildingWall;
+	private int wallHP = Settings.castleWallHP;
+	private boolean isLevelingUpWall;
+	private int timeUntilWallBuild = -1;
+
 	private boolean isLevelingUp;
 	private int timeUntilLevelUp = -1;
 
 	private int barrackLevel = 1;
+	private int barrackBuildCost = 1600;
+	private int barrackBuildTime = 20;
+	private boolean isLevelingUpBarrack;
+	private int timeUntilBarrackLevelUp = -1;
 
-	private boolean isBarrackLevelingUp;
-	private int timeUntilBarrackLevelUp = 20;
-	private int barracksBuildCost = 1500;
-
-	private ArrayList<Troop> inProductionTroops = new ArrayList<>();
-	private ArrayList<Troop> troopAround = new ArrayList<>();
 	private boolean isProducingTroops;
+	private ArrayList<Troop> inProductionTroops = new ArrayList<>();
+
+	private ArrayList<Troop> leavingTroops = new ArrayList<>();
+	private ArrayList<Troop> attackingTroops = new ArrayList<>();
 
 	/**
 	 * Default constructor
@@ -80,9 +86,9 @@ public class Castle extends Sprite {
 
 		Random rdGen = new Random();
 
-		this.level = 1;
-		this.treasure = Settings.initialTreasure;
-		this.doorDirection = rdGen.nextInt(Direction.nbDirections);
+		level = 1;
+		treasure = Settings.initialTreasure;
+		doorDirection = rdGen.nextInt(Direction.nbDirections);
 
 		this.position = position;
 		
@@ -109,178 +115,226 @@ public class Castle extends Sprite {
 	}
 
 	/**
-	 * Update function that is called every turn (2 seconds).
+	 * Update function that is called every turn.
 	 */
 	public void onUpdate(int[][] gameMap) {
-		this.treasure += this.passiveIncome;
+		treasure += passiveIncome;
 
-		if (this.isLevelingUp) {
-			if (this.timeUntilLevelUp > 0) {
-				--this.timeUntilLevelUp;
-			} else if (this.timeUntilLevelUp == 0) {
-				this.level += 1;
-				this.isLevelingUp = false;
-				--timeUntilLevelUp;
-
-				removeFromCanvas();
-				if(this.hasWall) {
-					setTexture(armoredTexture);
-				}else {					
-					setTexture(texture);
-				}
-				addToCanvas();
-				updateData();
-			}
-		}else if(this.isBuildingWall) {
-			if (this.wallTimeCost > 0) {
-				--this.wallTimeCost;
-			} else if (this.wallTimeCost == 0) {
-				this.isBuildingWall = false;
-				--wallTimeCost;
-				
-				this.hasWall = true;
-
-				removeFromCanvas();
-				setTexture(armoredTexture);
-				addToCanvas();
-				updateData();
-			}
-		}
-
-		if (this.isBarrackLevelingUp) {
-			if (this.timeUntilBarrackLevelUp > 0) {
-				--this.timeUntilBarrackLevelUp;
-			} else if (this.timeUntilBarrackLevelUp == 0) {
-				this.barrackLevel += 1;
-				this.barracksBuildCost *= 2;
-				this.isBarrackLevelingUp = false;
-				--timeUntilBarrackLevelUp;
-
-				removeFromCanvas();
-				if(this.hasWall) {
-					setTexture(armoredTexture);
-				} else {
-					setTexture(texture);
-				}
-				addToCanvas();
-				updateData();
-			}
-		}
-
-		onEnemyAttack(gameMap);
+		onConstruction();
 		onTroopProduction();
+		onEnemySiege(gameMap);
+	}
+
+	private void onConstruction() {
+		if (isInConstruction) {
+			if (isLevelingUp) {
+				if (timeUntilLevelUp > 0) {
+					--timeUntilLevelUp;
+				} else if (timeUntilLevelUp == 0) {
+					level += 1;
+					isLevelingUp = false;
+
+					--timeUntilLevelUp;
+
+					if (this.hasWall) {
+						setTexture(armoredTexture);
+					} else {
+						setTexture(texture);
+					}
+
+					isInConstruction = false;
+					updateData();
+				}
+			} else if (isLevelingUpWall) {
+				if (timeUntilWallBuild > 0) {
+					--timeUntilWallBuild;
+				} else if (timeUntilWallBuild == 0) {
+					isLevelingUpWall = false;
+					hasWall = true;
+
+					--timeUntilWallBuild;
+
+					setTexture(armoredTexture);
+
+					isInConstruction = false;
+					updateData();
+				}
+			} else if (isLevelingUpBarrack) {
+				if (timeUntilBarrackLevelUp > 0) {
+					--timeUntilBarrackLevelUp;
+				} else if (timeUntilBarrackLevelUp == 0) {
+					barrackLevel += 1;
+					isLevelingUpBarrack = false;
+
+					--timeUntilBarrackLevelUp;
+
+					if (this.hasWall) {
+						setTexture(armoredTexture);
+					} else {
+						setTexture(texture);
+					}
+
+					isInConstruction = false;
+					updateData();
+				}
+			}
+
+			--timeUntilConstructionFinished;
+		}
+	}
+
+	/**
+	 * Called when producing troops.
+	 */
+	private void onTroopProduction() {
+		if (isProducingTroops) {
+			int nbToopsInProd = Math.min(barrackLevel, inProductionTroops.size());
+
+			for(int i = 0; i < nbToopsInProd; i++) {
+				if (inProductionTroops.get(i).getProdTime() > 0) {
+					inProductionTroops.get(i).setProdTime(inProductionTroops.get(i).getProdTime() - 1);
+					// TODO: Debug purposes
+					System.out.println(inProductionTroops.get(i).getClass());
+					System.out.println(inProductionTroops.get(i).getProdTime());
+				} else {
+					if (inProductionTroops.get(i).getClass() == Knight.class) {
+						availableKnights.add((Knight)inProductionTroops.get(i));
+					} else if (inProductionTroops.get(i).getClass() == Onager.class) {
+						availableOnagers.add((Onager)inProductionTroops.get(i));
+					} else if (inProductionTroops.get(i).getClass() == Pikeman.class) {
+						availablePikemen.add((Pikeman)inProductionTroops.get(i));
+					} else {
+						throw new RuntimeException("Recruiting unsupported troop type.");
+					}
+
+					inProductionTroops.remove(i);
+				}
+				if (inProductionTroops.size() <= barrackLevel) {
+					--nbToopsInProd;
+					--i;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Manages the castle when there are troops around.
+	 */
+	private void onEnemySiege(int[][] gameMap) {
+		int amountOfDamage = 0;
+		for(int i = 0; i < attackingTroops.size(); i++) {
+			Troop unit = attackingTroops.get(i);
+			if (unit.getOwner() == owner) {
+				receiveTroop(unit);
+				attackingTroops.remove(unit);
+			} else {
+				amountOfDamage += unit.getDamage();
+			}
+		}
+
+		if (hasWall) {
+			wallHP -= amountOfDamage;
+			if(wallHP <= 0) {
+				hasWall = false;
+				setTexture(texture);
+			}
+		}
+
+		int appliedDamage = 0;
+		while (appliedDamage < amountOfDamage && getNbTroops() != 0) {
+			Random r = new Random();
+			int whoIsTakingDamage = r.nextInt(Settings.nbTroopTypes);
+			if (whoIsTakingDamage == 0) {
+				if (availableKnights.isEmpty()) {
+					--appliedDamage;
+				} else {
+					Knight knight = availableKnights.get(0);
+					knight.setHP(knight.getHP() - 1);
+					if (!knight.isAlive()) {
+						availableKnights.remove(knight);
+					}
+				}
+			}
+			else if(whoIsTakingDamage == 1) {
+				if (availableOnagers.isEmpty()) {
+					--appliedDamage;
+				} else {
+					Onager onager= availableOnagers.get(0);
+					onager.setHP(onager.getHP() - 1);
+					if(!onager.isAlive()) {
+						availableOnagers.remove(onager);
+					}
+			}
+			} else if (whoIsTakingDamage == 2) {
+				if (availablePikemen.isEmpty()) {
+					--appliedDamage;
+				} else {
+					Pikeman pikeman = availablePikemen.get(0);
+					pikeman.setHP(pikeman.getHP() - 1);
+					if (!pikeman.isAlive()) {
+						availablePikemen.remove(pikeman);
+					}
+				}
+			} else {
+				break;
+			}
+			++appliedDamage;
+		}
+
+		// If it has been conquered.
+		if(getNbTroops() == 0 && !attackingTroops.isEmpty()) {
+			Image newTexture = new Image("/sprites/castles/castle_" + attackingTroops.get(0).getOwner() + ".png");
+			Image newBuildTexture = new Image("/sprites/castles/castle_" + attackingTroops.get(0).getOwner() + "_build.png");
+			Image newArmoredTexture = new Image("/sprites/castles/armored_castle_" + attackingTroops.get(0).getOwner() + ".png");
+			texture = newTexture;
+			buildingTexture = newBuildTexture;
+			armoredTexture = newArmoredTexture;
+
+			for (Troop troop : attackingTroops) {
+				receiveTroop(troop);
+				gameMap[troop.getxPosMap()][troop.getyPosMap()] = 0;
+			}
+			attackingTroops.clear();
+
+			setOwner(Game.playerID);
+
+			setTexture(texture);
+			Game.playerCastles.add(this);
+		} else {
+			attackingTroops.clear();
+		}
 	}
 
 	/**
 	 * Updates the data after leveling up.
 	 */
 	private void updateData() {
-		this.passiveIncome = 100 * this.level;
-		this.nextLevelBuildCost = 1000 * this.level;
-		this.nextLevelBuildTime = 10 + 5 * this.level;
+		passiveIncome = 100 * level;
+		nextLevelBuildCost = 1000 * level;
+		nextLevelBuildTime = 10 + 5 * level;
+
+		barrackBuildCost = (int)Math.pow(1.5, barrackLevel) * barrackBuildCost;
+		barrackBuildTime = (int)Math.pow(1.1, barrackLevel) * barrackBuildTime;
 	}
 
 	/**
-	 * Adds a wall around the castle.
+	 * @return True if it can build wall, false otherwise.
 	 */
-	public void addWall() {
-		this.isBuildingWall = true;
-		this.treasure -= this.wallCost;
+	public boolean canBuildWall() {
+		return (!hasWall && treasure >= Settings.castleWallBuildCost && !isInConstruction);
+	}
 
-		removeFromCanvas();
+	/**
+	 * Launches the wall construction.
+	 */
+	public void levelUpWall() {
+		isInConstruction = true;
 		setTexture(buildingTexture);
-		addToCanvas();
-	}
 
-	/**
-	 * Manages the castle when there are troops around.
-	 */
-	public void onEnemyAttack(int[][] gameMap) {
-		int amountOfDamage = 0;
-		for(int i = 0; i < troopAround.size(); i++) {
-			Troop unit = troopAround.get(i);
-			if (unit.getOwner() == owner) {
-				receiveTroop(unit);
-				troopAround.remove(unit);
-			} else {
-				amountOfDamage += unit.getDamage();
-			}
-			
-		}
-		if (this.hasWall) {
-			this.wallHealth -= amountOfDamage;
-			if(this.wallHealth <=0) {
-				this.hasWall = false;
-				removeFromCanvas();
-				setTexture(texture);
-				addToCanvas();
-			}
-		}
-
-		int i = 0;
-		while (i < amountOfDamage && (availableKnights.size() != 0 || availableOnagers.size() != 0 || availablePikemen.size() != 0)) {
-			Random r = new Random();
-			int whoIsTakingDamage = r.nextInt(Settings.nbTroopTypes);
-			if (whoIsTakingDamage == 0) {
-				//Knight takes damage
-				if(availableKnights.isEmpty()) {
-					--i;
-				}else {		
-					Knight knight = availableKnights.get(0);
-					knight.setHealth(knight.getHP()-1);
-					if(!knight.isAlive()) {
-						availableKnights.remove(0);
-					}
-				}
-			} else if(whoIsTakingDamage == 1) {
-				//Pikeman takes damage
-				if(availablePikemen.isEmpty()) {
-					--i;
-				}else {
-					Pikeman pikeman = availablePikemen.get(0);
-					pikeman.setHealth(pikeman.getHP()-1);
-					if(!pikeman.isAlive()) {
-						availablePikemen.remove(0);
-					}
-				}
-			} else if(whoIsTakingDamage == 2) {
-				//Onager takes damage
-				if(availableOnagers.isEmpty()) {
-					--i;
-				}else {
-					Onager onager= availableOnagers.get(0);
-					onager.setHealth(onager.getHP()-1);
-					if(!onager.isAlive()) {
-						availableOnagers.remove(0);
-					}
-				}
-			} else {
-				break;
-			}
-			++i;
-		}
-
-		// If it has been conquered.
-		if(availableKnights.isEmpty() && availablePikemen.isEmpty() && availableOnagers.isEmpty() && !troopAround.isEmpty()) {
-			Image newTexture = new Image("/sprites/castles/castle_" + troopAround.get(0).getOwner() + ".png");
-			Image newBuildTexture = new Image("/sprites/castles/castle_" + troopAround.get(0).getOwner() + "_build.png");
-			Image newArmoredTexture = new Image("/sprites/castles/armored_castle_" + troopAround.get(0).getOwner() + ".png");
-			texture = newTexture;
-			buildingTexture = newBuildTexture;
-			armoredTexture = newArmoredTexture;
-
-			for (Troop troop : troopAround) {
-				receiveTroop(troopAround.get(i));
-				troopAround.get(i).getUnitButton().removeFromCanvas();
-				gameMap[troopAround.get(i).getxPosMap()][troopAround.get(i).getyPosMap()] = 0;
-			}
-			troopAround.clear();
-			setOwner(0);
-			removeFromCanvas();
-			setTexture(texture);
-			addToCanvas();
-			Game.playerCastles.add(this);
-		}
+		treasure -= Settings.castleWallBuildCost;
+		isLevelingUpWall = true;
+		timeUntilWallBuild = Settings.castleWallBuildTime;
+		timeUntilConstructionFinished = timeUntilWallBuild;
 	}
 
 	/**
@@ -289,12 +343,12 @@ public class Castle extends Sprite {
 	 */
 	public void receiveTroop(Troop troop) {
 		if(troop.getClass() == Pikeman.class) {
-			availablePikemen.add((Pikeman) troop);
+			availablePikemen.add((Pikeman)troop);
 			troop.removeFromCanvas();
 		} else if(troop.getClass() == Knight.class) {
-			availableKnights.add((Knight) troop);
+			availableKnights.add((Knight)troop);
 		} else if(troop.getClass() == Onager.class){
-			availableOnagers.add((Onager) troop);
+			availableOnagers.add((Onager)troop);
 		} else {
 			treasure += ((Camel)troop).getMoney();
 		}
@@ -327,101 +381,73 @@ public class Castle extends Sprite {
 	}
 
 	/**
-	 * Called when producing troops.
+	 * @return The number of knights being produced.
 	 */
-	public void onTroopProduction() {
-		if (this.isProducingTroops) {
-			int numberOfToopsInProd = Math.min(barrackLevel, inProductionTroops.size());
-
-			for(int i = 0; i < numberOfToopsInProd; i++) {
-				if(inProductionTroops.get(i).getProdTime() > 0) {
-					inProductionTroops.get(i).setProdTime(inProductionTroops.get(i).getProdTime()-1);
-					System.out.println(inProductionTroops.get(i).getClass());
-					System.out.println(inProductionTroops.get(i).getProdTime());
-				} else {
-					if (inProductionTroops.get(i).getClass() == Pikeman.class) {
-						availablePikemen.add((Pikeman) inProductionTroops.get(i));
-					} else if(inProductionTroops.get(i).getClass() == Knight.class) {
-						availableKnights.add((Knight) inProductionTroops.get(i));
-					} else {
-						availableOnagers.add((Onager) inProductionTroops.get(i));
-					}
-					inProductionTroops.remove(i);
-				}
-				if (inProductionTroops.size() <= barrackLevel) {
-					--numberOfToopsInProd;
-					--i;
-				}
+	public int getNbProducingKnights() {
+		int nb = 0;
+		for (Troop troop : inProductionTroops) {
+			if (troop.getClass() == Knight.class) {
+				++nb;
 			}
 		}
+
+		return nb;
+	}
+
+	/**
+	 * @return The number of onagers being produced.
+	 */
+	public int getNbProducingOnagers() {
+		int nb = 0;
+		for (Troop troop : inProductionTroops) {
+			if (troop.getClass() == Onager.class) {
+				++nb;
+			}
+		}
+
+		return nb;
+	}
+
+	/**
+	 * @return The number of pikemen being produced.
+	 */
+	public int getNbProducingPikemen() {
+		int nb = 0;
+		for (Troop troop : inProductionTroops) {
+			if (troop.getClass() == Pikeman.class) {
+				++nb;
+			}
+		}
+
+		return nb;
+	}
+
+	/**
+	 * @return True if it can level up the barrack, false otherwise.
+	 */
+	public boolean canLevelUpBarrack() {
+		return (barrackLevel < Settings.castleBarrackMaxLevel && treasure >= barrackBuildCost && !isInConstruction);
 	}
 
 	/**
 	 * Levels up the barrack of the castle.
 	 */
 	public void levelUpBarrack() {
-		final int timeIncrementation = 20;
-
-		this.isBarrackLevelingUp = true;
-		this.timeUntilBarrackLevelUp += timeIncrementation;
-		this.treasure -= this.barracksBuildCost;
-
-		removeFromCanvas();
+		isInConstruction = true;
 		setTexture(buildingTexture);
-		addToCanvas();
-	}
 
-	/**
-	 * @return The build cost of the barrack.
-	 */
-	public int getBarrackBuildCost() {
-		return barracksBuildCost;
-	}
+		treasure -= barrackBuildCost;
 
-	/**
-	 * @return The barrack level.
-	 */
-	public int getBarrackLevel() {
-		return barrackLevel;
-	}
-
-	/**
-	 * Sets the barrack level.
-	 * @param barrackLevel The level.
-	 */
-	public void setBarrackLevel(int barrackLevel) {
-		this.barrackLevel = barrackLevel;
-	}
-
-	/**
-	 * @param index The index of the knight.
-	 * @return The indexed knight.
-	 */
-	public Knight getKnightByIndex(int index) {
-		return availableKnights.get(index);
-	}
-
-	/**
-	 * @param index The index of the onager.
-	 * @return The indexed onager.
-	 */
-	public Onager getOnagerByIndex(int index) {
-		return availableOnagers.get(index);
-	}
-
-	/**
-	 * @param index The index of the pikeman.
-	 * @return The indexed pikeman.
-	 */
-	public Pikeman getPikemanByIndex(int index) {
-		return availablePikemen.get(index);
+		isLevelingUpBarrack = true;
+		timeUntilBarrackLevelUp = barrackBuildTime;
+		timeUntilConstructionFinished = timeUntilBarrackLevelUp;
 	}
 
 	/**
 	 * @return True if the wall is being built, false otherwise.
 	 */
-	public boolean isBuildingWall() {
-		return isBuildingWall;
+	public boolean isLevelingUpWall() {
+		return isLevelingUpWall;
 	}
 
 	/**
@@ -432,10 +458,18 @@ public class Castle extends Sprite {
 	}
 
 	/**
-	 * @return The cost of building the wall.
+	 * Sets if the castle has a wall or not.
+	 * @param wall True if the castle has a wall, false otherwise.
 	 */
-	public int getWallCost() {
-		return wallCost;
+	public void setHasWall(boolean wall) {
+		hasWall = wall;
+	}
+
+	/**
+	 * @return The treasure of the castle.
+	 */
+	public int getTreasure() {
+		return treasure;
 	}
 
 	/**
@@ -449,15 +483,8 @@ public class Castle extends Sprite {
 	 * Adds a troop to the queue of around troops.
 	 * @param troop The troop.
 	 */
-	public void addTroopAround(Troop troop) {
-		troopAround.add(troop);
-	}
-
-	/**
-	 * @return The treasure of the castle.
-	 */
-	public int getTreasure() {
-		return treasure;
+	public void addAttackingTroop(Troop troop) {
+		attackingTroops.add(troop);
 	}
 
 	/**
@@ -492,7 +519,12 @@ public class Castle extends Sprite {
 	}
 
 	/**
-	 * @return The door direction as int.
+	 * Returns The door direction as int, knowing that:
+	 * 0: South.
+	 * 1: West.
+	 * 2: North.
+	 * 3: East.
+	 * @return Door direction as int.
 	 */
 	public int getDoorDirection() {
 		return doorDirection;
@@ -509,7 +541,7 @@ public class Castle extends Sprite {
 	 * @return The number of troops.
 	 */
 	public int getNbTroops() {
-		return availableKnights.size() + availableOnagers.size() + availablePikemen.size();
+		return getNbKnights() + getNbOnagers() + getNbPikemen();
 	}
 
 	/**
@@ -542,45 +574,23 @@ public class Castle extends Sprite {
 	}
 
 	/**
-	 * @return The time remaining until the next level is finished.
-	 */
-	public int getNextLevelRemainingTime() {
-		return timeUntilLevelUp;
-	}
-
-	/**
-	 * @return The time to build to wall.
-	 */
-	public int getWallTimeCost() {
-		return wallTimeCost;
-	}
-
-	/**
-	 * Sets the time to build the wall.
-	 * @param wallTimeCost The time.
-	 */
-	public void setWallTimeCost(int wallTimeCost) {
-		this.wallTimeCost = wallTimeCost;
-	}
-
-	/**
 	 * @return True if it can level up, false otherwise.
 	 */
 	public boolean canLevelUp() {
-		return this.treasure >= this.nextLevelBuildCost && !this.isLevelingUp;
+		return (level < Settings.castleMaxLevel && treasure >= nextLevelBuildCost && !isInConstruction);
 	}
 
 	/**
 	 * Launches the leveling up of the castle.
 	 */
 	public void levelUp() {
-		this.isLevelingUp = true;
-		this.timeUntilLevelUp = this.nextLevelBuildTime;
-		this.treasure -= this.nextLevelBuildCost;
-
-		removeFromCanvas();
+		isInConstruction = true;
 		setTexture(buildingTexture);
-		addToCanvas();
+
+		treasure -= nextLevelBuildCost;
+		isLevelingUp = true;
+		timeUntilLevelUp = nextLevelBuildTime;
+		timeUntilConstructionFinished = timeUntilLevelUp;
 	}
 
 	/**
@@ -655,5 +665,101 @@ public class Castle extends Sprite {
 	 */
 	public void setLevel(int level) {
 		this.level = level;
+	}
+
+	/**
+	 * @return True if it belongs to the user, false otherwise.
+	 */
+	public boolean isPlayerCastle() {
+		return owner == 0;
+	}
+
+	/**
+	 * Recruit troops.
+	 * @param recruitCommand The command to recruit.
+	 */
+	public void orderRecruit(ArrayList<AtomicInteger> recruitCommand) {
+		int nbKnights = recruitCommand.get(0).get();
+		int nbOnagers = recruitCommand.get(1).get();
+		int nbPikemen = recruitCommand.get(2).get();
+
+		while (nbKnights + nbOnagers + nbPikemen> 0) {
+			if (nbKnights >0) {
+				--nbKnights;
+				Knight knight = new Knight(renderLayer, this);
+				produceTroop(knight);
+			} else if (nbOnagers>0) {
+				--nbOnagers;
+				Onager onager= new Onager(renderLayer, this);
+				produceTroop(onager);
+			} else {
+				--nbPikemen;
+				Pikeman pikeman = new Pikeman(renderLayer, this);
+				produceTroop(pikeman);
+			}
+		}
+	}
+
+	public void orderMoneyTransfer(Castle receiver, int money, int[][] gameMap) {
+		treasure -= money;
+		Camel camel = new Camel(renderLayer, this, money);
+		camel.launchMovingAnimation(getPosition(), receiver, camel, receiver.isPlayerCastle(), camel.getSpeed(), gameMap);
+	}
+	/**
+	 * Moves selected troops to a castle
+	 * @param receiver The castle that will receive the troops.
+	 * @param moveCommand The move command.
+	 */
+	public void orderMove(Castle receiver, ArrayList<AtomicInteger> moveCommand, int[][] gameMap) {
+		ArrayList<Troop> selectedTroops = new ArrayList<>();
+		for (int i = 0; i < moveCommand.get(0).get(); ++i) {
+			selectedTroops.add(availableKnights.get(i));
+		}
+
+		for (int i = 0; i < moveCommand.get(1).get(); ++i) {
+			selectedTroops.add(availableOnagers.get(i));
+		}
+
+		for (int i = 0; i < moveCommand.get(2).get(); ++i) {
+			selectedTroops.add(availablePikemen.get(i));
+		}
+
+		while(selectedTroops.size() >= Settings.ostSize) {
+			int minSpeed = Math.min(selectedTroops.get(0).getSpeed(), selectedTroops.get(1).getSpeed());
+			minSpeed = Math.min(minSpeed, selectedTroops.get(2).getSpeed());
+			for(int i = 0; i < Settings.ostSize; i++) {
+				Troop troop = selectedTroops.get(0);
+				removeTroop(troop);
+				troop.launchMovingAnimation(getPosition(), receiver, selectedTroops.get(0), receiver.isPlayerCastle(), minSpeed, gameMap);
+				selectedTroops.remove(0);
+			}
+		}
+
+		for(int i = 0; i < selectedTroops.size(); i++) {
+			Troop troop = selectedTroops.get(0);
+			removeTroop(troop);
+			troop.launchMovingAnimation(getPosition(), receiver, selectedTroops.get(0), receiver.isPlayerCastle(), selectedTroops.get(0).getSpeed(), gameMap);
+			selectedTroops.remove(0);
+		}
+	}
+
+	public int getBarrackLevel() {
+		return barrackLevel;
+	}
+
+	public void setBarrackLevel(int level) {
+		barrackLevel = level;
+	}
+
+	public int getBarrackBuildCost() {
+		return barrackBuildCost;
+	}
+
+	public int getTimeUntilConstruction() {
+		return timeUntilConstructionFinished;
+	}
+
+	public boolean isInConstruction() {
+		return isInConstruction;
 	}
 }

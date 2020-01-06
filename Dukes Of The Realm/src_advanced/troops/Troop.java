@@ -1,14 +1,12 @@
 package troops;
 
+import algorithms.AStar;
+import algorithms.Node;
 import base.Settings;
 import buildings.Castle;
 
 import drawable.Button;
 import drawable.Sprite;
-
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
 
 import javafx.animation.PathTransition;
 import javafx.geometry.Point2D;
@@ -17,8 +15,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.shape.Polyline;
 import javafx.util.Duration;
 
-import java.io.File;
-import java.util.Random;
+// TODO: Get rid of unit button
 
 /**
  * Troop abstract class.
@@ -31,6 +28,7 @@ abstract public class Troop  extends Sprite {
 	protected int health;
 	protected int damage;
 	protected int owner;
+
 	protected Button unitButton;
 
 	protected int xPosMap;
@@ -46,7 +44,10 @@ abstract public class Troop  extends Sprite {
 	 */
 	public Troop(Pane renderLayer, Castle castle) {
 		super(renderLayer, castle.getPosition());
-		this.owner = castle.getOwner();
+
+		owner = castle.getOwner();
+		textureView.setFitWidth(Settings.knightSize);
+		textureView.setFitHeight(Settings.knightSize);
 	}
 
 	/**
@@ -68,6 +69,34 @@ abstract public class Troop  extends Sprite {
 		unitButton.addToCanvas();
 		
 		return unitButton;
+	}
+
+	/**
+	 * Launches the move animation.
+	 * @param playerCastlePosition The starting position.
+	 * @param targetedCastle The castle that will receive the troop.
+	 * @param unit The troop to move.
+	 * @param castleOwned True if the castle belongs to the player, false otherwise.
+	 * @param speed The speed of the movement.
+	 */
+	public void launchMovingAnimation(Point2D playerCastlePosition, Castle targetedCastle, Troop unit, boolean castleOwned, int speed, int[][] gameMap) {
+		int dxy = Settings.castleSize / 2;
+		Node start = new Node(new Point2D(playerCastlePosition.getX() + dxy, playerCastlePosition.getY() + dxy), 0, 0);
+		Node end = new Node(new Point2D(targetedCastle.getPosition().getX() + dxy, targetedCastle.getPosition().getY() + dxy), 0, 0);
+		Double[] path = AStar.shortestPath(start, end, gameMap, true, castleOwned);
+		String unitPathName;
+		if(unit.getClass() == Pikeman.class) {
+			unitPathName = "pikeman";
+		} else if (unit.getClass() == Knight.class) {
+			unitPathName = "knight";
+		} else if (unit.getClass() == Onager.class) {
+			unitPathName = "onager";
+		} else {
+			unitPathName = "money";
+		}
+		Button unitButton = unit.spawnTroop(renderLayer, unitPathName, 0, playerCastlePosition, path);
+		unit.setUnitButton(unitButton);
+		unit.displace(renderLayer, path, unitButton, unit, gameMap, targetedCastle, castleOwned, speed);
 	}
 
 	/**
@@ -112,23 +141,14 @@ abstract public class Troop  extends Sprite {
 		
 		moveAnimation.play();
 		moveAnimation.setOnFinished(e -> {
-			castleTargeted.addTroopAround(unit);
+			castleTargeted.addAttackingTroop(unit);
 			if(unit.getOwner() == castleTargeted.getOwner()) {
 				unitButton.removeFromCanvas();
 				gameMap[(int) (x-5)/Settings.cellSize][(int) (y-5)/Settings.cellSize] = 0;
 			}		
 			renderLayer.getChildren().remove(polyLine);
-			Random r = new Random();
-			int oofType = r.nextInt(6);
-			File oof = new File("resources/sound/con" + oofType + ".wav");
-			try {
-				Clip clip = AudioSystem.getClip();
-				AudioInputStream inputStream = AudioSystem.getAudioInputStream(oof);
-				clip.open(inputStream);
-				clip.start();
-			} catch (Exception  e1) {
-				e1.printStackTrace();
-			}
+
+			unitButton.removeFromCanvas();
 		});
 		}
 	}

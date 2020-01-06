@@ -9,7 +9,7 @@ import javafx.scene.layout.Pane;
  * Sprite class to be derived by drawable objects.
  */
 public abstract class Sprite {
-    private Pane renderLayer;
+    protected Pane renderLayer;
 
     protected ImageView textureView;
 
