@@ -17,9 +17,10 @@ public class AI {
 		UpgradeBarrack,
 
 		Wait
-	};
+	}
 
 	private ArrayList<Castle> castles;
+	int[][] gameMap;
 
 	private Random rdGen = new Random();
 
@@ -27,14 +28,11 @@ public class AI {
 
 	private double currentActionProb = Settings.AIInitialProbOfAction;
 
-	private Castle castleSelection;
-	int[][] gameMap;
-	
 	AtomicInteger nbKnights = new AtomicInteger();
 	AtomicInteger nbOnagers = new AtomicInteger();
 	AtomicInteger nbPikemen = new AtomicInteger();
 
-	public AI(ArrayList<Castle> castles,int[][] gameMap) {
+	public AI(ArrayList<Castle> castles, int[][] gameMap) {
 		this.castles = castles;
 		this.gameMap = gameMap;
 	}
@@ -43,20 +41,27 @@ public class AI {
 		for (Castle castle : castles) {
 			if (!castle.isPlayerCastle()) {
 				if (shouldAct()) {
-					selectCastleForAction();
+					updateCurrentCastle();
 					applyRandomAction();	
 				}
 			}
 		}
 	}
 	
-	public void selectCastleForAction() {
+	public void updateCurrentCastle() {
 		int castleSelectionIndex = rdGen.nextInt(castles.size());
 		while(castles.get(castleSelectionIndex).isPlayerCastle()) {
 			castleSelectionIndex = rdGen.nextInt(castles.size());
-
 		}
-		this.currentCastle = castles.get(castleSelectionIndex);
+		currentCastle = castles.get(castleSelectionIndex);
+	}
+
+	public Castle selectCastleForAttack() {
+		int castleSelectionIndex = rdGen.nextInt(castles.size());
+		while(!castles.get(castleSelectionIndex).isPlayerCastle() && castles.get(castleSelectionIndex).getOwner() == currentCastle.getOwner()) {
+			castleSelectionIndex = rdGen.nextInt(castles.size());
+		}
+		return castles.get(castleSelectionIndex);
 	}
 
 	private boolean shouldAct() {
@@ -77,7 +82,6 @@ public class AI {
 	public void applyRandomAction() {
 		Action action = selectRandomAction();
 
-
 		switch (action) {
 		case Move:
 			ArrayList<AtomicInteger> moveCommand = new ArrayList<>();
@@ -88,22 +92,23 @@ public class AI {
 			moveCommand.add(nbKnights);
 			moveCommand.add(nbOnagers);
 			moveCommand.add(nbPikemen);
-			this.currentCastle.orderMove(castleSelection, moveCommand, gameMap);			
+			currentCastle.orderMove(selectCastleForAttack(), moveCommand, gameMap);
+
 			break;
 		case Recruit:
-			if(currentCastle.getTreasure() > Settings.minimalBudgetForIaRecruitOrder && !isBuilding())
+			if (currentCastle.getTreasure() > Settings.AIMinimalTreasureForRecruitement && !isBuilding())
 				currentCastle.orderRecruit(createRecruitCommand());
 			break;
 		case UpgradeBarrack:
-			if(currentCastle.canLevelUpBarrack())
+			if (currentCastle.canLevelUpBarrack())
 				currentCastle.levelUpBarrack();
 			break;
 		case UpgradeCastle:
-			if(currentCastle.canLevelUp())
+			if (currentCastle.canLevelUp())
 				currentCastle.levelUp();
 			break;
 		case UpgradeWall:
-			if(currentCastle.canBuildWall())
+			if (currentCastle.canBuildWall())
 				currentCastle.levelUpWall();	
 			break;
 		case Wait:
@@ -144,25 +149,16 @@ public class AI {
 		return action;
 	}
 
-
 	public boolean isBuilding() {
-		return currentCastle.isInConstruction() || currentCastle.isLevelingUp() || currentCastle.isLevelingUpWall();
+		return currentCastle.isInConstruction();
 	}
-	
-	public void selectCastleForAttack(Castle castle) {
-		int castleSelectionIndex = rdGen.nextInt(castles.size());
-		while(!castles.get(castleSelectionIndex).isPlayerCastle() && castles.get(castleSelectionIndex).getOwner() == castle.getOwner()) {
-			castleSelectionIndex = rdGen.nextInt(castles.size());
-		}
-		castleSelection = castles.get(castleSelectionIndex);
-	}
-	
+
 	public ArrayList<AtomicInteger> createRecruitCommand(){
 		ArrayList<AtomicInteger> recruitCommand = new ArrayList<>();
 		int knights = 0;
 		int onagers = 0;
 		int pikeman = 0;
-		int budget = rdGen.nextInt((currentCastle.getTreasure()-Settings.minimalBudgetForIaRecruitOrder)/100)*100 + Settings.minimalBudgetForIaRecruitOrder;
+		int budget = rdGen.nextInt((currentCastle.getTreasure()-Settings.AIMinimalTreasureForRecruitement)/100)*100 + Settings.AIMinimalTreasureForRecruitement;
 		while(budget > 0) {
 			switch(rdGen.nextInt(2)) {
 				case(0):

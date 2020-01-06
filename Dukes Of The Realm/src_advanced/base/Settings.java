@@ -29,7 +29,7 @@ public class Settings {
 	static public final int ostSize = 3;
 	
 	static public final double AIInitialProbOfAction = 0;
-	static public final int minimalBudgetForIaRecruitOrder = 1000;
+	static public final int AIMinimalTreasureForRecruitement = 2000;
 	
 	// Knight, onager and pikeman
 	static public final int nbTroopTypes = 3;

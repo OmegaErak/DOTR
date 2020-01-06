@@ -48,7 +48,7 @@ public class Castle extends Sprite {
 	private boolean isInConstruction = false;
 	private int timeUntilConstructionFinished;
 
-	private boolean hasWall;
+	private boolean hasWall = false;
 	private int wallHP = Settings.castleWallHP;
 	private boolean isLevelingUpWall;
 	private int timeUntilWallBuild = -1;
@@ -290,12 +290,9 @@ public class Castle extends Sprite {
 			int newOwner = attackingTroops.get(0).getAttachedCastle().getOwner();
 			String newOwnerName = attackingTroops.get(0).getAttachedCastle().getOwnerName();
 
-			Image newTexture = new Image("/sprites/castles/castle_" + newOwner + ".png");
-			Image newBuildTexture = new Image("/sprites/castles/castle_" + newOwner + "_build.png");
-			Image newArmoredTexture = new Image("/sprites/castles/armored_castle_" + newOwner + ".png");
-			texture = newTexture;
-			buildingTexture = newBuildTexture;
-			armoredTexture = newArmoredTexture;
+			texture = new Image("/sprites/castles/castle_" + newOwner + ".png");
+			buildingTexture = new Image("/sprites/castles/castle_" + newOwner + "_build.png");
+			armoredTexture = new Image("/sprites/castles/armored_castle_" + newOwner + ".png");
 
 			for (Troop troop : attackingTroops) {
 				receiveTroop(troop);
@@ -474,6 +471,9 @@ public class Castle extends Sprite {
 	 */
 	public void setHasWall(boolean wall) {
 		hasWall = wall;
+		if (hasWall) {
+			setTexture(armoredTexture);
+		}
 	}
 
 	/**
@@ -512,14 +512,23 @@ public class Castle extends Sprite {
 	public void setOwner(int owner) {
 		this.owner = owner;
 
-		final Image texture;
 		if (owner <= Settings.nbMaxActiveDukes) {
 			texture = new Image("/sprites/castles/castle_" + owner + ".png");
+			armoredTexture = new Image("/sprites/castles/armored_castle_" + owner + ".png");
+			buildingTexture = new Image("/sprites/castles/castle_" + owner + "_build.png");
 		} else {
 			texture = new Image("/sprites/castles/castle_neutral.png");
+			armoredTexture = new Image("/sprites/castles/armored_castle_neutral.png");
+			buildingTexture = new Image("/sprites/castles/castle_neutral_build.png");
 		}
 
-		setTexture(texture);
+		if (isInConstruction) {
+			setTexture(buildingTexture);
+		} else if (hasWall) {
+			setTexture(armoredTexture);
+		} else {
+			setTexture(texture);
+		}
 	}
 
 	/**
