@@ -81,11 +81,13 @@ abstract public class Troop  extends Sprite {
 	 * @param speed The speed of the movement.
 	 */
 	public void launchMovingAnimation(Point2D playerCastlePosition, Castle targetedCastle, Troop unit, boolean castleOwned, int speed, int[][] gameMap) {
+		System.out.println("suce-1");
 		int dxy = Settings.castleSize / 2;
 		Node start = new Node(new Point2D(playerCastlePosition.getX() + dxy, playerCastlePosition.getY() + dxy), 0, 0);
 		Node end = new Node(new Point2D(targetedCastle.getPosition().getX() + dxy, targetedCastle.getPosition().getY() + dxy), 0, 0);
 		Double[] path = AStar.shortestPath(start, end, gameMap, true, castleOwned);
 		String unitPathName;
+		System.out.println("suce");
 		if(unit.getClass() == Pikeman.class) {
 			unitPathName = "pikeman";
 		} else if (unit.getClass() == Knight.class) {
@@ -97,7 +99,9 @@ abstract public class Troop  extends Sprite {
 		}
 		Button unitButton = unit.spawnTroop(renderLayer, unitPathName, 0, playerCastlePosition, path);
 		unit.setUnitButton(unitButton);
+		System.out.println("suce2");
 		unit.displace(renderLayer, path, unitButton, unit, gameMap, targetedCastle, castleOwned, speed);
+		System.out.println("suce3");
 	}
 
 	// TODO Clean

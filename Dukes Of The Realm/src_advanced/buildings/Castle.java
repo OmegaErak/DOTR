@@ -593,7 +593,7 @@ public class Castle extends Sprite {
 	 */
 	public void levelUp() {
 		isInConstruction = true;
-		setTexture(buildingTexture);
+		setTexture(this.buildingTexture);
 
 		treasure -= nextLevelBuildCost;
 		isLevelingUp = true;

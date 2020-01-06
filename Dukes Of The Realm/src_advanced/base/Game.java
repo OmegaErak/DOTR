@@ -168,7 +168,7 @@ public class Game {
 						if (frameCounter >= framesPerDay) {
 							frameCounter -= framesPerDay;
 							++currentDayHolder.day;
-
+							
 							AI.onUpdate();
 
 							for (Castle castle : castles) {
@@ -896,7 +896,7 @@ public class Game {
 			castle.addToCanvas();
 		}
 
-		AI = new AI(castles);
+		AI = new AI(castles,gameMap);
 	}
 
 	/**
